@@ -1,0 +1,113 @@
+{% extends "index.html" %}
+
+{%  block body %}
+<nav class="container navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="/taxa/">Таксоны</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/experiments/">Эксперименты</a>
+            </li>
+
+        </ul>
+
+
+        <form class="form-inline" method="post" action="/login">
+            <label class="sr-only" for="inlineFormInputUsername">Имя пользователя</label>
+            <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputUsername" placeholder="Имя пользователя">
+
+
+            <label class="sr-only" for="inlineFormInputPassword">Пароль</label>
+            <input type="password" class="form-control mb-2 mr-sm-2" id="inlineFormInputPassword" placeholder="Пароль">
+
+
+            <button type="submit" class="btn btn-primary mb-2">Вход</button>
+        </form>
+    </div>
+</nav>
+
+<main class="container">
+    <div class="taxons-hierarchy">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/taxa/">Корень</a></li>
+                {% for el in hierarchy %}
+                    <li class="breadcrumb-item active"><a href="/taxa/{{ el.id }}"> {{ el.name }}</a></li>
+                {% endfor %}
+<!--                <li class="breadcrumb-item"><a href="#">Library</a></li>-->
+<!--                <li class="breadcrumb-item active" aria-current="page">Data</li>-->
+            </ol>
+        </nav>
+
+        <a href="#" class="badge badge-pill badge-primary"><h6>Грибы</h6></a>
+        <a href="#" class="badge badge-pill badge-primary"><h6>Растения</h6></a>
+        <a href="#" class="badge badge-pill badge-primary"><h6>Животные</h6></a>
+        <a href="#" class="badge badge-pill badge-primary"><h6>Вирусы</h6></a>
+    </div>
+
+    <br>
+    <br>
+
+    <div class="table-experiments">
+        <table class="table table-striped table-hover table-responsive">
+            <thead class="thead-default">
+            <tr>
+                <th>#</th>
+                <th>Название</th>
+                <th>Образ жизни</th>
+                <th>Ареал</th>
+                <th>Пол</th>
+                <th>Возраст(дни)</th>
+                <th>Вес(кг)</th>
+                <th>Длина(см)</th>
+                <th>Факторы среды</th>
+                <th>Заболевания</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th scope="row">1</th>
+                <td>Эксперимент 1</td>
+                <td>дневное</td>
+                <td>дикое</td>
+                <td>мужской</td>
+                <td>1</td>
+                <td>0,2</td>
+                <td>30</td>
+                <td>нет</td>
+                <td>рак</td>
+            </tr>
+            <tr>
+                <th scope="row">2</th>
+                <td>Эксперимент 2</td>
+                <td>ночное</td>
+                <td>лабораторное</td>
+                <td>женский</td>
+                <td>2</td>
+                <td>1</td>
+                <td>40</td>
+                <td>Холод</td>
+                <td>Глаукома</td>
+            </tr>
+            <tr>
+                <th scope="row">3</th>
+                <td>Эксперимент 3</td>
+                <td>сумеречное</td>
+                <td>фермерское</td>
+                <td>другой</td>
+                <td>3</td>
+                <td>5</td>
+                <td>50</td>
+                <td>нет</td>
+                <td>нет</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+{% endblock %}
