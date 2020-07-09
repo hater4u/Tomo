@@ -36,17 +36,19 @@
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/taxa/">Корень</a></li>
                 {% for el in hierarchy %}
-                    <li class="breadcrumb-item active"><a href="/taxa/{{ el.id }}"> {{ el.name }}</a></li>
+                    <li class="breadcrumb-item {% if forloop.last %}active{% endif %}">
+                        {% if forloop.last %}{{ el.name }}
+                        {% else %}<a href="/taxa/{{ el.id }}">{{ el.name }} </a>
+                        {% endif %}
+                    </li>
                 {% endfor %}
 <!--                <li class="breadcrumb-item"><a href="#">Library</a></li>-->
 <!--                <li class="breadcrumb-item active" aria-current="page">Data</li>-->
             </ol>
         </nav>
-
-        <a href="#" class="badge badge-pill badge-primary"><h6>Грибы</h6></a>
-        <a href="#" class="badge badge-pill badge-primary"><h6>Растения</h6></a>
-        <a href="#" class="badge badge-pill badge-primary"><h6>Животные</h6></a>
-        <a href="#" class="badge badge-pill badge-primary"><h6>Вирусы</h6></a>
+        {% for el in children %}
+        <a href="/taxa/{{ el.id }}" class="badge badge-pill badge-primary"><h6>{{ el.name }}</h6></a>
+        {% endfor %}
     </div>
 
     <br>
@@ -69,42 +71,20 @@
             </tr>
             </thead>
             <tbody>
+            {% for el in experiments %}
             <tr>
-                <th scope="row">1</th>
-                <td>Эксперимент 1</td>
-                <td>дневное</td>
-                <td>дикое</td>
-                <td>мужской</td>
-                <td>1</td>
-                <td>0,2</td>
-                <td>30</td>
-                <td>нет</td>
-                <td>рак</td>
+                <th scope="row"> {{ forloop.counter }} </th>
+                <td>{{ el.name }}</td>
+                <td>{{ el.wayOfLife }}</td>
+                <td>{{ el.habitat }}</td>
+                <td>{{ el.gender }}</td>
+                <td>{{ el.monthsAge }}</td>
+                <td>{{ el.weight }}</td>
+                <td>{{ el.length }}</td>
+                <td>{{ el.environmentalFactors }}</td>
+                <td>{{ el.diseases }}</td>
             </tr>
-            <tr>
-                <th scope="row">2</th>
-                <td>Эксперимент 2</td>
-                <td>ночное</td>
-                <td>лабораторное</td>
-                <td>женский</td>
-                <td>2</td>
-                <td>1</td>
-                <td>40</td>
-                <td>Холод</td>
-                <td>Глаукома</td>
-            </tr>
-            <tr>
-                <th scope="row">3</th>
-                <td>Эксперимент 3</td>
-                <td>сумеречное</td>
-                <td>фермерское</td>
-                <td>другой</td>
-                <td>3</td>
-                <td>5</td>
-                <td>50</td>
-                <td>нет</td>
-                <td>нет</td>
-            </tr>
+            {% endfor %}
             </tbody>
         </table>
     </div>
