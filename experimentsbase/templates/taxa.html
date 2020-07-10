@@ -81,8 +81,16 @@
                 <td>{{ el.monthsAge }}</td>
                 <td>{{ el.weight }}</td>
                 <td>{{ el.length }}</td>
-                <td>{{ el.environmentalFactors }}</td>
-                <td>{{ el.diseases }}</td>
+                <td>
+                    {% for elem in el.environmentalFactors %}
+                        {{ elem }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for elem in el.diseases %}
+                        {{ elem }}<br>
+                    {% endfor %}
+                </td>
             </tr>
             {% endfor %}
             </tbody>

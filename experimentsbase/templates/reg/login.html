@@ -1,0 +1,61 @@
+{% extends 'index.html' %}
+
+{% block body %}
+
+<nav class="container navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="/taxa/">Таксоны</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/experiments/">Эксперименты</a>
+            </li>
+
+        </ul>
+
+
+        <form class="form-inline" method="post" action="/login">
+            <label class="sr-only" for="inlineFormInputUsername">Имя пользователя</label>
+            <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputUsername" placeholder="Имя пользователя">
+
+
+            <label class="sr-only" for="inlineFormInputPassword">Пароль</label>
+            <input type="password" class="form-control mb-2 mr-sm-2" id="inlineFormInputPassword" placeholder="Пароль">
+
+
+            <button type="submit" class="btn btn-primary mb-2">Вход</button>
+        </form>
+    </div>
+</nav>
+
+<main class="container">
+
+    <br>
+    <br>
+    <br>
+
+    <div class="row  justify-content-center">
+        <form class="form-signin col-auto">
+            {% csrf_token %}
+            <h1 class="h3 mb-3 font-weight-normal">Вход</h1>
+            <label for="inputEmail" class="sr-only">Email</label>
+            <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
+            <label for="inputPassword" class="sr-only">Пароль</label>
+            <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+            <input class="btn btn-lg btn-primary btn-block" type="submit" value="Войти">
+            {% if login_error %}
+            <div class="alert alert-danger">
+                {{ login_error }}
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+</main>
+
+{% endblock %}
+
+

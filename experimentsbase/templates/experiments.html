@@ -38,6 +38,7 @@
     <h3>Поиск экспериментов</h3>
 
     <form action="/experiments/" method="post">
+        {% csrf_token %}
         <div class="form-group">
             <label for="experimentName">Имя эксперимента</label>
             <input type="text" class="form-control" id="experimentName" name="experimentName" aria-describedby="experimentNameHelp">
@@ -75,15 +76,15 @@
         <label class="form-check-label">Ареал обитания: </label>
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" id="wildHabitatCheckbox" name="wildHabitatCheckbox" value="WILD">
-            <label class="form-check-label" for="wildHabitatCheckbox">Дневное</label>
+            <label class="form-check-label" for="wildHabitatCheckbox">Дикое</label>
         </div>
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" id="laboratoryHabitatCheckbox" name="laboratoryHabitatCheckbox" value="LABORATORY">
-            <label class="form-check-label" for="laboratoryHabitatCheckbox">Ночное</label>
+            <label class="form-check-label" for="laboratoryHabitatCheckbox">Лабораторное</label>
         </div>
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" id="farmHabitatCheckbox" name="farmHabitatCheckbox" value="FARM">
-            <label class="form-check-label" for="farmHabitatCheckbox">Сумеречное</label>
+            <label class="form-check-label" for="farmHabitatCheckbox">Фермерское</label>
         </div>
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" id="otherHabitatCheckbox" name="otherHabitatCheckbox" value="OTHER">

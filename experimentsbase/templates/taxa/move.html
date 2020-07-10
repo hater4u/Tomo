@@ -1,0 +1,67 @@
+{% extends 'index.html' %}
+
+{% block body %}
+
+<nav class="container navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="/taxa/">Таксоны</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/experiments/">Эксперименты</a>
+            </li>
+
+        </ul>
+
+
+        <form class="form-inline" method="post" action="/login">
+            <label class="sr-only" for="inlineFormInputUsername">Имя пользователя</label>
+            <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputUsername" placeholder="Имя пользователя">
+
+
+            <label class="sr-only" for="inlineFormInputPassword">Пароль</label>
+            <input type="password" class="form-control mb-2 mr-sm-2" id="inlineFormInputPassword" placeholder="Пароль">
+
+
+            <button type="submit" class="btn btn-primary mb-2">Вход</button>
+        </form>
+    </div>
+</nav>
+
+<main class="container">
+
+    <br>
+    <h3>Перемещение таксона</h3>
+    <form action="/taxa/move" method="post">
+        {% csrf_token %}
+        <input type="hidden" id="taxonId" name="taxonId" value="">
+
+        <div class="form-group">
+            <h6>Родитель: parentId</h6>
+            <h6>ID таксона: taxonId</h6>
+            <br>
+
+            <label for="taxonParentId">Поиск нового родителя таксона</label>
+            <input type="text" class="form-control" id="taxonParentId" name="taxonParentId" aria-describedby="taxonParentIdHelp">
+            <small id="taxonParentIdHelp" class="form-text text-muted">Введите имя таксона для поиска. Оставьте пустым для перемещения таксона в корень</small>
+        </div>
+    </form>
+
+
+    <div class="taxons-hierarchy">
+        <a href="#" class="badge badge-pill badge-primary"><h6>Грибы</h6></a>
+        <a href="#" class="badge badge-pill badge-primary"><h6>Растения</h6></a>
+        <a href="#" class="badge badge-pill badge-primary"><h6>Животные</h6></a>
+        <a href="#" class="badge badge-pill badge-primary"><h6>Вирусы</h6></a>
+    </div>
+
+    <br>
+    <br>
+
+    <input type="submit" class="btn btn-primary" value="Переместить таксон">
+</main>
+
+{% endblock %}

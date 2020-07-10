@@ -1,0 +1,50 @@
+{% extends 'index.html' %}
+
+{% block body %}
+
+<nav class="container navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="/taxa/">Таксоны</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/experiments/">Эксперименты</a>
+            </li>
+
+        </ul>
+
+
+        <form class="form-inline" method="post" action="/login">
+            <label class="sr-only" for="inlineFormInputUsername">Имя пользователя</label>
+            <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputUsername" placeholder="Имя пользователя">
+
+
+            <label class="sr-only" for="inlineFormInputPassword">Пароль</label>
+            <input type="password" class="form-control mb-2 mr-sm-2" id="inlineFormInputPassword" placeholder="Пароль">
+
+
+            <button type="submit" class="btn btn-primary mb-2">Вход</button>
+        </form>
+    </div>
+</nav>
+
+<main class="container">
+
+    <br>
+    <h3>Удаление таксона</h3>
+    <h6>Вы уверены, что хотите удалить таксон taxonName(taxonId)?</h6>
+    <br>
+    <form action="/taxa/delete" method="post">
+        {% csrf_token %}
+        <input type="hidden" id="taxonId" name="taxonId" value="">
+
+        <a href="/taxa/"><input type="submit" class="btn btn-primery" value="Отмена"></a>
+        <input type="submit" class="btn btn-danger" name="delete" value="Удалить">
+    </form>
+
+</main>
+
+{% endblock %}
