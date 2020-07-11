@@ -1,54 +1,37 @@
 {% extends 'index.html' %}
 
+{% block taxon_active %}active{% endblock %}
+
 {% block body %}
-
-<nav class="container navbar navbar-expand-lg navbar-light bg-light">
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="/taxa/">Таксоны</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="/experiments/">Эксперименты</a>
-            </li>
-
-        </ul>
-
-
-        <form class="form-inline" method="post" action="/login">
-            <label class="sr-only" for="inlineFormInputUsername">Имя пользователя</label>
-            <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputUsername" placeholder="Имя пользователя">
-
-
-            <label class="sr-only" for="inlineFormInputPassword">Пароль</label>
-            <input type="password" class="form-control mb-2 mr-sm-2" id="inlineFormInputPassword" placeholder="Пароль">
-
-
-            <button type="submit" class="btn btn-primary mb-2">Вход</button>
-        </form>
-    </div>
-</nav>
 
 <main class="container">
 
     <br>
     <h3>Добавление нового таксона</h3>
-    <form action="/taxa/new" method="post">
+    <form action="/taxa/new/" method="post">
         {% csrf_token %}
         <div class="form-group">
             <label for="taxonName">Имя нового таксона</label>
             <input type="text" class="form-control" id="taxonName" name="taxonName" aria-describedby="taxonNameHelp">
         </div>
-
+{#        <input type="hidden" name="taxonParentId">#}
         <div class="form-group">
-            <label for="taxonParentId">Поиск родителя таксона</label>
-            <input type="text" class="form-control" id="taxonParentId" name="taxonParentId" aria-describedby="taxonParentIdHelp">
-            <small id="taxonParentIdHelp" class="form-text text-muted">Введите имя таксона для поиска. Оставьте пустым для создания корневого таксона</small>
+            <label for="taxonParentName">Поиск родителя таксона</label>
+            <input type="text" class="form-control" id="taxonParentName" name="taxonParentName" aria-describedby="taxonParentNameHelp">
+            <small id="taxonParentNameHelp" class="form-text text-muted">Введите имя таксона для поиска. Оставьте пустым для создания корневого таксона</small>
         </div>
 
-
+        {% if success != null %}
+        {% if success %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+        {% else %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+        {% endif %}
+        {% endif %}
 
         <div class="taxons-hierarchy">
 

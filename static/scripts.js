@@ -1,20 +1,30 @@
+function addParentId(element) {
+    // let el = document.getElementsByName("taxonParentId")[0];
+    // el.setAttribute("value", element.dataset.parentid);
 
-function createChildren()
-{
+    let el = document.getElementsByName("taxonParentName")[0];
+    el.value = element.textContent;
+
+    let els = document.getElementsByClassName("taxons-hierarchy")[0].childNodes;
+    let length = els.length
+    for (let i = 0; i < length; i++) {
+        els[0].remove();
+    }
+}
+
+function createChildren() {
     let el = document.getElementsByClassName("taxons-hierarchy")[0];
     let children = JSON.parse(this.responseText).value;
 
     el.innerHTML = '';
-    for(let i = 0; i < children.length; i++)
-    {
-        el.innerHTML += '<a href="/taxa/' + children[i].id + '" class="badge badge-pill badge-primary"><h6>' +  children[i].name + '</h6></a>';
+    for(let i = 0; i < children.length; i++) {
+        el.innerHTML += '<div onclick="addParentId(this)" data-parentId="'+ children[i].id +
+            '" class="badge badge-pill badge-primary"><h6>' +  children[i].name + '</h6></div>';
     }
-
 
 }
 
-function searchParentId(event)
-{
+function searchParentId(event) {
     let xhr = new XMLHttpRequest();
     let parentName = encodeURIComponent(event.currentTarget.value);
     if(parentName === "") return;
@@ -27,8 +37,7 @@ function searchParentId(event)
     xhr.send(body);
 }
 
-window.onload = function(e)
-{
-    let el = document.getElementById("taxonParentId");
+document.addEventListener('DOMContentLoaded', function () {
+    let el = document.getElementById("taxonParentName");
     el.addEventListener('keyup', searchParentId);
-}
+});

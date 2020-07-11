@@ -1,35 +1,8 @@
 {% extends 'index.html' %}
 
+{% block taxon_active %}active{% endblock %}
+
 {% block body %}
-
-<nav class="container navbar navbar-expand-lg navbar-light bg-light">
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="/taxa/">Таксоны</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="/experiments/">Эксперименты</a>
-            </li>
-
-        </ul>
-
-
-        <form class="form-inline" method="post" action="/login">
-            <label class="sr-only" for="inlineFormInputUsername">Имя пользователя</label>
-            <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputUsername" placeholder="Имя пользователя">
-
-
-            <label class="sr-only" for="inlineFormInputPassword">Пароль</label>
-            <input type="password" class="form-control mb-2 mr-sm-2" id="inlineFormInputPassword" placeholder="Пароль">
-
-
-            <button type="submit" class="btn btn-primary mb-2">Вход</button>
-        </form>
-    </div>
-</nav>
 
 <main class="container">
 
@@ -38,7 +11,7 @@
     <h6>Старое имя: taxonName</h6>
     <h6>ID таксона: taxonId</h6>
     <br>
-    <form action="/taxa/rename" method="post">
+    <form action="/taxa/rename/" method="post">
         {% csrf_token %}
         <input type="hidden" id="taxonId" name="taxonId" value="">
 
