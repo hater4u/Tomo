@@ -1,0 +1,40 @@
+{% extends 'index.html' %}
+
+{% block taxon_active %}active{% endblock %}
+
+{% block body %}
+
+<main class="container">
+
+    <br>
+    <h3>Удаление таксона</h3>
+    <h6>Вы уверены, что хотите удалить таксон {{ taxon_name }}({{ taxon_id }})?</h6>
+    <br>
+    <form action="/taxon/delete/{{ taxon_id }}/" method="post">
+        {% csrf_token %}
+        <input type="hidden" id="taxonId" name="taxonId" value="">
+
+
+        {% if success != null %}
+        {% if success %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+        {% else %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+        <a href="/taxons/" class="btn btn-primery" >Вернуться на главную</a>
+        <input type="submit" class="btn btn-danger" name="delete" value="Удалить">
+        {% endif %}
+        {% else %}
+        <a href="/taxons/" class="btn btn-primery" >Вернуться на главную</a>
+        <input type="submit" class="btn btn-danger" name="delete" value="Удалить">
+        {% endif %}
+
+
+    </form>
+
+</main>
+
+{% endblock %}

@@ -8,10 +8,10 @@
 
     <br>
     <h3>Изменение имени таксона</h3>
-    <h6>Старое имя: taxonName</h6>
-    <h6>ID таксона: taxonId</h6>
+    <h6>Текущее имя: </h6>
+    <h6>ID таксона: {{ taxon_id }}</h6>
     <br>
-    <form action="/taxa/rename/" method="post">
+    <form action="/taxon/rename/{{ taxon_id }}/" method="post">
         {% csrf_token %}
         <input type="hidden" id="taxonId" name="taxonId" value="">
 
@@ -20,12 +20,20 @@
             <input type="text" class="form-control" id="taxonName" name="taxonName" aria-describedby="taxonNameHelp">
         </div>
 
+        {% if success != null %}
+        {% if success %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+        {% else %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+        {% endif %}
+        {% endif %}
+
         <input type="submit" class="btn btn-primary" value="Изменить имя">
     </form>
-
-
-    <br>
-    <br>
 
 </main>
 

@@ -18,7 +18,7 @@
         {% for el in experiments %}
         <tr>
             <th scope="row"> {{ forloop.counter }} </th>
-            <td><a href="/experiment/{{ el.id }}">{{ el.name }}</a></td>
+            <td><a href="/experiment/{{ el.id }}/">{{ el.name }}</a></td>
             <td>{{ el.wayOfLife }}</td>
             <td>{{ el.habitat }}</td>
             <td>{{ el.gender }}</td>

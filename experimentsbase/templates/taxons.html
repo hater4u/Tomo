@@ -9,10 +9,10 @@
     {% if user_auth %}
     <br>
     <div class="taxon-buttons">
-        <a href="/taxa/new" class="btn btn-success">Добавить таксон</a>
-        <a href="/taxa/rename/{{ taxon_id }}" class="btn btn-primary">Переименовать таксон</a>
-        <a href="/taxa/move/{{ taxon_id }}" class="btn btn-primary">Переместить таксон</a>
-        <a href="/taxa/delete/{{ taxon_id }}" class="btn btn-danger">Удалить таксон</a>
+        <a href="/taxon/new/" class="btn btn-success">Добавить таксон</a>
+        <a href="/taxon/rename/{{ taxon_id }}" class="btn btn-primary">Переименовать таксон</a>
+        <a href="/taxon/move/{{ taxon_id }}" class="btn btn-primary">Переместить таксон</a>
+        <a href="/taxon/delete/{{ taxon_id }}" class="btn btn-danger">Удалить таксон</a>
     </div>
     <br>
     {% endif %}
@@ -20,11 +20,11 @@
     <div class="taxons-hierarchy">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/taxa/">Корень</a></li>
+                <li class="breadcrumb-item"><a href="/taxons/">Корень</a></li>
                 {% for el in hierarchy %}
                     <li class="breadcrumb-item {% if forloop.last %}active{% endif %}">
                         {% if forloop.last %}{{ el.name }}
-                        {% else %}<a href="/taxa/{{ el.id }}">{{ el.name }} </a>
+                        {% else %}<a href="/taxons/{{ el.id }}">{{ el.name }} </a>
                         {% endif %}
                     </li>
                 {% endfor %}
@@ -33,7 +33,7 @@
             </ol>
         </nav>
         {% for el in children %}
-        <a href="/taxa/{{ el.id }}" class="badge badge-pill badge-primary"><h6>{{ el.name }}</h6></a>
+        <a href="/taxons/{{ el.id }}" class="badge badge-pill badge-primary"><h6>{{ el.name }}</h6></a>
         {% endfor %}
     </div>
 

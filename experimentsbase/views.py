@@ -12,11 +12,10 @@ import json
 
 # TODO: write normal index
 def index(request):
-    return redirect('taxa')
+    return redirect('taxons')
 
 
 def login(request):
-
     args = {}
     args.update(csrf(request))
 
@@ -28,7 +27,7 @@ def login(request):
 
         if user is not None:
             auth.login(request, user)
-            return redirect('taxa')
+            return redirect('taxons')
 
         else:
             args['login_error'] = 'Пользователь не найден'
@@ -98,7 +97,7 @@ def translate_experiments(experiments_list):
     return experiments_list
 
 
-def taxa_id(request, taxon_id):
+def taxons_id(request, taxon_id):
     args = dict()
     args["taxon_id"] = taxon_id
     hierarchy = get_taxon_path(taxon_id)
@@ -116,14 +115,14 @@ def taxa_id(request, taxon_id):
 
     args = check_auth_user(request, args)
 
-    return render(request, "taxa.html", args)
+    return render(request, "taxons.html", args)
 
 
-def taxa(request):
-    return taxa_id(request, "")
+def taxons(request):
+    return taxons_id(request, "")
 
 
-def taxa_parent_search(request):
+def taxon_parent_search(request):
     if request.POST:
         if request.user.is_authenticated:
             if request.user.is_staff:
@@ -139,10 +138,10 @@ def taxa_parent_search(request):
                     print('Taxon search error:' + str(e))
                     return JsonResponse({'value': []})
     else:
-        return redirect('taxa')
+        return redirect('taxons')
 
 
-def taxa_add(request):
+def taxon_add(request):
     args = dict()
     args = check_auth_user(request, args)
     args.update(csrf(request))
@@ -152,7 +151,7 @@ def taxa_add(request):
                 if request.POST['taxonName'] == '':
                     args['success'] = False
                     args['message'] = 'Пустое имя нового таксона'
-                    return render(request, 'taxa/new.html', args)
+                    return render(request, 'taxon/new.html', args)
 
                 try:
                     all_taxons = requests.get(API_URL + '/api/taxa/all').json()['value']
@@ -173,69 +172,186 @@ def taxa_add(request):
                                 else:
                                     args['success'] = False
                                     args['message'] = 'Таксон не был добавлен. Обратитесь к администратору сервера.'
-                                return render(request, 'taxa/new.html', args)
+                                return render(request, 'taxon/new.html', args)
 
                             except Exception as exp:
                                 print('Error add taxon:' + str(exp))
                                 args['success'] = False
                                 args['message'] = 'Проблема с добавлением таксона. Обратитесь к администратору сервера.'
-                                return render(request, 'taxa/new.html', args)
+                                return render(request, 'taxon/new.html', args)
                     args['success'] = False
                     args['message'] = 'Такой таксон-родитель не найден'
-                    return render(request, 'taxa/new.html', args)
+                    return render(request, 'taxon/new.html', args)
                 except Exception as e:
                     print('Error add taxon:' + str(e))
                     args['success'] = False
                     args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
-                    return render(request, 'taxa/new.html', args)
+                    return render(request, 'taxon/new.html', args)
             else:
-                return render(request, 'taxa/new.html', args)
+                return render(request, 'taxon/new.html', args)
         else:
             return render(request, 'reg/403.html', args)
     else:
         return redirect('login')
 
 
-def taxa_rename(request, taxon_id):
+def taxon_rename_id(request, taxon_id):
+    args = dict()
+    args['taxon_id'] = taxon_id
+    args = check_auth_user(request, args)
+    args.update(csrf(request))
     if request.user.is_authenticated:
         if request.user.is_staff:
-            args = dict()
-            # Terrible
-            args = check_auth_user(request, args)
-            args.update(csrf(request))
-            return render(request, 'taxa/rename.html', args)
+            if request.POST:
+                if request.POST["taxonName"] == "":
+                    args['success'] = False
+                    args['message'] = 'Пустое имя таксона'
+                    return render(request, 'taxon/rename.html', args)
+
+                try:
+                    headers = {'Content-Type': 'application/json'}
+                    if requests.post(API_URL + "/api/taxa/rename",
+                                     data=json.dumps({"id": taxon_id, "name": request.POST['taxonName']}),
+                                     headers=headers,
+                                     auth=('docker_admin', '123qweasdzxc')).status_code == 200:
+                        args['success'] = True
+                        args['message'] = 'Имя таксона успешно изменено'
+                    else:
+                        args['success'] = False
+                        args['message'] = 'Имя таксона не было изменено. Обратитесь к администратору сервера.'
+                    return render(request, 'taxon/rename.html', args)
+                except Exception as e:
+                    print('Error rename taxon:' + str(e))
+                    args['success'] = False
+                    args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                    return render(request, 'taxon/rename.html', args)
+
+            else:
+                return render(request, 'taxon/rename.html', args)
         else:
             return render(request, 'reg/403.html')
     else:
         return redirect('login')
 
 
-def taxa_move(request, taxon_id):
+def taxon_rename(request):
+    return redirect('taxons')
+
+
+def taxon_move_id(request, taxon_id):
+    args = dict()
+    args = check_auth_user(request, args)
+    args.update(csrf(request))
     if request.user.is_authenticated:
         if request.user.is_staff:
-            args = dict()
-            # Terrible
-            args = check_auth_user(request, args)
-            args.update(csrf(request))
-            return render(request, 'taxa/move.html', args)
+            args["taxon_id"] = taxon_id
+            try:
+                values = requests.get(API_URL + '/api/taxa',
+                                      params={'id': taxon_id}).json()['value']
+                args['taxon_name'] = values['name']
+                if values['parentId']:
+                    args["taxon_parent_name"] = requests.get(API_URL + '/api/taxa',
+                                                         params={'id': values['parentId']}).json()['value']['name']
+                else:
+                    args['taxon_parent_name'] = ''
+            except Exception as e:
+                print('Error move taxon, getting taxon_parent_id :' + str(e))
+                args['success'] = False
+                args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                return render(request, 'taxon/move.html', args)
+
+            if request.POST:
+                try:
+                    all_taxons = requests.get(API_URL + '/api/taxa/all').json()['value']
+                    all_taxons.append({'name': '', 'id': ''})
+                    print(all_taxons)
+                    for el in all_taxons:
+                        if el['name'] == request.POST['taxonParentName']:
+                            parent_id = el['id']
+                            try:
+                                headers = {'Content-Type': 'application/json'}
+                                if requests.post(API_URL + '/api/taxa/move',
+                                                 data=json.dumps({'id': taxon_id,
+                                                                  'parentId': parent_id}),
+                                                 headers=headers,
+                                                 auth=('docker_admin', '123qweasdzxc')).status_code == 200:
+                                    args['success'] = True
+                                    args['message'] = 'Таксон успешно перемещен'
+                                else:
+                                    args['success'] = False
+                                    args['message'] = 'Таксон не был перемещен. Обратитесь к администратору сервера.'
+                                return render(request, 'taxon/move.html', args)
+
+                            except Exception as exp:
+                                print('Error move taxon:' + str(exp))
+                                args['success'] = False
+                                args['message'] = 'Проблема с перемещением таксона. Обратитесь к администратору ' \
+                                                  'сервера. '
+                                return render(request, 'taxon/move.html', args)
+                    args['success'] = False
+                    args['message'] = 'Такой таксон-родитель не найден'
+                    return render(request, 'taxon/move.html', args)
+                except Exception as e:
+                    print('Error add taxon:' + str(e))
+                    args['success'] = False
+                    args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                    return render(request, 'taxon/move.html', args)
+            else:
+                return render(request, 'taxon/move.html', args)
+        else:
+            return render(request, 'reg/403.html', args)
+    else:
+        return redirect('login')
+
+
+def taxon_move(request):
+    return redirect('taxons')
+
+
+def taxon_delete_id(request, taxon_id):
+    args = dict()
+    # Terrible
+    args = check_auth_user(request, args)
+    args.update(csrf(request))
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            args["taxon_id"] = taxon_id
+
+            try:
+                args["taxon_name"] = requests.get(API_URL + '/api/taxa', params={'id': taxon_id}).json()['value'][
+                    'name']
+            except Exception as e:
+                print('Error delete taxon, getting taxon_name :' + str(e))
+                args['success'] = False
+                args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                return render(request, 'taxon/delete.html', args)
+
+            if request.POST:
+                if request.POST['delete']:
+                    try:
+                        if requests.post(API_URL + "/api/taxa/delete", params={"id": taxon_id},
+                                         auth=('docker_admin', '123qweasdzxc')).status_code == 200:
+                            args['success'] = True
+                            args['message'] = 'Таксон успешно удалён'
+                        else:
+                            args['success'] = False
+                            args['message'] = 'Таксон не был удалён. Обратитесь к администратору сервера.'
+                        return render(request, 'taxon/delete.html', args)
+                    except Exception as e:
+                        print('Error delete taxon, getting taxon_name :' + str(e))
+                        args['success'] = False
+                        args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                        return render(request, 'taxon/delete.html', args)
+            else:
+                return render(request, 'taxon/delete.html', args)
         else:
             return render(request, 'reg/403.html')
     else:
         return redirect('login')
 
 
-def taxa_delete(request, taxon_id):
-    if request.user.is_authenticated:
-        if request.user.is_staff:
-            args = dict()
-            # Terrible
-            args = check_auth_user(request, args)
-            args.update(csrf(request))
-            return render(request, 'taxa/delete.html', args)
-        else:
-            return render(request, 'reg/403.html')
-    else:
-        return redirect('login')
+def taxon_delete(request):
+    return redirect('taxons')
 
 
 def experiment(request, experiment_id):
@@ -347,13 +463,13 @@ def experiments(request):
 
         # Withdraw date
         if request.POST["withdrawDateFrom"] != "":
-        #     search_dict["withdrawDateFrom"] = "null"
-        # else:
+            #     search_dict["withdrawDateFrom"] = "null"
+            # else:
             search_dict["withdrawDateFrom"] = request.POST["withdrawDateFrom"] + " 00:00:00"
 
         if request.POST["withdrawDateTo"] != "":
-        #     search_dict["withdrawDateTo"] = "null"
-        # else:
+            #     search_dict["withdrawDateTo"] = "null"
+            # else:
             search_dict["withdrawDateTo"] = request.POST["withdrawDateTo"] + " 00:00:00"
 
         # Seconds post mortem

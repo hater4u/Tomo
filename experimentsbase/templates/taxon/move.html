@@ -1,0 +1,49 @@
+{% extends 'index.html' %}
+
+{% block taxon_active %}active{% endblock %}
+
+{% block body %}
+
+<main class="container">
+
+    <br>
+    <h3>Перемещение таксона</h3>
+    <form action="/taxon/move/{{ taxon_id }}/" method="post">
+        {% csrf_token %}
+        <input type="hidden" id="taxonId" name="taxonId" value="">
+
+        <div class="form-group">
+            <h6>Имя текущего Родителя: {{ taxon_parent_name }}</h6>
+            <h6>Имя таксона: {{ taxon_name }}</h6>
+            <br>
+
+            <label for="taxonParentName">Поиск нового родителя таксона</label>
+            <input type="text" class="form-control" id="taxonParentName" name="taxonParentName" aria-describedby="taxonParentNameHelp">
+            <small id="taxonParentNameHelp" class="form-text text-muted">Введите имя таксона для поиска. Оставьте пустым для перемещения таксона в корень</small>
+        </div>
+
+
+        {% if success != null %}
+        {% if success %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+        {% else %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <div class="taxons-hierarchy">
+
+        </div>
+
+        <br>
+        <br>
+
+        <input type="submit" class="btn btn-primary" value="Переместить таксон">
+     </form>
+</main>
+
+{% endblock %}

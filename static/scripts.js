@@ -31,7 +31,7 @@ function searchParentId(event) {
 
     let body = 'csrfmiddlewaretoken=' + document.getElementsByName('csrfmiddlewaretoken')[0].value + '&' + 'parentName=' + parentName;
 
-    xhr.open("POST", "/taxa/search", true);
+    xhr.open("POST", "/taxon/search/", true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xhr.onreadystatechange = createChildren;
     xhr.send(body);
