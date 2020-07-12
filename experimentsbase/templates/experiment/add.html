@@ -1,0 +1,248 @@
+{% extends 'index.html' %}
+
+{% block body %}
+
+<main class="container">
+    <br>
+    <br>
+
+    <h3>Добавление нового эксперимента</h3>
+
+    <form action="/experiment/add/" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="experimentName">Имя эксперимента</label>
+            <input type="text" class="form-control" id="experimentName" name="experimentName" aria-describedby="experimentNameHelp" required>
+            <small id="experimentNameHelp" class="form-text text-muted">Имя эксперимента, пока без кириллицы</small>
+        </div>
+
+        <div class="form-group">
+            <!-- TODO taxon search -->
+            <label for="taxonId1">ID таксона</label>
+            <input type="text" class="form-control" id="taxonId1" name="taxonId" aria-describedby="taxonIdHelp1" required>
+            <small id="taxonIdHelp1" class="form-text text-muted">Каждый таксон имеет уникальный 36-символьный идентификатор</small>
+        </div>
+
+        <div class="form-row">
+            <div class="col">
+                <label class="form-check-label">Образ жизни: </label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="wayOfLife" id="diurnalWayRadio" value="DIURNAL" checked>
+                    <label class="form-check-label" for="diurnalWayRadio">Дневное</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="wayOfLife" id="nocturalWayRadio" value="NOCTURNAL">
+                    <label class="form-check-label" for="nocturalWayRadio">Ночное</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="wayOfLife" id="twilightWayRadio" value="TWILIGHT">
+                    <label class="form-check-label" for="twilightWayRadio">Сумеречное</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="wayOfLife" id="otherWayRadio" value="OTHER">
+                    <label class="form-check-label" for="otherWayRadio">Другое</label>
+                </div>
+            </div>
+
+
+            <div class="col">
+                <label class="form-check-label">Ареал обитания: </label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="habitat" id="wildHabitatRadio" value="WILD" checked>
+                    <label class="form-check-label" for="wildHabitatRadio">Дикой</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="habitat" id="laboratoryHabitatRadio" value="LABORATORY">
+                    <label class="form-check-label" for="laboratoryHabitatRadio">Лабораторное</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="habitat" id="farmHabitatRadio" value="FARM">
+                    <label class="form-check-label" for="farmHabitatRadio">Фермерское</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="habitat" id="otherHabitatRadio" value="OTHER">
+                    <label class="form-check-label" for="otherHabitatRadio">Другое</label>
+                </div>
+            </div>
+
+
+            <div class="col">
+
+
+                <label class="form-check-label">Пол: </label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="gender" id="maleGenderRadio" value="MALE" checked>
+                    <label class="form-check-label" for="maleGenderRadio">Мужской</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="gender" id="femaleGenderRadioRadio" value="FEMALE">
+                    <label class="form-check-label" for="femaleGenderRadioRadio">Женский</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="gender" id="otherGenderRadio" value="OTHER">
+                    <label class="form-check-label" for="otherGenderRadio">Другой</label>
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <br>
+
+        <div class="form-row">
+            <div class="col">
+                <label for="monthsAge">Возраст</label>
+                <input type="number" class="form-control" min="0" placeholder="0" id="monthsAge" name="monthsAge" aria-describedby="monthsAgeHelp" value="0" required>
+                <small id="monthsAgeHelp" class="form-text text-muted">Возраст в месяцах</small>
+            </div>
+
+            <div class="col">
+                <label for="weight">Вес</label>
+                <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="weight" name="weight" aria-describedby="weightHelp" value="0" required>
+                <small id="weightHelp" class="form-text text-muted">Вес в килограммах</small>
+            </div>
+
+            <div class="col">
+                <label for="length">Длина</label>
+                <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="length" name="length" aria-describedby="lengthHelp" value="0" required>
+                <small id="lengthHelp" class="form-text text-muted">Длина в сантиметрах</small>
+            </div>
+        </div>
+
+        <br>
+        <br>
+
+
+        <div class="form-row">
+            <div class="col">
+                <h6>Факторы среды</h6>
+                <div class="environmentalFactors">
+
+                </div>
+                <br>
+                <div class="btn btn-success btn-sm" onclick="addAdditionalField(this)" data-inputtype="environmentalFactors">Добавить ещё один фактор</div>
+                <div class="btn btn-danger btn-sm" onclick="deleteLastField(this)" data-inputtype="environmentalFactors">Удалить последний фактор</div>
+            </div>
+            <div class="col">
+                <h6>Заболевания</h6>
+                <div class="diseases">
+
+                </div>
+                <br>
+                <div class="btn btn-success btn-sm" onclick="addAdditionalField(this)" data-inputtype="diseases">Добавить ещё одно заболевание</div>
+                <div class="btn btn-danger btn-sm" onclick="deleteLastField(this)" data-inputtype="diseases">Удалить последнее заболевание</div>
+            </div>
+        </div>
+
+        <br>
+        <br>
+
+
+        <div class="form-row">
+            <div class="col">
+                <label for="withdrawPlace">Место забора</label>
+                <input type="text" class="form-control" id="withdrawPlace" name="withdrawPlace" aria-describedby="withdrawPlaceHelp">
+                <small id="withdrawPlaceHelp" class="form-text text-muted">Строка</small>
+            </div>
+            <div class="col">
+                <label for="withdrawDate">Время забора с</label>
+                <input type="date" class="form-control" id="withdrawDate" aria-describedby="withdrawDateHelp">
+                <small id="withdrawDateHelp" class="form-text text-muted">Дата, начиная с 00:00:00 выбранного дня</small>
+            </div>
+        </div>
+
+        <br>
+
+
+        <div class="form-row">
+            <div class="col">
+                <h6>Условия забора</h6>
+                <div class="withdrawConditions">
+
+                </div>
+                <br>
+                <div class="btn btn-success btn-sm" onclick="addAdditionalField(this)" data-inputtype="withdrawConditions">Добавить ещё одно условие забора</div>
+                <div class="btn btn-danger btn-sm" onclick="deleteLastField(this)" data-inputtype="withdrawConditions">Удалить последнее условие забора</div>
+            </div>
+            <div class="col">
+                <h6>Комментарии</h6>
+                <div class="comments">
+
+                </div>
+                <br>
+                <div class="btn btn-success btn-sm" onclick="addAdditionalField(this)" data-inputtype="comments">Добавить ещё один комментарий</div>
+                <div class="btn btn-danger btn-sm" onclick="deleteLastField(this)" data-inputtype="comments">Удалить последний комментарий</div>
+            </div>
+        </div>
+        <br>
+        <br>
+
+
+        <div class="form-row">
+            <div class="col">
+                <label for="hoursPostMortem">Время с момента смерти</label>
+                <input type="number" class="form-control" min="0" placeholder="0" id="hoursPostMortem" name="hoursPostMortem" aria-describedby="hoursPostMortemHelp" value="0" required>
+                <small id="hoursPostMortemHelp" class="form-text text-muted">Время в часах</small>
+            </div>
+            <div class="col">
+                <label for="temperature">Температура</label>
+                <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="temperature" name="temperature" aria-describedby="temperatureHelp" value="0" required>
+                <small id="temperatureHelp" class="form-text text-muted">Температура в градусах Цельсия</small>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <h6>Дополнительные свойства</h6>
+            <div class="additionalProperties">
+
+            </div>
+            <br>
+        </div>
+
+        <div class="btn btn-success btn-sm" onclick="addAdditionalField(this)" data-inputtype="additionalProperties">Добавить ещё одно свойство</div>
+        <div class="btn btn-danger btn-sm" onclick="deleteLastField(this)" data-inputtype="additionalProperties">Удалить последнее свойство</div>
+
+        <br>
+        <br>
+
+
+        <div class="form-group">
+            <h6>Метаболиты</h6>
+            <div class="metabolites">
+
+            </div>
+            <br>
+            <div class="btn btn-success btn-sm" onclick="addAdditionalField(this)" data-inputtype="metabolites">Добавить ещё один метаболит</div>
+            <div class="btn btn-danger btn-sm" onclick="deleteLastField(this)" data-inputtype="metabolites">Удалить последний метаболит</div>
+        </div>
+
+        <br>
+        <br>
+
+        <div class="form-row">
+            <div class="col">
+                <h6>Пути файлов</h6>
+                <div class="filepaths">
+
+                </div>
+                <br>
+                <div class="btn btn-success btn-sm" onclick="addAdditionalField(this)" data-inputtype="filepaths">Добавить ещё один путь</div>
+                <div class="btn btn-danger btn-sm" onclick="deleteLastField(this)" data-inputtype="filepaths">Удалить последний путь</div>
+            </div>
+
+            <div class="col"></div>
+        </div>
+
+        <br>
+        <br>
+
+        <button type="submit" class="btn btn-primary">Создать</button>
+
+    </form>
+
+    <br>
+    <br>
+
+
+</main>
+
+{% endblock %}

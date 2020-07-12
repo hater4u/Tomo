@@ -6,6 +6,9 @@
 
 <main class="container">
     <br>
+    {% if user_auth %}
+    <a href="/experiment/add/" class="btn btn-success">Добавить эксперимент</a>
+    {% endif %}
     <br>
 
     <h3>Поиск экспериментов</h3>
