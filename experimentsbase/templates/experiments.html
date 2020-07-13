@@ -13,7 +13,8 @@
 
     <h3>Поиск экспериментов</h3>
 
-    <form action="/experiments/" method="post">
+
+    <form action="/experiments/#table" method="post">
         {% csrf_token %}
         <div class="form-group">
             <label for="experimentName">Имя эксперимента</label>
@@ -204,7 +205,9 @@
     <br>
     <br>
     {% if experiments %}
-    {% include 'experiments_table.html' %}
+    <div id="table">
+        {% include 'experiments_table.html' %}
+    </div>
     {% endif %}
 </main>
 
