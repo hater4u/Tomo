@@ -18,7 +18,7 @@
         {% csrf_token %}
         <div class="form-group">
             <label for="experimentName">Имя эксперимента</label>
-            <input type="text" class="form-control" id="experimentName" name="experimentName" aria-describedby="experimentNameHelp">
+            <input type="text" class="form-control" id="experimentName" name="experimentName" aria-describedby="experimentNameHelp" >
             <small id="experimentNameHelp" class="form-text text-muted">Имя эксперимента, использованное при создании</small>
         </div>
 
@@ -205,6 +205,9 @@
     <br>
     <br>
     {% if experiments %}
+    {% if user_auth %}
+    <a href="/experiment/add/" class="btn btn-success">Добавить эксперимент</a>
+    {% endif %}
     <div id="table">
         {% include 'experiments_table.html' %}
     </div>

@@ -133,3 +133,5 @@ STATICFILES_DIRS = [
 # AUTH_USER_MODEL = 'experimentsbase.User'
 
 API_URL = 'http://localhost:8080/api'
+
+SHARED_FILES_DIR = '../docker_dist/volumes/shared_files'

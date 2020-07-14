@@ -84,91 +84,86 @@ def experiments_search(search_dict):
         return []
 
 
-def parse_experiments_data(request):
-    experiments_dict = dict()
-    experiments_dict['name'] = request.POST['experimentName']
+def check_experiments_data(data_json):
+    info_dict = dict()
+    info_dict['error'] = []
+    fields = {'experimentName': 'Пустое имя эксперимента',
+              'taxonName': 'Пустое имя таксона',
+              'wayOfLife': 'Пустое значение поля "Образ жизни"',
+              'habitat': 'Пустое значение поля "Ареал обитания"',
+              'gender': 'Пустое значение поля "Пол"',
+              'monthsAge': 'Пустое значение поля "Возраст"',
+              'weight': 'Пустое значение поля "Вес"',
+              'length': 'Пустое значение поля "Длина"',
+              'withdrawDate': 'Пустое значение поля "Дата забора"',
+              # 'withdrawPlace': 'Пустое значение поля ""',
+              'hoursPostMortem': 'Пустое значение поля "Время после смерти"',
+              'temperature': 'Пустое значение поля "Температура"',
+              }
+    for key, value in fields.items():
+        if data_json.get(key, False):
+            if data_json[key] == '':
+                info_dict['error'].append(value)
+        else:
+            info_dict['error'].append('Отсутствует поле ' + key)
 
-    experiments_dict['taxonId'] = ''
     try:
         all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
+        found = False
         for el in all_taxons:
-            if el['name'] == request.POST['taxonName']:
-                experiments_dict['taxonId'] = el['id']
+            if el['name'] == data_json['taxonName']:
+                data_json['taxonId'] = el['id']
+                found = True
+                break
+        if not found:
+            info_dict['error'] = ['Неверное имя таксона']
+
+            return info_dict
     except Exception as e:
-        experiments_dict['API_error'] = 'Parse error:' + str(e)
-        return experiments_dict
+        info_dict['error'] = ['Проблема доступа к API. Обратитесь к администратору сервера']
+        return info_dict
 
-    # Ways of life
-    experiments_dict['wayOfLife'] = request.POST.get('wayOfLife', False)
+    fields_lists = {
+        'environmentalFactors': 'Пустое значение в полях "Факторы среды"',
+        'diseases': 'Пустое значение в полях "Заболевания"',
+        'comments': 'Пустое значение в полях "Комментарии"',
+        'filepaths': 'Пустое значение в полях "Пути файлов"',
+    }
 
-    # Habitat
-    experiments_dict['habitat'] = request.POST.get('habitat', False)
+    for key, value in fields_lists.items():
+        if data_json.get(key, False):
+            for el in data_json[key]:
+                if el == '':
+                    info_dict['error'].append(value)
 
-    # Gender
-    experiments_dict['gender'] = request.POST.get('gender', False)
+    if data_json.get('additionalProperties', False):
+        for key, value in data_json['additionalProperties'].items():
+            if key == '':
+                info_dict['error'].append('Пустое значение ключа в доп. свойствах')
+            if value == '':
+                info_dict['error'].append('Пустое значение ' + key + ' в доп. свойствах')
 
-    # Age TODO:fix
-    experiments_dict['monthsAge'] = request.POST.get('monthsAge', -1)
+    metabolit_fields = ['pubChemCid', 'metaName', 'concentration', 'analysisMethod']
 
-    # Weight
-    experiments_dict['weight'] = request.POST.get('weight', -1)
+    if data_json.get('metabolites', False):
+        for el in data_json['metabolites']:
+            empty_field = False
+            for field in metabolit_fields:
+                if not el.get(field, False):
+                    info_dict['error'].append('Отсутствует поле ' + field + ' в метаболите')
+                    empty_field = True
+            if not empty_field:
+                for field in metabolit_fields:
+                    if el[field] == '':
+                        info_dict['error'].append('Пустое значение ' + field + ' в метаболите')
 
-    # Length
-    experiments_dict['length'] = request.POST.get('length', -1)
+    # File paths
+    if data_json.get('withdrawDate', False):
+        data_json['withdrawDate'] += " 00:00:00"
+    if data_json.get('experimentName', False):
+        data_json['name'] = data_json['experimentName']
 
-    # Environmental factors
-    if not request.POST["environmentalFactors"] == "":
-        experiments_dict["environmentalFactors"] = [request.POST["environmentalFactors"]]
-
-    # Diseases
-    if not request.POST["diseases"] == "":
-        experiments_dict["diseases"] = [request.POST["diseases"]]
-
-    # Withdraw place
-    if not request.POST["withdrawPlace"] == "":
-        experiments_dict["withdrawPlace"] = request.POST["withdrawPlace"]
-
-    # Withdraw date
-    if request.POST["withdrawDateFrom"] != "":
-        #     search_dict["withdrawDateFrom"] = "null"
-        # else:
-        experiments_dict["withdrawDateFrom"] = request.POST["withdrawDateFrom"] + " 00:00:00"
-
-    if request.POST["withdrawDateTo"] != "":
-        #     search_dict["withdrawDateTo"] = "null"
-        # else:
-        experiments_dict["withdrawDateTo"] = request.POST["withdrawDateTo"] + " 00:00:00"
-
-    # Seconds post mortem
-    if request.POST["secondsPostMortemFrom"] == "":
-        experiments_dict["secondsPostMortemFrom"] = "null"
-    else:
-        experiments_dict["secondsPostMortemFrom"] = request.POST["secondsPostMortemFrom"]
-
-    if request.POST["secondsPostMortemTo"] == "":
-        experiments_dict["secondsPostMortemTo"] = "null"
-    else:
-        experiments_dict["secondsPostMortemTo"] = request.POST["secondsPostMortemTo"]
-
-    # Temperature
-    if request.POST["temperatureFrom"] == "":
-        experiments_dict["temperatureFrom"] = "null"
-    else:
-        experiments_dict["temperatureFrom"] = request.POST["temperatureFrom"]
-
-    if request.POST["temperatureTo"] == "":
-        experiments_dict["temperatureTo"] = "null"
-    else:
-        experiments_dict["temperatureTo"] = request.POST["temperatureTo"]
-
-    # Comments
-    if not request.POST["comments"] == "":
-        experiments_dict["comments"] = [request.POST["comments"]]
-
-    # Metabolite names
-    if not request.POST["metaboliteNames"] == "":
-        experiments_dict["metaboliteNames"] = [request.POST["metaboliteNames"]]
-    return experiments_dict
+    return info_dict
 
 
 def translate_experiments(experiments_list):
@@ -338,7 +333,7 @@ def taxon_move_id(request, taxon_id):
                 args['taxon_name'] = values['name']
                 if values['parentId']:
                     args['taxon_parent_name'] = requests.get(API_URL + '/taxa',
-                                                         params={'id': values['parentId']}).json()['value']['name']
+                                                             params={'id': values['parentId']}).json()['value']['name']
                 else:
                     args['taxon_parent_name'] = ''
             except Exception as e:
@@ -446,6 +441,7 @@ def experiment(request, experiment_id):
         args = requests.get(API_URL + '/experiments', params={'id': experiment_id}).json()['value']
         args = translate_experiments([args]).pop(0)
         args = check_auth_user(request, args)
+        args['experiment_id'] = experiment_id
     except Exception as e:
         print('Experiment error:' + str(e))
         args = {}
@@ -458,14 +454,29 @@ def experiment_add(request):
     args.update(csrf(request))
     if request.user.is_authenticated:
         if request.user.is_staff:
-            if request.POST:
-                # args['experiment_data'] = \
-                # TODO: fix
-                args['data'] = parse_experiments_data(request)
-                return render(request, 'experiment/add.html', args)
+            if request.method == 'POST':
+                try:
+                    data = json.loads(request.body)
+                except ValueError as e:
+                    print('JSON parse error: ' + str(e))
+                    args['success'] = False
+                    args['message'] = 'Некорректная форма запроса.'
+                    return render(request, 'experiment/add.html', args)
+                info_dict = check_experiments_data(data)
+                if not info_dict['error']:
+                    try:
+                        headers = {'Content-Type': 'application/json'}
+                        if requests.post(API_URL + '/experiments/add', data=json.dumps(data),
+                                         headers=headers,
+                                         auth=('docker_admin', '123qweasdzxc')).status_code == 200:
+                            info_dict['success'] = 'Эксперимент успешно добавлен'
+                        else:
+                            info_dict['error'].append('Некорректные данные формы')
+                    except Exception as e:
+                        info_dict['error'].append('Проблема доступа API. Обратитесь к администратору сервера.')
+                # return JsonResponse(json.dumps(info_dict))
+                return JsonResponse(info_dict)
             else:
-                # args['success'] = False
-                # args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
                 return render(request, 'experiment/add.html', args)
         else:
             return render(request, 'reg/403.html')
