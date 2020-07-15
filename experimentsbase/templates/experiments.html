@@ -18,32 +18,32 @@
         {% csrf_token %}
         <div class="form-group">
             <label for="experimentName">Имя эксперимента</label>
-            <input type="text" class="form-control" id="experimentName" name="experimentName" aria-describedby="experimentNameHelp" >
+            <input type="text" class="form-control" id="experimentName" name="experimentName" aria-describedby="experimentNameHelp" value="{{ filled_fields.experimentName }}">
             <small id="experimentNameHelp" class="form-text text-muted">Имя эксперимента, использованное при создании</small>
         </div>
 
         <div class="form-group">
             <label for="taxonId">ID таксона</label>
-            <input type="text" class="form-control" id="taxonId" name="taxonId" aria-describedby="taxonIdHelp">
+            <input type="text" class="form-control" id="taxonId" name="taxonId" aria-describedby="taxonIdHelp" value="{{ filled_fields.taxonId }}">
             <small id="taxonIdHelp" class="form-text text-muted">Каждый таксон имеет уникальный 36-символьный идентификатор</small>
         </div>
 
 
         <label class="form-check-label">Образ жизни: </label>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="diurnalWayCheckbox" name="diurnalWayCheckbox" value="DIURNAL">
+            <input class="form-check-input" type="checkbox" id="diurnalWayCheckbox" name="diurnalWayCheckbox" value="DIURNAL" {% if filled_fields.diurnalWayCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="diurnalWayCheckbox">Дневное</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="nocturnalWayCheckbox" name="nocturnalWayCheckbox" value="NOCTURNAL">
+            <input class="form-check-input" type="checkbox" id="nocturnalWayCheckbox" name="nocturnalWayCheckbox" value="NOCTURNAL" {% if filled_fields.nocturnalWayCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="nocturnalWayCheckbox">Ночное</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="twilightWayCheckbox" name="twilightWayCheckbox" value="TWILIGHT">
+            <input class="form-check-input" type="checkbox" id="twilightWayCheckbox" name="twilightWayCheckbox" value="TWILIGHT" {% if filled_fields.twilightWayCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="twilightWayCheckbox">Сумеречное</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="otherWayCheckbox" name="otherWayCheckbox" value="OTHER">
+            <input class="form-check-input" type="checkbox" id="otherWayCheckbox" name="otherWayCheckbox" value="OTHER" {% if filled_fields.otherWayCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="otherWayCheckbox">Другое</label>
         </div>
         <br>
@@ -52,19 +52,19 @@
 
         <label class="form-check-label">Ареал обитания: </label>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="wildHabitatCheckbox" name="wildHabitatCheckbox" value="WILD">
+            <input class="form-check-input" type="checkbox" id="wildHabitatCheckbox" name="wildHabitatCheckbox" value="WILD" {% if filled_fields.wildHabitatCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="wildHabitatCheckbox">Дикое</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="laboratoryHabitatCheckbox" name="laboratoryHabitatCheckbox" value="LABORATORY">
+            <input class="form-check-input" type="checkbox" id="laboratoryHabitatCheckbox" name="laboratoryHabitatCheckbox" value="LABORATORY" {% if filled_fields.laboratoryHabitatCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="laboratoryHabitatCheckbox">Лабораторное</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="farmHabitatCheckbox" name="farmHabitatCheckbox" value="FARM">
+            <input class="form-check-input" type="checkbox" id="farmHabitatCheckbox" name="farmHabitatCheckbox" value="FARM" {% if filled_fields.farmHabitatCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="farmHabitatCheckbox">Фермерское</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="otherHabitatCheckbox" name="otherHabitatCheckbox" value="OTHER">
+            <input class="form-check-input" type="checkbox" id="otherHabitatCheckbox" name="otherHabitatCheckbox" value="OTHER" {% if filled_fields.otherHabitatCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="otherHabitatCheckbox">Другое</label>
         </div>
         <br>
@@ -73,15 +73,15 @@
 
         <label class="form-check-label">Пол: </label>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="maleGenderCheckbox" name="maleGenderCheckbox" value="MALE">
+            <input class="form-check-input" type="checkbox" id="maleGenderCheckbox" name="maleGenderCheckbox" value="MALE" {% if filled_fields.maleGenderCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="maleGenderCheckbox">Мужской</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="femaleGenderCheckbox" name="femaleGenderCheckbox" value="FEMALE">
+            <input class="form-check-input" type="checkbox" id="femaleGenderCheckbox" name="femaleGenderCheckbox" value="FEMALE" {% if filled_fields.femaleGenderCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="femaleGenderCheckbox">Женский</label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="otherGenderCheckbox" name="otherGenderCheckbox" value="OTHER">
+            <input class="form-check-input" type="checkbox" id="otherGenderCheckbox" name="otherGenderCheckbox" value="OTHER" {% if filled_fields.otherGenderCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="otherGenderCheckbox">Другой</label>
         </div>
         <br>
@@ -90,36 +90,36 @@
         <div class="form-row">
             <div class="col">
                 <label for="ageFrom">Возраст с</label>
-                <input type="number" class="form-control" min="0" placeholder="0" id="ageFrom" name="ageFrom" aria-describedby="ageFromHelp">
+                <input type="number" class="form-control" min="0" placeholder="0" id="ageFrom" name="ageFrom" aria-describedby="ageFromHelp" value="{{ filled_fields.ageFrom }}">
                 <small id="ageFromHelp" class="form-text text-muted">Значение в днях от 0</small>
             </div>
             <div class="col">
                 <label for="ageTo">до</label>
-                <input type="number" class="form-control" min="0" placeholder="100" id="ageTo" name="ageTo">
+                <input type="number" class="form-control" min="0" placeholder="100" id="ageTo" name="ageTo" value="{{ filled_fields.ageTo }}">
             </div>
         </div>
 
         <div class="form-row">
             <div class="col">
                 <label for="weightFrom">Вес с</label>
-                <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="weightFrom" name="weightFrom" aria-describedby="weightFromHelp">
+                <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="weightFrom" name="weightFrom" aria-describedby="weightFromHelp" value="{{ filled_fields.weightFrom }}">
                 <small id="weightFromHelp" class="form-text text-muted">Значение в килограммах от 0</small>
             </div>
             <div class="col">
                 <label for="weightTo">до</label>
-                <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="weightTo" name="weightTo">
+                <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="weightTo" name="weightTo" value="{{ filled_fields.weightTo }}">
             </div>
         </div>
 
         <div class="form-row">
             <div class="col">
                 <label for="lengthFrom">Длина с</label>
-                <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="lengthFrom" name="lengthFrom" aria-describedby="lengthFromHelp">
+                <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="lengthFrom" name="lengthFrom" aria-describedby="lengthFromHelp" value="{{ filled_fields.lengthFrom }}">
                 <small id="lengthFromHelp" class="form-text text-muted">Значение в сантиметрах от 0</small>
             </div>
             <div class="col">
                 <label for="lengthTo">до</label>
-                <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="lengthTo" name="lengthTo">
+                <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="lengthTo" name="lengthTo" value="{{ filled_fields.lengthTo }}">
             </div>
         </div>
 
@@ -128,12 +128,12 @@
         <div class="form-row">
             <div class="col">
                 <label for="environmentalFactors">Факторы среды</label>
-                <input type="text" class="form-control" id="environmentalFactors" name="environmentalFactors" aria-describedby="environmentalFactorsHelp">
+                <input type="text" class="form-control" id="environmentalFactors" name="environmentalFactors" aria-describedby="environmentalFactorsHelp" value="{{ filled_fields.environmentalFactors }}">
                 <small id="environmentalFactorsHelp" class="form-text text-muted">Строка</small>
             </div>
             <div class="col">
                 <label for="diseases">Заболевания</label>
-                <input type="text" class="form-control" id="diseases" name="diseases" aria-describedby="diseasesHelp">
+                <input type="text" class="form-control" id="diseases" name="diseases" aria-describedby="diseasesHelp" value="{{ filled_fields.diseases }}">
                 <small id="diseasesHelp" class="form-text text-muted">Строка</small>
             </div>
         </div>
@@ -141,7 +141,7 @@
 
         <div class="form-group">
             <label for="withdrawPlace">Место забора</label>
-            <input type="text" class="form-control" id="withdrawPlace" name="withdrawPlace" aria-describedby="withdrawPlaceHelp">
+            <input type="text" class="form-control" id="withdrawPlace" name="withdrawPlace" aria-describedby="withdrawPlaceHelp" value="{{ filled_fields.withdrawPlace }}">
             <small id="withdrawPlaceHelp" class="form-text text-muted">Строка</small>
         </div>
 
@@ -149,12 +149,12 @@
         <div class="form-row">
             <div class="col">
                 <label for="withdrawDateFrom">Время забора с</label>
-                <input type="date" class="form-control" id="withdrawDateFrom" name="withdrawDateFrom" aria-describedby="withdrawDateFromHelp">
+                <input type="date" class="form-control" id="withdrawDateFrom" name="withdrawDateFrom" aria-describedby="withdrawDateFromHelp" value="{{ filled_fields.withdrawDateFrom }}">
                 <small id="withdrawDateFromHelp" class="form-text text-muted">Дата, начиная с 00:00:00 выбранного дня</small>
             </div>
             <div class="col">
                 <label for="withdrawDateTo">до</label>
-                <input type="date" class="form-control" id="withdrawDateTo" name="withdrawDateTo">
+                <input type="date" class="form-control" id="withdrawDateTo" name="withdrawDateTo" value="{{ filled_fields.withdrawDateTo }}">
             </div>
         </div>
 
@@ -162,12 +162,12 @@
         <div class="form-row">
             <div class="col">
                 <label for="secondsPostMortemFrom">Количество секунд с момента смерти с</label>
-                <input type="number" class="form-control" min="0" placeholder="0" id="secondsPostMortemFrom" name="secondsPostMortemFrom" aria-describedby="secondsPostMortemFromHelp">
+                <input type="number" class="form-control" min="0" placeholder="0" id="secondsPostMortemFrom" name="secondsPostMortemFrom" aria-describedby="secondsPostMortemFromHelp" value="{{ filled_fields.secondsPostMortemFrom }}">
                 <small id="secondsPostMortemFromHelp" class="form-text text-muted">Значение от 0</small>
             </div>
             <div class="col">
                 <label for="secondsPostMortemTo">до</label>
-                <input type="number" class="form-control" min="0" placeholder="100" id="secondsPostMortemTo" name="secondsPostMortemTo">
+                <input type="number" class="form-control" min="0" placeholder="100" id="secondsPostMortemTo" name="secondsPostMortemTo" value="{{ filled_fields.secondsPostMortemTo }}">
             </div>
         </div>
 
@@ -175,12 +175,12 @@
         <div class="form-row">
             <div class="col">
                 <label for="temperatureFrom">Температура с</label>
-                <input type="number" step="0.01" class="form-control" min="-100" placeholder="0" id="temperatureFrom" name="temperatureFrom" aria-describedby="temperatureFromHelp">
+                <input type="number" step="0.01" class="form-control" min="-100" placeholder="0" id="temperatureFrom" name="temperatureFrom" aria-describedby="temperatureFromHelp" value="{{ filled_fields.temperatureFrom }}">
                 <small id="temperatureFromHelp" class="form-text text-muted">Значение в градусах Цельсия</small>
             </div>
             <div class="col">
                 <label for="temperatureTo">до</label>
-                <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="temperatureTo" name="temperatureTo">
+                <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="temperatureTo" name="temperatureTo" value="{{ filled_fields.temperatureTo }}">
             </div>
         </div>
 
@@ -188,12 +188,12 @@
         <div class="form-row">
             <div class="col">
                 <label for="comments">Комментарии</label>
-                <input type="text" class="form-control" id="comments" name="comments" aria-describedby="commentsHelp">
+                <input type="text" class="form-control" id="comments" name="comments" aria-describedby="commentsHelp" value="{{ filled_fields.comments }}">
                 <small id="commentsHelp" class="form-text text-muted">Строка</small>
             </div>
             <div class="col">
                 <label for="metaboliteNames">Имя метаболита</label>
-                <input type="text" class="form-control" id="metaboliteNames" name="metaboliteNames" aria-describedby="metaboliteNamesHelp">
+                <input type="text" class="form-control" id="metaboliteNames" name="metaboliteNames" aria-describedby="metaboliteNamesHelp" value="{{ filled_fields.metabolitName }}">
                 <small id="metaboliteNamesHelp" class="form-text text-muted">Строка</small>
             </div>
         </div>

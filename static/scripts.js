@@ -1,8 +1,11 @@
 function addParentId(element) {
     // let el = document.getElementsByName("taxonParentId")[0];
     // el.setAttribute("value", element.dataset.parentid);
-
-    let el = document.getElementsByName("taxonParentName")[0];
+    let el;
+    if (document.getElementsByName("taxonParentName")[0])
+        el = document.getElementsByName("taxonParentName")[0];
+    else
+        el = document.getElementsByName("taxonName")[0];
     el.value = element.textContent;
 
     let els = document.getElementsByClassName("taxons-hierarchy")[0].childNodes;
@@ -37,20 +40,22 @@ function searchParentId(event) {
     xhr.send(body);
 }
 
-document.addEventListener('DOMContentLoaded', function ()
-{
+document.addEventListener('DOMContentLoaded', function ()  {
     let n =  new Date();
     let y = n.getFullYear();
     let m = n.getMonth() + 1;
     let d = n.getDate();
     let withdrawDate = document.getElementById("withdrawDate");
-    withdrawDate.value = y.toString() + "-" + m.toString().padStart(2, "0") + "-" + d.toString().padStart(2, "0");
+    if(withdrawDate) withdrawDate.value = y.toString() + "-" + m.toString().padStart(2, "0") + "-" + d.toString().padStart(2, "0");
 
     let form1 = document.getElementsByClassName('experiments_form')[0];
-    form1.onsubmit = sendJson;
+    if(form1) form1.onsubmit = sendJson;
 
-    let el = document.getElementById("taxonParentId");
-    el.addEventListener('change', searchParentId);
+    let el = document.getElementById("taxonParentName");
+    if(el) el.addEventListener('keyup', searchParentId);
+
+    let taxId = document.getElementById("taxonName");
+    if(taxId) taxId.addEventListener('keyup', searchParentId);
 });
 
 function addSimpleField(className, memberName, inText)

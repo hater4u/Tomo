@@ -137,11 +137,20 @@ def check_experiments_data(data_json):
                     info_dict['error'].append(value)
 
     if data_json.get('additionalProperties', False):
-        for key, value in data_json['additionalProperties'].items():
-            if key == '':
-                info_dict['error'].append('Пустое значение ключа в доп. свойствах')
-            if value == '':
-                info_dict['error'].append('Пустое значение ' + key + ' в доп. свойствах')
+        for el in data_json['additionalProperties']:
+            for key, value in el.items():
+                # for key, value in data_json['additionalProperties'].items():
+                if key == '':
+                    info_dict['error'].append('Пустое значение ключа в доп. свойствах')
+                if value == '':
+                    info_dict['error'].append('Пустое значение ' + key + ' в доп. свойствах')
+
+        add_props = dict()
+        for el in data_json['additionalProperties']:
+            for key, value in el.items():
+                add_props[key] = value
+
+        data_json['additionalProperties'] = add_props
 
     metabolit_fields = ['pubChemCid', 'metaName', 'concentration', 'analysisMethod']
 
@@ -157,11 +166,31 @@ def check_experiments_data(data_json):
                     if el[field] == '':
                         info_dict['error'].append('Пустое значение ' + field + ' в метаболите')
 
+        for el in data_json['metabolites']:
+            el['name'] = el['metaName']
+            el.pop('metaName', None)
+
+    if data_json.get('csrfmiddlewaretoken', False):
+        data_json.pop('csrfmiddlewaretoken', None)
+
+    if data_json.get('taxonName', False):
+        data_json.pop('taxonName', None)
+
+    # TODO delete fix
+    if data_json.get('hoursPostMortem', False):
+        data_json['secondsPostMortem'] = data_json['hoursPostMortem']
+        data_json.pop('hoursPostMortem', None)
+
+    if data_json.get('monthsAge', False):
+        data_json['daysAge'] = data_json['monthsAge']
+        data_json.pop('monthsAge', None)
+
     # File paths
     if data_json.get('withdrawDate', False):
         data_json['withdrawDate'] += " 00:00:00"
     if data_json.get('experimentName', False):
         data_json['name'] = data_json['experimentName']
+        data_json.pop('experimentName', None)
 
     return info_dict
 
@@ -411,7 +440,7 @@ def taxon_delete_id(request, taxon_id):
             if request.POST:
                 if request.POST['delete']:
                     try:
-                        if requests.post(API_URL + '/taxa/delete', params={'id': taxon_id},
+                        if requests.post(API_URL + '/taxa/delete', data={'id': taxon_id},
                                          auth=('docker_admin', '123qweasdzxc')).status_code == 200:
                             args['success'] = True
                             args['message'] = 'Таксон успешно удалён'
@@ -505,7 +534,7 @@ def experiment_delete(request, experiment_id):
                 return render(request, 'experiment/delete.html', args)
             if request.POST:
                 try:
-                    if requests.post(API_URL + '/experiments/delete', params={'id': experiment_id},
+                    if requests.post(API_URL + '/experiments/delete', data={'id': experiment_id},
                                      auth=('docker_admin', '123qweasdzxc')).status_code == 200:
                         args['success'] = True
                         args['message'] = 'Эксперимент успешно удалён'
@@ -584,13 +613,13 @@ def experiments(request):
 
         # Gender
         # search_dict['gender'] = []
-        # if request.POST['maleGenderCheckbox']:
+        # if request.POST.get('maleGenderCheckbox', False):
         #     search_dict['gender'].append('MALE')
         #
-        # if request.POST['femaleGenderCheckbox']:
+        # if request.POST.get('femaleGenderCheckbox', False):
         #     search_dict['gender'].append('FEMALE')
         #
-        # if request.POST['otherGenderCheckbox']:
+        # if request.POST.get('otherGenderCheckbox', False):
         #     search_dict['gender'].append('OTHER')
 
         # Age
@@ -678,6 +707,11 @@ def experiments(request):
         # Metabolite names
         if not request.POST['metaboliteNames'] == '':
             search_dict['metaboliteNames'] = [request.POST['metaboliteNames']]
+
+        args['filled_fields'] = dict()
+        for key, value in request.POST.items():
+            if request.POST[key] and request.POST[key] != '':
+                args['filled_fields'][key] = value
 
         try:
             args['experiments'] = translate_experiments(experiments_search(search_dict))

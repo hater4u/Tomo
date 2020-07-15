@@ -131,15 +131,15 @@
             </thead>
 
             <tbody>
+            {% for el in metabolites %}
             <tr>
-                {% for el in metabolites %}
                     <th scope="row">{{ forloop.counter }}</th>
                     <td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ el.pubChemCid }}">{{ el.pubChemCid }}</a></td>
                     <td>{{ el.name }}</td>
                     <td>{{ el.concentration }}</td>
                     <td>{{ el.analysisMethod }}</td>
-                {% endfor %}
             </tr>
+            {% endfor %}
             </tbody>
         </table>
 

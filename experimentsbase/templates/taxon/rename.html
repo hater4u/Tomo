@@ -8,7 +8,7 @@
 
     <br>
     <h3>Изменение имени таксона</h3>
-    <h6>Текущее имя: </h6>
+    <h6>Текущее имя: {{ taxon_name }}</h6>
     <h6>ID таксона: {{ taxon_id }}</h6>
     <br>
     <form action="/taxon/rename/{{ taxon_id }}/" method="post">
