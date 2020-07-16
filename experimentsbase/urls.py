@@ -20,5 +20,7 @@ urlpatterns = [
     path('experiment/add/', views.experiment_add, name='experiment_add'),
     path('experiment/change/<slug:experiment_id>/', views.experiment_change, name='experiment_change'),
     path('experiment/delete/<slug:experiment_id>/', views.experiment_delete, name='experiment_delete'),
+    path('experiment/searchfile/<slug:experiment_id>/', views.searh_file, name='search_file'),
+    path('experiment/gettorrent/<slug:experiment_id>/<slug:torrent_index>/', views.get_torrent, name='get_torrent'),
     path('experiment/<slug:experiment_id>/', views.experiment, name='experiment'),
 ]

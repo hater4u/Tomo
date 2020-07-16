@@ -54,8 +54,25 @@ document.addEventListener('DOMContentLoaded', function ()  {
     let el = document.getElementById("taxonParentName");
     if(el) el.addEventListener('keyup', searchParentId);
 
-    let taxId = document.getElementById("taxonName");
-    if(taxId) taxId.addEventListener('keyup', searchParentId);
+    let bcs = document.getElementsByClassName('bc-ol');
+    if(bcs)
+    {
+        for(let i = 0; i < bcs.length; i++)
+        {
+            let id = bcs[i].dataset.id;
+            let pathInput = document.getElementById('filepath' + id);
+            let paths = pathInput.value.split('/');
+
+            for(let i1 = 0; i1 < paths.length; i1++)
+            {
+                bcs[i].innerHTML += '<li class="breadcrumb-item">' + paths[i1] + '</li>'
+            }
+
+            let filesAndDirs = document.getElementsByClassName('filesdirs'+id)[0];
+            if(pathInput.value) filesAndDirs.innerHTML = '<div onclick="backToPreviousDirectory(this)" data-id="'+ id +
+                '" class="badge badge-warning"><h6>Назад</h6></div>';
+        }
+    }
 });
 
 function addSimpleField(className, memberName, inText)
@@ -144,6 +161,140 @@ function addMetaboliteField() {
     el.append(newNode);
 }
 
+function backToPreviousDirectory(element)
+{
+    let id = element.dataset.id;
+    let fd = document.getElementById('bc' + id);
+    fd.childNodes[fd.childNodes.length-1].remove();
+
+    let pathInput = document.getElementById('filepath' + id);
+
+    if(pathInput.value.charAt(pathInput.value.length-1) === '/')
+    {
+    //    it's directory
+        pathInput.value = pathInput.value.slice(0, pathInput.value.length-1)
+    }
+    let slashIndex = pathInput.value.lastIndexOf('/') + 1;
+    // if(slashIndex < 0) slashIndex = 0;
+    pathInput.value = pathInput.value.slice(0, slashIndex);
+
+    updateFilesAndDirs(pathInput.value, id);
+}
+
+function addPartToPathString(element)
+{
+    let id = element.dataset.id;
+    let bc = document.getElementById('bc' + id);
+
+
+    let newNode = document.createElement('li');
+    newNode.classList.add('breadcrumb-item');
+    newNode.innerText = element.textContent;
+    bc.append(newNode);
+
+    let pathInput = document.getElementById('filepath' + id);
+
+    if('file' in element.dataset)
+    {
+        let fd = document.getElementsByClassName('filesdirs' + id)[0];
+        // let els = fd.childNodes;
+        // let length = els.length
+        // for (let i = 0; i < length; i++) {
+        //     els[0].remove();
+        // }
+        fd.innerHTML = '<div onclick="backToPreviousDirectory(this)" data-id="'+ id +
+                    '" class="badge badge-pill badge-warning"><h6>Назад</h6></div>';
+
+        pathInput.value += element.textContent;
+    }
+    else
+    {
+
+        pathInput.value += element.textContent + '/';
+        updateFilesAndDirs(pathInput.value, id);
+    }
+}
+
+function getFunctionForUpdateFileField(value)
+{
+    let id = value.toString();
+
+    return function updateFileField()
+    {
+        let response = JSON.parse(this.responseText);
+        let el = document.getElementsByClassName('filesdirs' + id)[0];
+
+        let els = el.childNodes;
+        let length = els.length
+        for (let i = 0; i < length; i++) {
+            els[0].remove();
+        }
+
+        if('error' in response)
+        {
+            let newNode = document.createElement('div');
+            newNode.classList.add('alert');
+            newNode.classList.add('alert-danger');
+            newNode.innerText = response['error'];
+            el.append(newNode);
+        }
+        else
+        {
+            let dirs = response['dirs'];
+
+            let pathInput = document.getElementById('filepath' + id);
+            if(pathInput.value) el.innerHTML = '<div onclick="backToPreviousDirectory(this)" data-id="'+ id +
+                                    '" class="badge badge-warning"><h6>Назад</h6></div>';
+
+            for(let i = 0; i < dirs.length; i++)
+            {
+                el.innerHTML += '<div onclick="addPartToPathString(this)" data-id="'+ id +
+                    '" class="badge badge-primary"><h6>' +  dirs[i] + '</h6></div>';
+            }
+
+            let files = response['files'];
+
+            for(let i = 0; i < files.length; i++) {
+                el.innerHTML += '<div onclick="addPartToPathString(this)" data-file="true" data-id="'+ id +
+                    '" class="badge badge-pill badge-success"><h6>' +  files[i] + '</h6></div>';
+            }
+        }
+    }
+}
+
+function updateFilesAndDirs(path, id) {
+    let xhr = new XMLHttpRequest();
+    let csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+    let data = 'path=' + path;
+    xhr.open('post', '/experiment/searchfile/any/', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+    xhr.onreadystatechange = getFunctionForUpdateFileField(id);
+    xhr.send(data);
+}
+
+function addFileField()
+{
+    let el = document.getElementsByClassName('filepaths')[0];
+    let childrenLength = (el.children.length + 1).toString();
+
+    let newHiddenFileField = document.createElement('input');
+    newHiddenFileField.type = 'hidden';
+    newHiddenFileField.id = 'filepath' + childrenLength;
+    newHiddenFileField.name = 'filepaths';
+
+
+
+    let newNode = document.createElement('div');
+    newNode.append(newHiddenFileField);
+    newNode.setAttribute('aria-label', 'breadcrumb');
+    newNode.innerHTML += '<label>Путь ' + childrenLength + '</label><ol class="breadcrumb" id="bc' + childrenLength + '"><li class="breadcrumb-item">Корень</li></ol>' +
+        '<div class="filesdirs' + childrenLength + '"></div>';
+    el.append(newNode);
+
+    updateFilesAndDirs('.', childrenLength);
+}
+
 function addAdditionalField(element) {
 
     switch (element.dataset.inputtype) {
@@ -166,7 +317,8 @@ function addAdditionalField(element) {
             addMetaboliteField();
             break;
         case 'filepaths':
-            addSimpleField('filepaths', 'filepath', 'Путь')
+            // addSimpleField('filepaths', 'filepath', 'Путь');
+            addFileField();
             break;
     }
 }
@@ -228,7 +380,7 @@ function sendJson(e) {
                 continue;
             }
 
-            if(input.name === "environmentalFactors" || input.name === "diseases" || input.name === "withdrawConditions" || input.name === "comments")
+            if(input.name === "environmentalFactors" || input.name === "diseases" || input.name === "withdrawConditions" || input.name === "comments" || input.name === "filepaths")
             {
                 if(!(input.name in data)) data[input.name] = [];
 

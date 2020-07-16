@@ -131,14 +131,39 @@
             </thead>
 
             <tbody>
+
             {% for el in metabolites %}
-            <tr>
+                <tr>
                     <th scope="row">{{ forloop.counter }}</th>
                     <td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ el.pubChemCid }}">{{ el.pubChemCid }}</a></td>
                     <td>{{ el.name }}</td>
                     <td>{{ el.concentration }}</td>
                     <td>{{ el.analysisMethod }}</td>
-            </tr>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <br>
+        <br>
+
+        <table class="table table-striped table-hover table-responsive">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Путь к файлу</th>
+                    <th>Торрент</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for el in fileInfos %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>{{ el.filepath }}</td>
+                    <td><a href="/experiment/gettorrent/{{ experiment_id }}/{{ forloop.counter0 }}/" class="btn btn-primary">Скачать</a></td>
+                </tr>
             {% endfor %}
             </tbody>
         </table>
