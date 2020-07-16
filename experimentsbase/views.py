@@ -4,10 +4,14 @@ from django.template.context_processors import csrf
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User
 
-from tomo.settings import API_URL
+from tomo.settings import API_URL, SHARED_FILES_DIR
 
 import requests
 import json
+import os
+
+#TODO delete
+from django.views.decorators.csrf import csrf_exempt
 
 
 # TODO: write normal index
@@ -137,11 +141,20 @@ def check_experiments_data(data_json):
                     info_dict['error'].append(value)
 
     if data_json.get('additionalProperties', False):
-        for key, value in data_json['additionalProperties'].items():
-            if key == '':
-                info_dict['error'].append('Пустое значение ключа в доп. свойствах')
-            if value == '':
-                info_dict['error'].append('Пустое значение ' + key + ' в доп. свойствах')
+        for el in data_json['additionalProperties']:
+            for key, value in el.items():
+                # for key, value in data_json['additionalProperties'].items():
+                if key == '':
+                    info_dict['error'].append('Пустое значение ключа в доп. свойствах')
+                if value == '':
+                    info_dict['error'].append('Пустое значение ' + key + ' в доп. свойствах')
+
+        add_props = dict()
+        for el in data_json['additionalProperties']:
+            for key, value in el.items():
+                add_props[key] = value
+
+        data_json['additionalProperties'] = add_props
 
     metabolit_fields = ['pubChemCid', 'metaName', 'concentration', 'analysisMethod']
 
@@ -157,11 +170,34 @@ def check_experiments_data(data_json):
                     if el[field] == '':
                         info_dict['error'].append('Пустое значение ' + field + ' в метаболите')
 
+        for el in data_json['metabolites']:
+            el['name'] = el['metaName']
+            el.pop('metaName', None)
+
+
+    if data_json.get('csrfmiddlewaretoken', False):
+        data_json.pop('csrfmiddlewaretoken', None)
+
+    if data_json.get('taxonName', False):
+        data_json.pop('taxonName', None)
+
+
+    # TODO delete fix
+    if data_json.get('hoursPostMortem', False):
+        data_json['secondsPostMortem'] = data_json['hoursPostMortem']
+        data_json.pop('hoursPostMortem', None)
+
+    if data_json.get('monthsAge', False):
+        data_json['daysAge'] = data_json['monthsAge']
+        data_json.pop('monthsAge', None)
+
+
     # File paths
     if data_json.get('withdrawDate', False):
         data_json['withdrawDate'] += " 00:00:00"
     if data_json.get('experimentName', False):
         data_json['name'] = data_json['experimentName']
+        data_json.pop('experimentName', None)
 
     return info_dict
 
@@ -436,6 +472,48 @@ def taxon_delete(request):
     return redirect('taxons')
 
 
+# @csrf_exempt
+def searh_file(request, experiment_id):
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            if request.method == 'POST':
+
+                try:
+                    path = request.POST.get('path', False)
+                except Exception as e:
+                    return JsonResponse({'error': 'Некорректный путь'})
+
+                if path.find('..') != -1:
+                    return JsonResponse({'error': 'Путь содержит запрещённые символы'})
+
+                try:
+                    path = os.path.abspath(os.getcwd() + "/" + SHARED_FILES_DIR + '/' + path)
+                    print(path)
+                    print(os.listdir(path))
+                    files_and_dirs = os.listdir(path)
+                    dirs = []
+                    files = []
+                    for el in files_and_dirs:
+                        if os.path.isfile(path + '/' + el):
+                            files.append(el)
+                            continue
+                        if os.path.isdir(path + '/' + el):
+                            dirs.append(el)
+                            continue
+
+                    return JsonResponse({'files': files, 'dirs': dirs})
+
+                except FileNotFoundError as e:
+                    return JsonResponse({'error': 'Файл не найден'})
+
+            else:
+                return redirect('index')
+        else:
+            return render(request, 'reg/403.html')
+    else:
+        return redirect('login')
+
+
 def experiment(request, experiment_id):
     try:
         args = requests.get(API_URL + '/experiments', params={'id': experiment_id}).json()['value']
@@ -466,9 +544,10 @@ def experiment_add(request):
                 if not info_dict['error']:
                     try:
                         headers = {'Content-Type': 'application/json'}
-                        if requests.post(API_URL + '/experiments/add', data=json.dumps(data),
-                                         headers=headers,
-                                         auth=('docker_admin', '123qweasdzxc')).status_code == 200:
+                        req = requests.post(API_URL + '/experiments/add', data=json.dumps(data),
+                                            headers=headers,
+                                            auth=('docker_admin', '123qweasdzxc'))
+                        if req.status_code == 200:
                             info_dict['success'] = 'Эксперимент успешно добавлен'
                         else:
                             info_dict['error'].append('Некорректные данные формы')
@@ -485,7 +564,57 @@ def experiment_add(request):
 
 
 def experiment_change(request, experiment_id):
-    return HttpResponse
+    args = dict()
+    args = check_auth_user(request, args)
+    args.update(csrf(request))
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            # get experiment fields and set them to inputs
+            try:
+                req = requests.get(API_URL + '/experiments', params={'id': experiment_id})
+                args['experiment'] = req.json()['value']
+
+                # get taxon_name from taxon_id
+                req = requests.get(API_URL + '/taxa', params={'id': args['experiment']['taxonId']})
+                args['experiment']['taxon_name'] = req.json()['value']['name']
+
+                # get date from datetime - minus 9 symbols(' 00:00:00')
+                args['experiment']['withdrawDate'] = args['experiment']['withdrawDate'][:-9]
+            except Exception as e:
+                print('Uncorrect experiment id or troubles with api ' + str(e))
+                args['success'] = False
+                args['message'] = 'Некорректный id эксперимента или проблемы с доступом к API.'
+
+            if request.method == 'POST':
+                try:
+                    data = json.loads(request.body)
+                except ValueError as e:
+                    print('JSON parse error: ' + str(e))
+                    args['success'] = False
+                    args['message'] = 'Некорректная форма запроса.'
+                    return render(request, 'experiment/change.html', args)
+                info_dict = check_experiments_data(data)
+                if not info_dict['error']:
+                    try:
+                        data['id'] = experiment_id
+                        headers = {'Content-Type': 'application/json'}
+                        req = requests.post(API_URL + '/experiments/edit', params={'id': experiment_id}, data=json.dumps(data),
+                                            headers=headers,
+                                            auth=('docker_admin', '123qweasdzxc'))
+                        if req.status_code == 200:
+                            info_dict['success'] = 'Эксперимент успешно изменён'
+                        else:
+                            info_dict['error'].append('Некорректные данные формы')
+                    except Exception as e:
+                        info_dict['error'].append('Проблема доступа API. Обратитесь к администратору сервера.')
+                # return JsonResponse(json.dumps(info_dict))
+                return JsonResponse(info_dict)
+            else:
+                return render(request, 'experiment/change.html', args)
+        else:
+            return render(request, 'reg/403.html')
+    else:
+        return redirect('login')
 
 
 def experiment_delete(request, experiment_id):
@@ -526,20 +655,40 @@ def experiment_delete(request, experiment_id):
         return redirect('login')
 
 
-def get_torrent(request):
+def get_torrent(request, experiment_id, torrent_index):
     args = dict()
     args = check_auth_user(request, args)
     args.update(csrf(request))
-    if request.user.is_authenticated:
-        if request.user.is_staff:
-            if request.POST:
-                '123'
-            else:
-                return render(request, 'experiment/', args)
-        else:
-            return render(request, 'reg/403.html')
-    else:
-        return redirect('login')
+    # if request.user.is_authenticated:
+    #     if request.user.is_staff:
+    #         if request.POST:
+    #             '123'
+    #         else:
+    #             return render(request, 'experiment/', args)
+    #     else:
+    #         return render(request, 'reg/403.html')
+    # else:
+    #     return redirect('login')
+
+    try:
+        req = requests.get(API_URL + '/experiments', params={'id': experiment_id})
+        torrent_path = req.json()['value']['fileInfos'][int(torrent_index)]['torrentFilePath']
+
+        req = requests.get(API_URL + '/experiments/getTorrent', params={'torrentPath': torrent_path})
+        torrentFile = req.json()['value']
+
+        response = HttpResponse(torrentFile)
+
+        response['status_code'] = 200
+        response['Content-Type'] = 'application/x-bittorrent'
+        response['Content-Length'] = str(len(torrentFile))
+        response['Content-Disposition'] = "attachment; filename=" + os.path.basename(torrent_path)
+
+        return response
+
+    except Exception as e:
+        print("getting torrent error")
+        return redirect('index')
 
 
 def experiments(request):
