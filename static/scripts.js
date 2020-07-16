@@ -5,7 +5,7 @@ function addParentId(element) {
     if (document.getElementsByName("taxonParentName")[0])
         el = document.getElementsByName("taxonParentName")[0];
     else
-        el = document.getElementsByName("taxonName")[0];
+        el = document.getElementsByName("taxonSearchName")[0];
     el.value = element.textContent;
 
     let els = document.getElementsByClassName("taxons-hierarchy")[0].childNodes;
@@ -53,6 +53,9 @@ document.addEventListener('DOMContentLoaded', function ()  {
 
     let el = document.getElementById("taxonParentName");
     if(el) el.addEventListener('keyup', searchParentId);
+
+    let taxId = document.getElementById("taxonSearchName");
+    if(taxId) taxId.addEventListener('keyup', searchParentId);
 
     let bcs = document.getElementsByClassName('bc-ol');
     if(bcs)

@@ -7,7 +7,9 @@
 <main class="container">
     <br>
     {% if user_auth %}
-    <a href="/experiment/add/" class="btn btn-success">Добавить эксперимент</a>
+    <div>
+        <a href="/experiment/add/" class="btn btn-success">Добавить эксперимент</a>
+    </div>
     {% endif %}
     <br>
 
@@ -203,11 +205,13 @@
     </form>
 
     <br>
-    <br>
     {% if experiments %}
     {% if user_auth %}
-    <a href="/experiment/add/" class="btn btn-success">Добавить эксперимент</a>
+    <div>
+        <a href="/experiment/add/" class="btn btn-success">Добавить эксперимент</a>
+    </div>
     {% endif %}
+    <br>
     <div id="table">
         {% include 'experiments_table.html' %}
     </div>

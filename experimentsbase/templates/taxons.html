@@ -10,9 +10,9 @@
     <br>
     <div class="taxon-buttons">
         <a href="/taxon/new/" class="btn btn-success">Добавить таксон</a>
-        <a href="/taxon/rename/{{ taxon_id }}" class="btn btn-primary">Переименовать таксон</a>
-        <a href="/taxon/move/{{ taxon_id }}" class="btn btn-primary">Переместить таксон</a>
-        <a href="/taxon/delete/{{ taxon_id }}" class="btn btn-danger">Удалить таксон</a>
+        <a href="/taxon/rename/{{ taxon_id }}/" class="btn btn-primary {% if index_taxons %}disabled{% endif %}">Переименовать таксон</a>
+        <a href="/taxon/move/{{ taxon_id }}/" class="btn btn-primary {% if index_taxons %}disabled{% endif %}">Переместить таксон</a>
+        <a href="/taxon/delete/{{ taxon_id }}/" class="btn btn-danger {% if index_taxons %}disabled{% endif %}">Удалить таксон</a>
     </div>
     <br>
     {% endif %}

@@ -92,7 +92,7 @@ def check_experiments_data(data_json):
     info_dict = dict()
     info_dict['error'] = []
     fields = {'experimentName': 'Пустое имя эксперимента',
-              'taxonName': 'Пустое имя таксона',
+              'taxonSearchName': 'Пустое имя таксона',
               'wayOfLife': 'Пустое значение поля "Образ жизни"',
               'habitat': 'Пустое значение поля "Ареал обитания"',
               'gender': 'Пустое значение поля "Пол"',
@@ -115,7 +115,7 @@ def check_experiments_data(data_json):
         all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
         found = False
         for el in all_taxons:
-            if el['name'] == data_json['taxonName']:
+            if el['name'] == data_json['taxonSearchName']:
                 data_json['taxonId'] = el['id']
                 found = True
                 break
@@ -177,10 +177,10 @@ def check_experiments_data(data_json):
     if data_json.get('csrfmiddlewaretoken', False):
         data_json.pop('csrfmiddlewaretoken', None)
 
-    if data_json.get('taxonName', False):
-        data_json.pop('taxonName', None)
+    if data_json.get('taxonSearchName', False):
+        data_json.pop('taxonSearchName', None)
 
-    # TODO delete fix
+    #  TODO delete fix
     if data_json.get('hoursPostMortem', False):
         data_json['secondsPostMortem'] = data_json['hoursPostMortem']
         data_json.pop('hoursPostMortem', None)
@@ -221,6 +221,7 @@ def taxons_id(request, taxon_id):
     args['children'] = get_taxon_children(taxon_id)
 
     if taxon_id == '':
+        args['index_taxons'] = True
         experiments_dict = []
     else:
         search_dict = {'taxonIds': [taxon_id]}
@@ -656,29 +657,19 @@ def get_torrent(request, experiment_id, torrent_index):
     args = dict()
     args = check_auth_user(request, args)
     args.update(csrf(request))
-    # if request.user.is_authenticated:
-    #     if request.user.is_staff:
-    #         if request.POST:
-    #             '123'
-    #         else:
-    #             return render(request, 'experiment/', args)
-    #     else:
-    #         return render(request, 'reg/403.html')
-    # else:
-    #     return redirect('login')
 
     try:
         req = requests.get(API_URL + '/experiments', params={'id': experiment_id})
         torrent_path = req.json()['value']['fileInfos'][int(torrent_index)]['torrentFilePath']
 
         req = requests.get(API_URL + '/experiments/getTorrent', params={'torrentPath': torrent_path})
-        torrentFile = req.json()['value']
+        torrent_file = req.json()['value']
 
-        response = HttpResponse(torrentFile)
+        response = HttpResponse(torrent_file)
 
         response['status_code'] = 200
         response['Content-Type'] = 'application/x-bittorrent'
-        response['Content-Length'] = str(len(torrentFile))
+        response['Content-Length'] = str(len(torrent_file))
         response['Content-Disposition'] = "attachment; filename=" + os.path.basename(torrent_path)
 
         return response
@@ -687,7 +678,7 @@ def get_torrent(request, experiment_id, torrent_index):
         print("getting torrent error")
         return redirect('index')
 
-
+# TODO refactor search experiments
 def experiments(request):
     args = dict()
     args = check_auth_user(request, args)
