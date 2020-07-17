@@ -25,11 +25,14 @@
         </div>
 
         <div class="form-group">
-            <label for="taxonId">ID таксона</label>
-            <input type="text" class="form-control" id="taxonId" name="taxonId" aria-describedby="taxonIdHelp" value="{{ filled_fields.taxonId }}">
-            <small id="taxonIdHelp" class="form-text text-muted">Каждый таксон имеет уникальный 36-символьный идентификатор</small>
+            <label for="taxonSearchName">Имя таксона</label>
+            <input type="text" class="form-control" id="taxonSearchName" name="taxonSearchName" aria-describedby="taxonSearchNameHelp" value="{{ filled_fields.taxonSearchName }}">
+            <small id="taxonSearchNameHelp" class="form-text text-muted">Каждый таксон имеет уникальный 36-символьный идентификатор</small>
         </div>
 
+        <div class="taxons-hierarchy">
+
+        </div>
 
         <label class="form-check-label">Образ жизни: </label>
         <div class="form-check form-check-inline">

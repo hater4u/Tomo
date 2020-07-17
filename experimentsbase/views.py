@@ -688,8 +688,20 @@ def experiments(request):
         if not request.POST['experimentName'] == '':
             search_dict['name'] = request.POST['experimentName']
 
-        if not request.POST['taxonId'] == '':
-            search_dict['taxonIds'] = [request.POST['taxonId']]
+        if not request.POST['taxonSearchName'] == '':
+            try:
+                all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
+                found = False
+                for real_taxon in all_taxons:
+                        if real_taxon['name'] == request.POST['taxonSearchName']:
+                            search_dict['taxonIds'] = [real_taxon['id']]
+                            found = True
+                            break
+                # if not found:
+                #             #     info_dict['error'] = ['Неверное имя таксона']
+            except Exception as e:
+                # info_dict['error'] = ['Проблема доступа к API. Обратитесь к администратору сервера']
+                print('exception ' + str(e))
 
         # Ways of life
         search_dict['waysOfLife'] = []
