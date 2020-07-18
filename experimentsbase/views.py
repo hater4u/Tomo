@@ -181,13 +181,13 @@ def check_experiments_data(data_json):
         data_json.pop('taxonSearchName', None)
 
     #  TODO delete fix
-    if data_json.get('hoursPostMortem', False):
-        data_json['secondsPostMortem'] = data_json['hoursPostMortem']
-        data_json.pop('hoursPostMortem', None)
-
-    if data_json.get('monthsAge', False):
-        data_json['daysAge'] = data_json['monthsAge']
-        data_json.pop('monthsAge', None)
+    # if data_json.get('hoursPostMortem', False):
+    #     data_json['secondsPostMortem'] = data_json['hoursPostMortem']
+    #     data_json.pop('hoursPostMortem', None)
+    #
+    # if data_json.get('monthsAge', False):
+    #     data_json['daysAge'] = data_json['monthsAge']
+    #     data_json.pop('monthsAge', None)
 
     # File paths
     if data_json.get('withdrawDate', False):
@@ -676,7 +676,6 @@ def get_torrent(request, experiment_id, torrent_index):
         print("getting torrent error")
         return redirect('index')
 
-
 # TODO refactor search experiments
 def experiments(request):
     args = dict()
@@ -693,6 +692,7 @@ def experiments(request):
         if not request.POST['experimentName'] == '':
             search_dict['name'] = request.POST['experimentName']
 
+        args['error'] = dict()
         if not request.POST['taxonSearchName'] == '':
             try:
                 all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
@@ -703,10 +703,9 @@ def experiments(request):
                             found = True
                             break
                 if not found:
-                    args['experiments'] = []
-                    return render(request, 'experiments.html', args)
+                    args['error'] = 'Неверное имя таксона'
             except Exception as e:
-                # info_dict['error'] = ['Проблема доступа к API. Обратитесь к администратору сервера']
+                args['error'] = 'Проблема доступа к API. Обратитесь к администратору сервера'
                 print('exception ' + str(e))
 
         # Ways of life
@@ -738,15 +737,15 @@ def experiments(request):
             search_dict['habitats'].append('OTHER')
 
         # Gender
-        # search_dict['gender'] = []
-        # if request.POST.get('maleGenderCheckbox', False):
-        #     search_dict['gender'].append('MALE')
-        #
-        # if request.POST.get('femaleGenderCheckbox', False):
-        #     search_dict['gender'].append('FEMALE')
-        #
-        # if request.POST.get('otherGenderCheckbox', False):
-        #     search_dict['gender'].append('OTHER')
+        search_dict['genders'] = []
+        if request.POST.get('maleGenderCheckbox', False):
+            search_dict['genders'].append('MALE')
+
+        if request.POST.get('femaleGenderCheckbox', False):
+            search_dict['genders'].append('FEMALE')
+
+        if request.POST.get('otherGenderCheckbox', False):
+            search_dict['genders'].append('OTHER')
 
         # Age
         if request.POST['ageFrom'] == '':
@@ -805,15 +804,15 @@ def experiments(request):
             search_dict['withdrawDateTo'] = request.POST['withdrawDateTo'] + ' 00:00:00'
 
         # Seconds post mortem
-        if request.POST['secondsPostMortemFrom'] == '':
-            search_dict['secondsPostMortemFrom'] = 'null'
+        if request.POST['hoursPostMortemFrom'] == '':
+            search_dict['hoursPostMortemFrom'] = 'null'
         else:
-            search_dict['secondsPostMortemFrom'] = request.POST['secondsPostMortemFrom']
+            search_dict['hoursPostMortemFrom'] = request.POST['secondsPostMortemFrom']
 
-        if request.POST['secondsPostMortemTo'] == '':
-            search_dict['secondsPostMortemTo'] = 'null'
+        if request.POST['hoursPostMortemTo'] == '':
+            search_dict['hoursPostMortemTo'] = 'null'
         else:
-            search_dict['secondsPostMortemTo'] = request.POST['secondsPostMortemTo']
+            search_dict['hoursPostMortemTo'] = request.POST['secondsPostMortemTo']
 
         # Temperature
         if request.POST['temperatureFrom'] == '':
@@ -834,9 +833,11 @@ def experiments(request):
         if not request.POST['metaboliteNames'] == '':
             search_dict['metaboliteNames'] = [request.POST['metaboliteNames']]
 
-
         try:
-            args['experiments'] = translate_experiments(experiments_search(search_dict))
+            if not args['error']:
+                args['experiments'] = translate_experiments(experiments_search(search_dict))
+            else:
+                args['experiments'] = {}
         except Exception as e:
             print('Search error:' + str(e))
             args = {}
