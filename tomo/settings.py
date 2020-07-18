@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import environ
+
+
+env = environ.Env()
+environ.Env.read_env('.env')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,12 +25,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '@vx!n3_u7#vu7ygk316uj^k^lnj9w$@uheqh%+_bbw5!_-6r&o'
+SECRET_KEY = env.str('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool('DJANGO_DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
 
 # Application definition
@@ -77,14 +82,7 @@ WSGI_APPLICATION = 'tomo.wsgi.application'
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'tomodb',
-        'USER': 'tomouser',
-        'PASSWORD': 'postgres',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
+    'default': env.db('DATABASE_URL')
 }
 
 
@@ -132,6 +130,6 @@ STATICFILES_DIRS = [
 
 # AUTH_USER_MODEL = 'experimentsbase.User'
 
-API_URL = 'http://localhost:8080/api'
+API_URL = 'http://' + env.str('API_HOST') + ':8080/api'
 
-SHARED_FILES_DIR = '../docker_dist/volumes/shared_files'
+SHARED_FILES_DIR = env.str('SHARED_FILES_DIR')
