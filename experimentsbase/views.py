@@ -443,8 +443,12 @@ def taxon_delete_id(request, taxon_id):
             if request.POST:
                 if request.POST['delete']:
                     try:
-                        if requests.post(API_URL + '/taxa/delete', data={'id': taxon_id},
-                                         auth=('docker_admin', '123qweasdzxc')).status_code == 200:
+                        headers = {'Content-Type': 'application/json'}
+                        req = requests.post(API_URL + '/taxa/delete',
+                                         data=json.dumps({'id': taxon_id}),
+                                         headers=headers,
+                                         auth=('docker_admin', '123qweasdzxc'))
+                        if req.status_code == 200:
                             args['success'] = True
                             args['message'] = 'Таксон успешно удалён'
                         else:
@@ -630,8 +634,13 @@ def experiment_delete(request, experiment_id):
                 return render(request, 'experiment/delete.html', args)
             if request.POST:
                 try:
-                    if requests.post(API_URL + '/experiments/delete', data={'id': experiment_id},
-                                     auth=('docker_admin', '123qweasdzxc')).status_code == 200:
+                    # TODO fix(params to data) request after API fixing
+                    # headers = {'Content-Type': 'application/json'}
+                    req = requests.post(API_URL + '/experiments/delete',
+                                  params={'id': experiment_id},
+                                  # headers=headers,
+                                  auth=('docker_admin', '123qweasdzxc'))
+                    if req.status_code == 200:
                         args['success'] = True
                         args['message'] = 'Эксперимент успешно удалён'
                     else:
