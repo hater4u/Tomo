@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function ()  {
     let y = n.getFullYear();
     let m = n.getMonth() + 1;
     let d = n.getDate();
-    let withdrawDate = document.getElementById("withdrawDate");
+    let withdrawDate = document.getElementsByClassName("setdate")[0];
     if(withdrawDate) withdrawDate.value = y.toString() + "-" + m.toString().padStart(2, "0") + "-" + d.toString().padStart(2, "0");
 
     let form1 = document.getElementsByClassName('experiments_form')[0];

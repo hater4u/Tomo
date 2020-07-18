@@ -293,12 +293,7 @@
             <div class="col">
                 <h6>Пути файлов</h6>
                 <div class="filepaths">
-{#                    {% for el in experiment.fileInfos %}#}
-{#                        <div>#}
-{#                            <label for="filepath{{ forloop.counter }}"> Путь {{ forloop.counter }}</label>#}
-{#                            <input type="text" class="form-control" id="filepath{{ forloop.counter }}" name="filepaths" value="{{ el.filepath }}" required>#}
-{#                        </div>#}
-{#                    {% endfor %}#}
+
                     {%  for el in experiment.fileInfos %}
 
                         <div aria-label="breadcrumb">

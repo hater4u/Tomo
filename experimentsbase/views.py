@@ -240,19 +240,17 @@ def taxons(request):
 
 def taxon_parent_search(request):
     if request.POST:
-        if request.user.is_authenticated:
-            if request.user.is_staff:
-                parent_name = request.POST['parentName']
-                try:
-                    all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
-                    taxons = []
-                    for el in all_taxons:
-                        if el['name'].startswith(parent_name):
-                            taxons.append(el)
-                    return JsonResponse({'value': taxons})
-                except Exception as e:
-                    print('Taxon search error:' + str(e))
-                    return JsonResponse({'value': []})
+        parent_name = request.POST['parentName']
+        try:
+            all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
+            taxons = []
+            for el in all_taxons:
+                if el['name'].startswith(parent_name):
+                    taxons.append(el)
+            return JsonResponse({'value': taxons})
+        except Exception as e:
+            print('Taxon search error:' + str(e))
+            return JsonResponse({'value': []})
     else:
         return redirect('taxons')
 
@@ -678,6 +676,7 @@ def get_torrent(request, experiment_id, torrent_index):
         print("getting torrent error")
         return redirect('index')
 
+
 # TODO refactor search experiments
 def experiments(request):
     args = dict()
@@ -685,6 +684,12 @@ def experiments(request):
     if request.POST:
         args.update(csrf(request))
         search_dict = dict()
+
+        args['filled_fields'] = dict()
+        for key, value in request.POST.items():
+            if request.POST[key] and request.POST[key] != '':
+                args['filled_fields'][key] = value
+
         if not request.POST['experimentName'] == '':
             search_dict['name'] = request.POST['experimentName']
 
@@ -697,8 +702,9 @@ def experiments(request):
                             search_dict['taxonIds'] = [real_taxon['id']]
                             found = True
                             break
-                # if not found:
-                #             #     info_dict['error'] = ['Неверное имя таксона']
+                if not found:
+                    args['experiments'] = []
+                    return render(request, 'experiments.html', args)
             except Exception as e:
                 # info_dict['error'] = ['Проблема доступа к API. Обратитесь к администратору сервера']
                 print('exception ' + str(e))
@@ -828,10 +834,6 @@ def experiments(request):
         if not request.POST['metaboliteNames'] == '':
             search_dict['metaboliteNames'] = [request.POST['metaboliteNames']]
 
-        args['filled_fields'] = dict()
-        for key, value in request.POST.items():
-            if request.POST[key] and request.POST[key] != '':
-                args['filled_fields'][key] = value
 
         try:
             args['experiments'] = translate_experiments(experiments_search(search_dict))
