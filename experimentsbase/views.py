@@ -9,6 +9,8 @@ from tomo.settings import API_URL, SHARED_FILES_DIR
 import requests
 import json
 import os
+import base64
+
 
 #TODO delete
 from django.views.decorators.csrf import csrf_exempt
@@ -180,15 +182,6 @@ def check_experiments_data(data_json):
     if data_json.get('taxonSearchName', False):
         data_json.pop('taxonSearchName', None)
 
-    #  TODO delete fix
-    # if data_json.get('hoursPostMortem', False):
-    #     data_json['secondsPostMortem'] = data_json['hoursPostMortem']
-    #     data_json.pop('hoursPostMortem', None)
-    #
-    # if data_json.get('monthsAge', False):
-    #     data_json['daysAge'] = data_json['monthsAge']
-    #     data_json.pop('monthsAge', None)
-
     # File paths
     if data_json.get('withdrawDate', False):
         data_json['withdrawDate'] += " 00:00:00"
@@ -316,6 +309,16 @@ def taxon_rename_id(request, taxon_id):
     args.update(csrf(request))
     if request.user.is_authenticated:
         if request.user.is_staff:
+
+            try:
+                print(requests.get(API_URL + '/taxa', params={'id': taxon_id}))
+                args['taxon_name'] = requests.get(API_URL + '/taxa', params={'id': taxon_id}).json()['value']['name']
+            except Exception as e:
+                print('API troubles: ' + str(e))
+                args['success'] = False
+                args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                return render(request, 'taxon/rename.html', args)
+
             if request.POST:
                 if request.POST['taxonName'] == '':
                     args['success'] = False
@@ -634,12 +637,11 @@ def experiment_delete(request, experiment_id):
                 return render(request, 'experiment/delete.html', args)
             if request.POST:
                 try:
-                    # TODO fix(params to data) request after API fixing
-                    # headers = {'Content-Type': 'application/json'}
+                    headers = {'Content-Type': 'application/json'}
                     req = requests.post(API_URL + '/experiments/delete',
-                                  params={'id': experiment_id},
-                                  # headers=headers,
-                                  auth=('docker_admin', '123qweasdzxc'))
+                                        data=json.dumps({'id': experiment_id}),
+                                        headers=headers,
+                                        auth=('docker_admin', '123qweasdzxc'))
                     if req.status_code == 200:
                         args['success'] = True
                         args['message'] = 'Эксперимент успешно удалён'
@@ -670,7 +672,7 @@ def get_torrent(request, experiment_id, torrent_index):
         torrent_path = req.json()['value']['fileInfos'][int(torrent_index)]['torrentFilePath']
 
         req = requests.get(API_URL + '/experiments/getTorrent', params={'torrentPath': torrent_path})
-        torrent_file = req.json()['value']
+        torrent_file = base64.b64decode(req.json()['value'])
 
         response = HttpResponse(torrent_file)
 
@@ -684,6 +686,7 @@ def get_torrent(request, experiment_id, torrent_index):
     except Exception as e:
         print("getting torrent error")
         return redirect('index')
+
 
 # TODO refactor search experiments
 def experiments(request):

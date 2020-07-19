@@ -13,7 +13,7 @@
         <div class="form-group">
             <label for="experimentName">Имя эксперимента</label>
             <input type="text" class="form-control" id="experimentName" name="experimentName" aria-describedby="experimentNameHelp" required value="{{ experiment.name }}">
-            <small id="experimentNameHelp" class="form-text text-muted">Имя эксперимента, пока без кириллицы</small>
+            <small id="experimentNameHelp" class="form-text text-muted">Имя эксперимента</small>
         </div>
 
         <div class="form-group">
@@ -258,22 +258,22 @@
             <div class="metabolites">
                 {% for el in experiment.metabolites %}
                     <div class="form-row">
-                        <div class="col">
+                        <div class="col-6 col-md-3">
                             <label for="pubChemCid{{ forloop.counter }}"> pubChemCid {{ forloop.counter }}</label>
                             <input type="number" min="0" class="form-control" id="pubChemCid{{ forloop.counter }}" name="pubChemCid{{ forloop.counter }}" data-metabolite="true" value="{{ el.pubChemCid }}" required>
                         </div>
 
-                        <div class="col">
+                        <div class="col-6 col-md-3">
                             <label for="metaName{{ forloop.counter }}"> Имя метаболита {{ forloop.counter }}</label>
                             <input type="text" class="form-control" id="metaName{{ forloop.counter }}" name="metaName{{ forloop.counter }}" data-metabolite="true" value="{{ el.name }}" required>
                         </div>
 
-                        <div class="col">
+                        <div class="col-6 col-md-3">
                             <label for="concentration{{ forloop.counter }}"> Концентрация {{ forloop.counter }}</label>
                             <input type="number" min="0" step="0.01" class="form-control" id="concentration{{ forloop.counter }}" name="concentration{{ forloop.counter }}" data-metabolite="true" value="{{ el.concentration }}" required>
                         </div>
 
-                        <div class="col">
+                        <div class="col-6 col-md-3">
                             <label for="analysisMethod{{ forloop.counter }}"> Название метода анализа {{ forloop.counter }}</label>
                             <input type="text" class="form-control" id="analysisMethod{{ forloop.counter }}" name="analysisMethod{{ forloop.counter }}" data-metabolite="true" value="{{ el.analysisMethod }}" required>
                         </div>

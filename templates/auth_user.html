@@ -1,6 +1,12 @@
 {% if user_auth %}
-    <h6 class="col">{{ nickname }}</h6>
-    <a href="/logout/" class="btn btn-primary mb-2 col">Выход</a>
+    <div class="row float-sm-left float-md-right">
+        <span class="col mt-2 ml-3 text-center ">{{ nickname }}</span>
+        <a href="/logout/" class="btn btn-primary col mb-2 mr-2">Выход</a>
+    </div>
+
 {% else %}
-    <a href="/login/" class="btn btn-primary mb-2">Вход</a>
+    <div class="row float-sm-left float-md-right">
+        <a href="/login/" class="btn btn-primary mb-2 mr-2 ml-3">Вход</a>
+    </div>
+
 {%  endif %}

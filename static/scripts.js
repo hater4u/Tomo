@@ -152,13 +152,13 @@ function addMetaboliteField() {
 
     let newNode = document.createElement('div');
     newNode.classList.add('form-row');
-    newNode.innerHTML = '<div class="col"><label for="pubChemCid' + childrenLength + '">' + 'pubChemCid ' + childrenLength + '</label>' +
+    newNode.innerHTML = '<div class="col-6 col-md-3"><label for="pubChemCid' + childrenLength + '">' + 'pubChemCid ' + childrenLength + '</label>' +
         '<input data-metabolite="true" type="number" min="0" value="0" class="form-control" id="pubChemCid' + childrenLength + '" name="pubChemCid' + childrenLength + '" required></div>' +
-        '<div class="col"><label for="metaName' + childrenLength + '">' + 'Имя метаболита ' + childrenLength + '</label>' +
+        '<div class="col-6 col-md-3"><label for="metaName' + childrenLength + '">' + 'Имя метаболита ' + childrenLength + '</label>' +
         '<input data-metabolite="true" type="text" class="form-control" id="metaName' + childrenLength + '" name="metaName' + childrenLength + '" required></div>' +
-        '<div class="col"><label for="concentration' + childrenLength + '">' + 'Концентрация ' + childrenLength + '</label>' +
+        '<div class="col-6 col-md-3"><label for="concentration' + childrenLength + '">' + 'Концентрация ' + childrenLength + '</label>' +
         '<input data-metabolite="true" type="number" min="0" value="0" step="0.01" class="form-control" id="concentration' + childrenLength + '" name="concentration' + childrenLength + '" required></div>' +
-        '<div class="col"><label for="analysisMethod' + childrenLength + '">' + 'Название метода анализа ' + childrenLength + '</label>' +
+        '<div class="col-6 col-md-3"><label for="analysisMethod' + childrenLength + '">' + 'Название метода анализа ' + childrenLength + '</label>' +
         '<input data-metabolite="true" type="text" class="form-control" id="analysisMethod' + childrenLength + '" name="analysisMethod' + childrenLength + '" required></div>';
 
     el.append(newNode);
