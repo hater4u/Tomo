@@ -122,10 +122,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
-    'static/'
+    'static/',
 ]
 
 # AUTH_USER_MODEL = 'experimentsbase.User'
@@ -133,4 +133,4 @@ STATICFILES_DIRS = [
 API_URL = 'http://' + env.str('API_HOST') + ':8080/api'
 
 SHARED_FILES_DIR = env.str('SHARED_FILES_DIR')
-STATIC_ROOT = 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

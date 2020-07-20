@@ -50,6 +50,7 @@ def logout(request):
 def check_auth_user(request, args):
     if request.user.is_authenticated:
         args['nickname'] = request.user.get_username()
+        args['authenticated'] = True
         if request.user.is_staff:
             args['user_auth'] = True
     return args
