@@ -210,18 +210,16 @@
         </div>
         <br>
 
-        <input type="submit" class="btn btn-primary" value="Поиск">
+        <input type="submit" class="btn btn-primary m-2" value="Поиск">
     </form>
 
     <br>
     {% if experiments %}
-    {% if user_auth %}
-    <div>
-        <a href="/experiment/add/" class="btn btn-success">Добавить эксперимент</a>
-    </div>
-    {% endif %}
-    <br>
     <div id="table">
+        {% if user_auth %}
+            <a href="/experiment/add/" class="btn btn-success m-2">Добавить эксперимент</a>
+        {% endif %}
+
         {% include 'experiments_table.html' %}
     </div>
     {% endif %}

@@ -1,4 +1,10 @@
+<button class="btn btn-warning m-2 adding-button" onclick="addCheckboxAndButton(this)">Выделить</button>
+
 <div class="table-experiments">
+    <form action="/experiment/download/" method="post" class="experiments-id-form">
+        {% csrf_token %}
+        <input type="hidden" value="" class="experiments-id-input" name="experiments">
+    </form>
     <table class="table table-striped table-hover table-responsive">
         <thead class="thead-default">
         <tr>
@@ -17,7 +23,10 @@
         <tbody>
         {% for el in experiments %}
         <tr>
-            <th scope="row"> {{ forloop.counter }} </th>
+            <th scope="row">
+                {{ forloop.counter }}
+                <input class="exp-check" type="hidden" data-exp-id="{{ el.id }}" data-exp-quantity="{{ el.fileInfos|length }}">
+            </th>
             <td><a href="/experiment/{{ el.id }}/">{{ el.name }}</a></td>
             <td>{{ el.wayOfLife }}</td>
             <td>{{ el.habitat }}</td>

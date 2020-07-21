@@ -18,6 +18,7 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
     path('experiments/', views.experiments),
     path('experiment/add/', views.experiment_add, name='experiment_add'),
+    path('experiment/download/', views.experiment_download, name='experiment_download'),
     path('experiment/change/<slug:experiment_id>/', views.experiment_change, name='experiment_change'),
     path('experiment/delete/<slug:experiment_id>/', views.experiment_delete, name='experiment_delete'),
     path('experiment/searchfile/<slug:experiment_id>/', views.searh_file, name='search_file'),

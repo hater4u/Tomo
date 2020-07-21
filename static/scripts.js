@@ -429,3 +429,45 @@ function sendJson(e) {
     xhr.onreadystatechange = updatePage;
     xhr.send(JSON.stringify(data));
 }
+
+function sendExperimentsJson()
+{
+    let data = []
+
+    let trs = document.getElementsByClassName('exp-check');
+    for(let item of trs) {
+        if(item.checked)
+        {
+            data.push({'id': item.dataset.expId, 'quantity': item.dataset.expQuantity});
+        }
+    }
+
+    console.info(data);
+
+    let expInput = document.getElementsByClassName('experiments-id-input')[0];
+    expInput.value = JSON.stringify({'experiments': data});
+    let expForm = document.getElementsByClassName('experiments-id-form')[0];
+    expForm.submit();
+}
+
+function addCheckboxAndButton(element)
+{
+    let db = document.getElementsByClassName('download-button')[0];
+    if(db) db.remove();
+
+    let newNode = document.createElement('button');
+    newNode.classList.add('btn');
+    newNode.classList.add('btn-success');
+    newNode.classList.add('m-2');
+    newNode.classList.add('download-button');
+    newNode.innerText = 'Скачать эксперименты';
+    newNode.onclick = sendExperimentsJson;
+
+    document.getElementsByClassName('adding-button')[0].after(newNode);
+
+    let trs = document.getElementsByClassName('exp-check');
+    for(let item of trs) {
+        item.type = 'checkbox';
+
+    }
+}

@@ -10,6 +10,10 @@ import requests
 import json
 import os
 import base64
+import zipfile
+import random
+import string
+import shutil
 
 
 #TODO delete
@@ -208,6 +212,7 @@ def translate_experiments(experiments_list):
 
 def taxons_id(request, taxon_id):
     args = dict()
+    args.update(csrf(request))
     args['taxon_id'] = taxon_id
     hierarchy = get_taxon_path(taxon_id)
     hierarchy.reverse()
@@ -565,6 +570,71 @@ def experiment_add(request):
             return render(request, 'reg/403.html')
     else:
         return redirect('login')
+
+
+def zipdir(path, ziph):
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            ziph.write(os.path.join(root, file))
+
+
+def create_random_str(size):
+    return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(size))
+
+
+def experiment_download(request):
+
+    if request.POST:
+        try:
+            experiments_list = json.loads(request.POST['experiments'])['experiments']
+
+            folder = create_random_str(16)
+            os.mkdir('/tmp/' + folder)
+
+            for counter, el in enumerate(experiments_list):
+                os.mkdir('/tmp/' + folder + '/experiment' + str(counter))
+
+                i = 0
+                while i < int(el['quantity']):
+                    req = requests.get(API_URL + '/experiments', params={'id': el['id']})
+                    value = req.json()['value']
+                    torrent_path = value['fileInfos'][i]['torrentFilePath']
+                    file_name = os.path.basename(value['fileInfos'][i]['filepath'])
+
+                    req = requests.get(API_URL + '/experiments/getTorrent', params={'torrentPath': torrent_path})
+                    torrent_file = base64.b64decode(req.json()['value'])
+
+                    f1 = open('/tmp/' + folder + '/experiment' + str(counter) + '/' + file_name + str(i) + '.torrent', 'wb')
+                    f1.write(torrent_file)
+                    f1.close()
+
+                    i += 1
+
+            path_to_archive = '/tmp/experiment_torrents_' + folder + '.zip'
+
+            zipf = zipfile.ZipFile(path_to_archive, 'w', zipfile.ZIP_DEFLATED)
+            zipdir('/tmp/' + folder, zipf)
+            zipf.close()
+
+            archive = open(path_to_archive, 'rb').read()
+            response = HttpResponse(archive)
+
+            response['status_code'] = 200
+            response['Content-Type'] = 'application/zip'
+            response['Content-Length'] = os.path.getsize(path_to_archive)
+            response['Content-Disposition'] = "attachment; filename=experiment_torrents.zip"
+
+            os.remove(path_to_archive)
+            shutil.rmtree('/tmp/' + folder)
+
+            return response
+
+        except Exception as e:
+            print('Creation zip archive error: ' + str(e))
+            return JsonResponse({'error': 'cant create archive'})
+
+    return render(request, '', {})
 
 
 def experiment_change(request, experiment_id):

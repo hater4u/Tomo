@@ -40,10 +40,9 @@
     <br>
 
     {% if user_auth %}
-    <a href="/experiment/add/" class="btn btn-success">Добавить эксперимент</a>
+    <a href="/experiment/add/" class="btn btn-success m-2">Добавить эксперимент</a>
     {% endif %}
 
-    <br>
 
     {% if experiments %}
     {% include 'experiments_table.html' %}
