@@ -4,7 +4,7 @@ from django.template.context_processors import csrf
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User
 
-from tomo.settings import API_URL, SHARED_FILES_DIR
+from tomo.settings import API_URL, SHARED_FILES_DIR, LOGGING
 
 import requests
 import json
@@ -14,10 +14,15 @@ import zipfile
 import random
 import string
 import shutil
-
+import logging
+import logging.config
 
 #TODO delete
 from django.views.decorators.csrf import csrf_exempt
+
+logging.config.dictConfig(LOGGING)
+experimentbase_logger = logging.getLogger('django')
+# experimentbase_logger_admin = logging.getLogger('django.request')
 
 
 # TODO: write normal index
@@ -73,7 +78,7 @@ def get_taxon_path(taxon_id):
             parent_id = values['value']['parentId']
         return hierarchy
     except Exception:
-        print('hierarchy found error')
+        experimentbase_logger.warning('hierarchy found error, maybe it is root')
         return []
 
 
@@ -81,7 +86,7 @@ def get_taxon_children(taxon_id):
     try:
         return requests.get(API_URL + '/taxa/byParent', params={'parentId': taxon_id}).json()['value']
     except Exception:
-        print('children found error')
+        experimentbase_logger.error('children found error, maybe problems with API')
         return []
 
 
@@ -91,7 +96,7 @@ def experiments_search(search_dict):
         return requests.post(API_URL + '/experiments/search',
                              data=json.dumps(search_dict), headers=headers).json()['value']
     except Exception as e:
-        print('experiments found error: ' + str(e))
+        experimentbase_logger.error('experiments found error: ' + str(e))
         return []
 
 
@@ -132,6 +137,7 @@ def check_experiments_data(data_json):
             return info_dict
     except Exception as e:
         info_dict['error'] = ['Проблема доступа к API. Обратитесь к администратору сервера']
+        experimentbase_logger.error('Problems with API')
         return info_dict
 
     fields_lists = {
@@ -248,7 +254,7 @@ def taxon_parent_search(request):
                     taxons.append(el)
             return JsonResponse({'value': taxons})
         except Exception as e:
-            print('Taxon search error:' + str(e))
+            experimentbase_logger.error('Taxon search error:' + str(e))
             return JsonResponse({'value': []})
     else:
         return redirect('taxons')
@@ -269,7 +275,7 @@ def taxon_add(request):
                 try:
                     all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
                     all_taxons.append({'name': '', 'id': ''})
-                    print(all_taxons)
+                    # experimentbase_logger.info('all taxons: ' + all_taxons)
                     for el in all_taxons:
                         if el['name'] == request.POST['taxonParentName']:
                             parent_id = el['id']
@@ -288,7 +294,7 @@ def taxon_add(request):
                                 return render(request, 'taxon/new.html', args)
 
                             except Exception as exp:
-                                print('Error add taxon:' + str(exp))
+                                experimentbase_logger.error('Error add taxon:' + str(exp))
                                 args['success'] = False
                                 args['message'] = 'Проблема с добавлением таксона. Обратитесь к администратору сервера.'
                                 return render(request, 'taxon/new.html', args)
@@ -296,7 +302,7 @@ def taxon_add(request):
                     args['message'] = 'Такой таксон-родитель не найден'
                     return render(request, 'taxon/new.html', args)
                 except Exception as e:
-                    print('Error add taxon:' + str(e))
+                    experimentbase_logger.error('Error add taxon:' + str(e))
                     args['success'] = False
                     args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
                     return render(request, 'taxon/new.html', args)
@@ -317,10 +323,9 @@ def taxon_rename_id(request, taxon_id):
         if request.user.is_staff:
 
             try:
-                print(requests.get(API_URL + '/taxa', params={'id': taxon_id}))
                 args['taxon_name'] = requests.get(API_URL + '/taxa', params={'id': taxon_id}).json()['value']['name']
             except Exception as e:
-                print('API troubles: ' + str(e))
+                experimentbase_logger.error('API troubles: ' + str(e))
                 args['success'] = False
                 args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
                 return render(request, 'taxon/rename.html', args)
@@ -344,7 +349,7 @@ def taxon_rename_id(request, taxon_id):
                         args['message'] = 'Имя таксона не было изменено. Обратитесь к администратору сервера.'
                     return render(request, 'taxon/rename.html', args)
                 except Exception as e:
-                    print('Error rename taxon:' + str(e))
+                    experimentbase_logger.error('Error rename taxon:' + str(e))
                     args['success'] = False
                     args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
                     return render(request, 'taxon/rename.html', args)
@@ -378,7 +383,7 @@ def taxon_move_id(request, taxon_id):
                 else:
                     args['taxon_parent_name'] = ''
             except Exception as e:
-                print('Error move taxon, getting taxon_parent_id :' + str(e))
+                experimentbase_logger.error('Error move taxon, getting taxon_parent_id :' + str(e))
                 args['success'] = False
                 args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
                 return render(request, 'taxon/move.html', args)
@@ -387,7 +392,7 @@ def taxon_move_id(request, taxon_id):
                 try:
                     all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
                     all_taxons.append({'name': '', 'id': ''})
-                    print(all_taxons)
+                    # experimentbase_logger.info('all taxons: ' + all_taxons)
                     for el in all_taxons:
                         if el['name'] == request.POST['taxonParentName']:
                             parent_id = el['id']
@@ -406,7 +411,7 @@ def taxon_move_id(request, taxon_id):
                                 return render(request, 'taxon/move.html', args)
 
                             except Exception as exp:
-                                print('Error move taxon:' + str(exp))
+                                experimentbase_logger.error('Error move taxon:' + str(exp))
                                 args['success'] = False
                                 args['message'] = 'Проблема с перемещением таксона. Обратитесь к администратору ' \
                                                   'сервера. '
@@ -415,7 +420,7 @@ def taxon_move_id(request, taxon_id):
                     args['message'] = 'Такой таксон-родитель не найден'
                     return render(request, 'taxon/move.html', args)
                 except Exception as e:
-                    print('Error add taxon:' + str(e))
+                    experimentbase_logger.error('Error add taxon:' + str(e))
                     args['success'] = False
                     args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
                     return render(request, 'taxon/move.html', args)
@@ -444,7 +449,7 @@ def taxon_delete_id(request, taxon_id):
                 args['taxon_name'] = requests.get(API_URL + '/taxa', params={'id': taxon_id}).json()['value'][
                     'name']
             except Exception as e:
-                print('Error delete taxon, getting taxon_name :' + str(e))
+                experimentbase_logger.error('Error delete taxon, getting taxon_name :' + str(e))
                 args['success'] = False
                 args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
                 return render(request, 'taxon/delete.html', args)
@@ -465,7 +470,7 @@ def taxon_delete_id(request, taxon_id):
                             args['message'] = 'Таксон не был удалён. Обратитесь к администратору сервера.'
                         return render(request, 'taxon/delete.html', args)
                     except Exception as e:
-                        print('Error delete taxon, getting taxon_name :' + str(e))
+                        experimentbase_logger.error('Error delete taxon, getting taxon_name :' + str(e))
                         args['success'] = False
                         args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
                         return render(request, 'taxon/delete.html', args)
@@ -490,6 +495,7 @@ def searh_file(request, experiment_id):
                 try:
                     path = request.POST.get('path', False)
                 except Exception as e:
+                    experimentbase_logger.error('Incorrect path')
                     return JsonResponse({'error': 'Некорректный путь'})
 
                 if path.find('..') != -1:
@@ -497,8 +503,6 @@ def searh_file(request, experiment_id):
 
                 try:
                     path = os.path.abspath(os.getcwd() + "/" + SHARED_FILES_DIR + '/' + path)
-                    print(path)
-                    print(os.listdir(path))
                     files_and_dirs = os.listdir(path)
                     dirs = []
                     files = []
@@ -513,6 +517,7 @@ def searh_file(request, experiment_id):
                     return JsonResponse({'files': files, 'dirs': dirs})
 
                 except FileNotFoundError as e:
+                    experimentbase_logger.error('File not found')
                     return JsonResponse({'error': 'Файл не найден'})
 
             else:
@@ -530,7 +535,7 @@ def experiment(request, experiment_id):
         args = check_auth_user(request, args)
         args['experiment_id'] = experiment_id
     except Exception as e:
-        print('Experiment error:' + str(e))
+        experimentbase_logger.error('Experiment error:' + str(e))
         args = {}
     return render(request, 'experiment.html', args)
 
@@ -545,7 +550,7 @@ def experiment_add(request):
                 try:
                     data = json.loads(request.body)
                 except ValueError as e:
-                    print('JSON parse error: ' + str(e))
+                    experimentbase_logger.error('JSON parse error: ' + str(e))
                     args['success'] = False
                     args['message'] = 'Некорректная форма запроса.'
                     return render(request, 'experiment/add.html', args)
@@ -562,6 +567,7 @@ def experiment_add(request):
                             info_dict['error'].append('Некорректные данные формы')
                     except Exception as e:
                         info_dict['error'].append('Проблема доступа API. Обратитесь к администратору сервера.')
+                        experimentbase_logger.error('Problems with API')
                 # return JsonResponse(json.dumps(info_dict))
                 return JsonResponse(info_dict)
             else:
@@ -631,7 +637,7 @@ def experiment_download(request):
             return response
 
         except Exception as e:
-            print('Creation zip archive error: ' + str(e))
+            experimentbase_logger.error('Creation zip archive error: ' + str(e))
             return JsonResponse({'error': 'cant create archive'})
 
     return render(request, '', {})
@@ -655,7 +661,7 @@ def experiment_change(request, experiment_id):
                 # get date from datetime - minus 9 symbols(' 00:00:00')
                 args['experiment']['withdrawDate'] = args['experiment']['withdrawDate'][:-9]
             except Exception as e:
-                print('Uncorrect experiment id or troubles with api ' + str(e))
+                experimentbase_logger.error('Uncorrect experiment id or troubles with api ' + str(e))
                 args['success'] = False
                 args['message'] = 'Некорректный id эксперимента или проблемы с доступом к API.'
 
@@ -663,7 +669,7 @@ def experiment_change(request, experiment_id):
                 try:
                     data = json.loads(request.body)
                 except ValueError as e:
-                    print('JSON parse error: ' + str(e))
+                    experimentbase_logger.error('JSON parse error: ' + str(e))
                     args['success'] = False
                     args['message'] = 'Некорректная форма запроса.'
                     return render(request, 'experiment/change.html', args)
@@ -681,6 +687,7 @@ def experiment_change(request, experiment_id):
                             info_dict['error'].append('Некорректные данные формы')
                     except Exception as e:
                         info_dict['error'].append('Проблема доступа API. Обратитесь к администратору сервера.')
+                        experimentbase_logger.error('Problems with API')
                 # return JsonResponse(json.dumps(info_dict))
                 return JsonResponse(info_dict)
             else:
@@ -702,7 +709,7 @@ def experiment_delete(request, experiment_id):
                 args['experiment_name'] = requests.get(API_URL + '/experiments', params={'id': experiment_id}).json()[
                     'value']['name']
             except Exception as e:
-                print('Error delete experiment, getting experiment_name :' + str(e))
+                experimentbase_logger.error('Error delete experiment, getting experiment_name :' + str(e))
                 args['success'] = False
                 args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
                 return render(request, 'experiment/delete.html', args)
@@ -721,7 +728,7 @@ def experiment_delete(request, experiment_id):
                         args['message'] = 'Эксперимент не был удалён. Обратитесь к администратору сервера.'
                     return render(request, 'experiment/delete.html', args)
                 except Exception as e:
-                    print('error delete experiment:' + str(e))
+                    experimentbase_logger.error('error delete experiment:' + str(e))
                     args['success'] = False
                     args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
                     return render(request, 'experiment/delete.html', args)
@@ -755,7 +762,7 @@ def get_torrent(request, experiment_id, torrent_index):
         return response
 
     except Exception as e:
-        print("getting torrent error")
+        experimentbase_logger.error("getting torrent error")
         return redirect('index')
 
 
@@ -789,7 +796,7 @@ def experiments(request):
                     args['error'] = 'Неверное имя таксона'
             except Exception as e:
                 args['error'] = 'Проблема доступа к API. Обратитесь к администратору сервера'
-                print('exception ' + str(e))
+                experimentbase_logger.error('Problems with API or parse JSON ' + str(e))
 
         # Ways of life
         search_dict['waysOfLife'] = []
@@ -922,7 +929,7 @@ def experiments(request):
             else:
                 args['experiments'] = {}
         except Exception as e:
-            print('Search error:' + str(e))
+            experimentbase_logger.error('Search error:' + str(e))
             args = {}
 
     return render(request, 'experiments.html', args)
