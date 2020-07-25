@@ -45,7 +45,7 @@ def login(request):
             return redirect('taxons')
 
         else:
-            args['login_error'] = 'Пользователь не найден'
+            args['login_error'] = 'User is not found'
             return render(request, 'reg/login.html', args)
     else:
         return render(request, 'reg/login.html', args)
@@ -103,25 +103,25 @@ def experiments_search(search_dict):
 def check_experiments_data(data_json):
     info_dict = dict()
     info_dict['error'] = []
-    fields = {'experimentName': 'Пустое имя эксперимента',
-              'taxonSearchName': 'Пустое имя таксона',
-              'wayOfLife': 'Пустое значение поля "Образ жизни"',
-              'habitat': 'Пустое значение поля "Ареал обитания"',
-              'gender': 'Пустое значение поля "Пол"',
-              'monthsAge': 'Пустое значение поля "Возраст"',
-              'weight': 'Пустое значение поля "Вес"',
-              'length': 'Пустое значение поля "Длина"',
-              'withdrawDate': 'Пустое значение поля "Дата забора"',
-              # 'withdrawPlace': 'Пустое значение поля ""',
-              'hoursPostMortem': 'Пустое значение поля "Время после смерти"',
-              'temperature': 'Пустое значение поля "Температура"',
+    fields = {'experimentName': 'Experiment name is missing',
+              'taxonSearchName': 'Taxon name is missing',
+              'wayOfLife': 'Empty field value "Way of life"',
+              'habitat': 'Empty field value "Habitat"',
+              'gender': 'Empty field value "Gender"',
+              'monthsAge': 'Empty field value "Age"',
+              'weight': 'Empty field value "Weight"',
+              'length': 'Empty field value "Length"',
+              'withdrawDate': 'Empty field value "Withdraw date"',
+              # 'withdrawPlace': 'Empty field value ""',
+              'hoursPostMortem': 'Empty field value "Hours post mortem"',
+              'temperature': 'Empty field value "Temperature"',
               }
     for key, value in fields.items():
         if data_json.get(key, False):
             if data_json[key] == '':
                 info_dict['error'].append(value)
         else:
-            info_dict['error'].append('Отсутствует поле ' + key)
+            info_dict['error'].append('Missing field ' + key)
 
     try:
         all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
@@ -132,19 +132,19 @@ def check_experiments_data(data_json):
                 found = True
                 break
         if not found:
-            info_dict['error'] = ['Неверное имя таксона']
+            info_dict['error'] = ['Invalid taxon name']
 
             return info_dict
     except Exception as e:
-        info_dict['error'] = ['Проблема доступа к API. Обратитесь к администратору сервера']
+        info_dict['error'] = ['API access problem. Contact the server administrator.']
         experimentbase_logger.error('Problems with API')
         return info_dict
 
     fields_lists = {
-        'environmentalFactors': 'Пустое значение в полях "Факторы среды"',
-        'diseases': 'Пустое значение в полях "Заболевания"',
-        'comments': 'Пустое значение в полях "Комментарии"',
-        'filepaths': 'Пустое значение в полях "Пути файлов"',
+        'environmentalFactors': 'Empty value in fields "Environmental factors"',
+        'diseases': 'Empty value in fields "Diseases"',
+        'comments': 'Empty value in fields "Comments"',
+        'filepaths': 'Empty value in fields "File paths"',
     }
 
     for key, value in fields_lists.items():
@@ -158,9 +158,9 @@ def check_experiments_data(data_json):
             for key, value in el.items():
                 # for key, value in data_json['additionalProperties'].items():
                 if key == '':
-                    info_dict['error'].append('Пустое значение ключа в доп. свойствах')
+                    info_dict['error'].append('Empty key in add. properties')
                 if value == '':
-                    info_dict['error'].append('Пустое значение ' + key + ' в доп. свойствах')
+                    info_dict['error'].append('Empty value ' + key + ' in add. properties')
 
         add_props = dict()
         for el in data_json['additionalProperties']:
@@ -176,12 +176,12 @@ def check_experiments_data(data_json):
             empty_field = False
             for field in metabolit_fields:
                 if not el.get(field, False):
-                    info_dict['error'].append('Отсутствует поле ' + field + ' в метаболите')
+                    info_dict['error'].append('Missing field ' + field + ' in metabolite')
                     empty_field = True
             if not empty_field:
                 for field in metabolit_fields:
                     if el[field] == '':
-                        info_dict['error'].append('Пустое значение ' + field + ' в метаболите')
+                        info_dict['error'].append('Empty value ' + field + ' in metabolite')
 
         for el in data_json['metabolites']:
             el['name'] = el['metaName']
@@ -203,17 +203,17 @@ def check_experiments_data(data_json):
     return info_dict
 
 
-def translate_experiments(experiments_list):
-    way_of_life = {'DIURNAL': 'Дневное', 'NOCTURNAL': 'Ночное', 'TWILIGHT': 'Сумеречное', 'OTHER': 'Другое'}
-    habitat = {'WILD': 'Дикое', 'LABORATORY': 'Лабораторное', 'FARM': 'Фермерское', 'OTHER': 'Другое'}
-    gender = {'MALE': 'Мужской', 'FEMALE': 'Женский', 'OTHER': 'Другое'}
-
-    for el in experiments_list:
-        el['wayOfLife'] = way_of_life[el['wayOfLife']]
-        el['habitat'] = habitat[el['habitat']]
-        el['gender'] = gender[el['gender']]
-
-    return experiments_list
+# def translate_experiments(experiments_list):
+#     way_of_life = {'DIURNAL': 'Дневное', 'NOCTURNAL': 'Ночное', 'TWILIGHT': 'Сумеречное', 'OTHER': 'Другое'}
+#     habitat = {'WILD': 'Дикое', 'LABORATORY': 'Лабораторное', 'FARM': 'Фермерское', 'OTHER': 'Другое'}
+#     gender = {'MALE': 'Мужской', 'FEMALE': 'Женский', 'OTHER': 'Другое'}
+#
+#     for el in experiments_list:
+#         el['wayOfLife'] = way_of_life[el['wayOfLife']]
+#         el['habitat'] = habitat[el['habitat']]
+#         el['gender'] = gender[el['gender']]
+#
+#     return experiments_list
 
 
 def taxons_id(request, taxon_id):
@@ -232,7 +232,8 @@ def taxons_id(request, taxon_id):
         search_dict = {'taxonIds': [taxon_id]}
         experiments_dict = experiments_search(search_dict)
 
-    args['experiments'] = translate_experiments(experiments_dict)
+    # args['experiments'] = translate_experiments(experiments_dict)
+    args['experiments'] = experiments_dict
 
     args = check_auth_user(request, args)
 
@@ -269,7 +270,7 @@ def taxon_add(request):
             if request.POST:
                 if request.POST['taxonName'] == '':
                     args['success'] = False
-                    args['message'] = 'Пустое имя нового таксона'
+                    args['message'] = 'Taxon name is missing'
                     return render(request, 'taxon/new.html', args)
 
                 try:
@@ -287,24 +288,24 @@ def taxon_add(request):
                                                  headers=headers,
                                                  auth=('docker_admin', '123qweasdzxc')).status_code == 200:
                                     args['success'] = True
-                                    args['message'] = 'Таксон успешно добавлен'
+                                    args['message'] = 'Taxon added successfully'
                                 else:
                                     args['success'] = False
-                                    args['message'] = 'Таксон не был добавлен. Обратитесь к администратору сервера.'
+                                    args['message'] = 'Taxon has not been added. Contact the server administrator.'
                                 return render(request, 'taxon/new.html', args)
 
                             except Exception as exp:
                                 experimentbase_logger.error('Error add taxon:' + str(exp))
                                 args['success'] = False
-                                args['message'] = 'Проблема с добавлением таксона. Обратитесь к администратору сервера.'
+                                args['message'] = 'Taxon add problem. Contact the server administrator.'
                                 return render(request, 'taxon/new.html', args)
                     args['success'] = False
-                    args['message'] = 'Такой таксон-родитель не найден'
+                    args['message'] = 'No such taxon parent found'
                     return render(request, 'taxon/new.html', args)
                 except Exception as e:
                     experimentbase_logger.error('Error add taxon:' + str(e))
                     args['success'] = False
-                    args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                    args['message'] = 'API access problem. Contact the server administrator.'
                     return render(request, 'taxon/new.html', args)
             else:
                 return render(request, 'taxon/new.html', args)
@@ -327,13 +328,13 @@ def taxon_rename_id(request, taxon_id):
             except Exception as e:
                 experimentbase_logger.error('API troubles: ' + str(e))
                 args['success'] = False
-                args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                args['message'] = 'API access problem. Contact the server administrator.'
                 return render(request, 'taxon/rename.html', args)
 
             if request.POST:
                 if request.POST['taxonName'] == '':
                     args['success'] = False
-                    args['message'] = 'Пустое имя таксона'
+                    args['message'] = 'Taxon name is missing'
                     return render(request, 'taxon/rename.html', args)
 
                 try:
@@ -343,15 +344,15 @@ def taxon_rename_id(request, taxon_id):
                                      headers=headers,
                                      auth=('docker_admin', '123qweasdzxc')).status_code == 200:
                         args['success'] = True
-                        args['message'] = 'Имя таксона успешно изменено'
+                        args['message'] = 'Taxon name changed successfully'
                     else:
                         args['success'] = False
-                        args['message'] = 'Имя таксона не было изменено. Обратитесь к администратору сервера.'
+                        args['message'] = 'Taxon name has not been changed. Contact the server administrator.'
                     return render(request, 'taxon/rename.html', args)
                 except Exception as e:
                     experimentbase_logger.error('Error rename taxon:' + str(e))
                     args['success'] = False
-                    args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                    args['message'] = 'API access problem. Contact the server administrator.'
                     return render(request, 'taxon/rename.html', args)
 
             else:
@@ -385,7 +386,7 @@ def taxon_move_id(request, taxon_id):
             except Exception as e:
                 experimentbase_logger.error('Error move taxon, getting taxon_parent_id :' + str(e))
                 args['success'] = False
-                args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                args['message'] = 'API access problem. Contact the server administrator.'
                 return render(request, 'taxon/move.html', args)
 
             if request.POST:
@@ -404,25 +405,24 @@ def taxon_move_id(request, taxon_id):
                                                  headers=headers,
                                                  auth=('docker_admin', '123qweasdzxc')).status_code == 200:
                                     args['success'] = True
-                                    args['message'] = 'Таксон успешно перемещен'
+                                    args['message'] = 'Taxon successfully moved'
                                 else:
                                     args['success'] = False
-                                    args['message'] = 'Таксон не был перемещен. Обратитесь к администратору сервера.'
+                                    args['message'] = 'Taxon has not been moved. Contact the server administrator.'
                                 return render(request, 'taxon/move.html', args)
 
                             except Exception as exp:
                                 experimentbase_logger.error('Error move taxon:' + str(exp))
                                 args['success'] = False
-                                args['message'] = 'Проблема с перемещением таксона. Обратитесь к администратору ' \
-                                                  'сервера. '
+                                args['message'] = 'Taxon move problem. Contact the server administrator. '
                                 return render(request, 'taxon/move.html', args)
                     args['success'] = False
-                    args['message'] = 'Такой таксон-родитель не найден'
+                    args['message'] = 'No such taxon parent found'
                     return render(request, 'taxon/move.html', args)
                 except Exception as e:
                     experimentbase_logger.error('Error add taxon:' + str(e))
                     args['success'] = False
-                    args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                    args['message'] = 'API access problem. Contact the server administrator.'
                     return render(request, 'taxon/move.html', args)
             else:
                 return render(request, 'taxon/move.html', args)
@@ -451,7 +451,7 @@ def taxon_delete_id(request, taxon_id):
             except Exception as e:
                 experimentbase_logger.error('Error delete taxon, getting taxon_name :' + str(e))
                 args['success'] = False
-                args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                args['message'] = 'API access problem. Contact the server administrator.'
                 return render(request, 'taxon/delete.html', args)
 
             if request.POST:
@@ -464,15 +464,15 @@ def taxon_delete_id(request, taxon_id):
                                          auth=('docker_admin', '123qweasdzxc'))
                         if req.status_code == 200:
                             args['success'] = True
-                            args['message'] = 'Таксон успешно удалён'
+                            args['message'] = 'Taxon deleted successfully'
                         else:
                             args['success'] = False
-                            args['message'] = 'Таксон не был удалён. Обратитесь к администратору сервера.'
+                            args['message'] = 'Taxon has not been deleted. Contact the server administrator.'
                         return render(request, 'taxon/delete.html', args)
                     except Exception as e:
                         experimentbase_logger.error('Error delete taxon, getting taxon_name :' + str(e))
                         args['success'] = False
-                        args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                        args['message'] = 'API access problem. Contact the server administrator.'
                         return render(request, 'taxon/delete.html', args)
             else:
                 return render(request, 'taxon/delete.html', args)
@@ -496,10 +496,10 @@ def searh_file(request, experiment_id):
                     path = request.POST.get('path', False)
                 except Exception as e:
                     experimentbase_logger.error('Incorrect path')
-                    return JsonResponse({'error': 'Некорректный путь'})
+                    return JsonResponse({'error': 'Incorrect path'})
 
-                if path.find('..') != -1:
-                    return JsonResponse({'error': 'Путь содержит запрещённые символы'})
+                if path.find('.') != -1:
+                    return JsonResponse({'error': 'Path contains forbidden characters'})
 
                 try:
                     path = os.path.abspath(os.getcwd() + "/" + SHARED_FILES_DIR + '/' + path)
@@ -518,7 +518,7 @@ def searh_file(request, experiment_id):
 
                 except FileNotFoundError as e:
                     experimentbase_logger.error('File not found')
-                    return JsonResponse({'error': 'Файл не найден'})
+                    return JsonResponse({'error': 'File is not found'})
 
             else:
                 return redirect('index')
@@ -531,7 +531,7 @@ def searh_file(request, experiment_id):
 def experiment(request, experiment_id):
     try:
         args = requests.get(API_URL + '/experiments', params={'id': experiment_id}).json()['value']
-        args = translate_experiments([args]).pop(0)
+        # args = translate_experiments([args]).pop(0)
         args = check_auth_user(request, args)
         args['experiment_id'] = experiment_id
     except Exception as e:
@@ -552,7 +552,7 @@ def experiment_add(request):
                 except ValueError as e:
                     experimentbase_logger.error('JSON parse error: ' + str(e))
                     args['success'] = False
-                    args['message'] = 'Некорректная форма запроса.'
+                    args['message'] = 'Incorrect request form.'
                     return render(request, 'experiment/add.html', args)
                 info_dict = check_experiments_data(data)
                 if not info_dict['error']:
@@ -562,11 +562,11 @@ def experiment_add(request):
                                             headers=headers,
                                             auth=('docker_admin', '123qweasdzxc'))
                         if req.status_code == 200:
-                            info_dict['success'] = 'Эксперимент успешно добавлен'
+                            info_dict['success'] = 'Experiment added successfully'
                         else:
-                            info_dict['error'].append('Некорректные данные формы')
+                            info_dict['error'].append('Incorrect form data.')
                     except Exception as e:
-                        info_dict['error'].append('Проблема доступа API. Обратитесь к администратору сервера.')
+                        info_dict['error'].append('API access problem. Contact the server administrator.')
                         experimentbase_logger.error('Problems with API')
                 # return JsonResponse(json.dumps(info_dict))
                 return JsonResponse(info_dict)
@@ -661,9 +661,9 @@ def experiment_change(request, experiment_id):
                 # get date from datetime - minus 9 symbols(' 00:00:00')
                 args['experiment']['withdrawDate'] = args['experiment']['withdrawDate'][:-9]
             except Exception as e:
-                experimentbase_logger.error('Uncorrect experiment id or troubles with api ' + str(e))
+                experimentbase_logger.error('Incorrect experiment id or troubles with API ' + str(e))
                 args['success'] = False
-                args['message'] = 'Некорректный id эксперимента или проблемы с доступом к API.'
+                args['message'] = 'Incorrect experiment id or troubles with API.'
 
             if request.method == 'POST':
                 try:
@@ -671,7 +671,7 @@ def experiment_change(request, experiment_id):
                 except ValueError as e:
                     experimentbase_logger.error('JSON parse error: ' + str(e))
                     args['success'] = False
-                    args['message'] = 'Некорректная форма запроса.'
+                    args['message'] = 'Incorrect request form.'
                     return render(request, 'experiment/change.html', args)
                 info_dict = check_experiments_data(data)
                 if not info_dict['error']:
@@ -682,11 +682,11 @@ def experiment_change(request, experiment_id):
                                             headers=headers,
                                             auth=('docker_admin', '123qweasdzxc'))
                         if req.status_code == 200:
-                            info_dict['success'] = 'Эксперимент успешно изменён'
+                            info_dict['success'] = 'Experiment succesfully changed'
                         else:
-                            info_dict['error'].append('Некорректные данные формы')
+                            info_dict['error'].append('Incorrect form data')
                     except Exception as e:
-                        info_dict['error'].append('Проблема доступа API. Обратитесь к администратору сервера.')
+                        info_dict['error'].append('API access problem. Contact the server administrator.')
                         experimentbase_logger.error('Problems with API')
                 # return JsonResponse(json.dumps(info_dict))
                 return JsonResponse(info_dict)
@@ -711,7 +711,7 @@ def experiment_delete(request, experiment_id):
             except Exception as e:
                 experimentbase_logger.error('Error delete experiment, getting experiment_name :' + str(e))
                 args['success'] = False
-                args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                args['message'] = 'API access problem. Contact the server administrator.'
                 return render(request, 'experiment/delete.html', args)
             if request.POST:
                 try:
@@ -722,15 +722,15 @@ def experiment_delete(request, experiment_id):
                                         auth=('docker_admin', '123qweasdzxc'))
                     if req.status_code == 200:
                         args['success'] = True
-                        args['message'] = 'Эксперимент успешно удалён'
+                        args['message'] = 'Experiment deleted successfully'
                     else:
                         args['success'] = False
-                        args['message'] = 'Эксперимент не был удалён. Обратитесь к администратору сервера.'
+                        args['message'] = 'Experiment has not been deleted. Contact the server administrator.'
                     return render(request, 'experiment/delete.html', args)
                 except Exception as e:
                     experimentbase_logger.error('error delete experiment:' + str(e))
                     args['success'] = False
-                    args['message'] = 'Проблема доступа API. Обратитесь к администратору сервера.'
+                    args['message'] = 'API access problem. Contact the server administrator.'
                     return render(request, 'experiment/delete.html', args)
             else:
                 return render(request, 'experiment/delete.html', args)
@@ -793,9 +793,9 @@ def experiments(request):
                             found = True
                             break
                 if not found:
-                    args['error'] = 'Неверное имя таксона'
+                    args['error'] = 'Invalid taxon name'
             except Exception as e:
-                args['error'] = 'Проблема доступа к API. Обратитесь к администратору сервера'
+                args['error'] = 'API access problem. Contact the server administrator'
                 experimentbase_logger.error('Problems with API or parse JSON ' + str(e))
 
         # Ways of life
@@ -925,7 +925,8 @@ def experiments(request):
 
         try:
             if not args['error']:
-                args['experiments'] = translate_experiments(experiments_search(search_dict))
+                # args['experiments'] = translate_experiments(experiments_search(search_dict))
+                args['experiments'] = experiments_search(search_dict)
             else:
                 args['experiments'] = {}
         except Exception as e:
