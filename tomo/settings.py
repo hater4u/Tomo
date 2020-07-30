@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'experimentsbase.apps.ExperimentbaseConfig',
+    'nested_admin',
 ]
 
 MIDDLEWARE = [
