@@ -7,19 +7,19 @@
 <main class="container">
 
     <br>
-    <h3>Перемещение таксона</h3>
+    <h3>Moving taxon</h3>
     <form action="/taxon/move/{{ taxon_id }}/" method="post">
         {% csrf_token %}
         <input type="hidden" id="taxonId" name="taxonId" value="">
 
         <div class="form-group">
-            <h6>Имя текущего Родителя: {{ taxon_parent_name }}</h6>
-            <h6>Имя таксона: {{ taxon_name }}</h6>
+            <h6>Current Parent's Name: {{ taxon_parent_name }}</h6>
+            <h6>Taxon name: {{ taxon_name }}</h6>
             <br>
 
-            <label for="taxonParentName">Поиск нового родителя таксона</label>
+            <label for="taxonParentName">Finding the new parent of the taxon</label>
             <input type="text" class="form-control" id="taxonParentName" name="taxonParentName" aria-describedby="taxonParentNameHelp">
-            <small id="taxonParentNameHelp" class="form-text text-muted">Введите имя таксона для поиска. Оставьте пустым для перемещения таксона в корень</small>
+            <small id="taxonParentNameHelp" class="form-text text-muted">Enter the name of the taxon to search for. Leave blank to move the taxon to the root</small>
         </div>
 
 
@@ -42,7 +42,7 @@
         <br>
         <br>
 
-        <input type="submit" class="btn btn-primary" value="Переместить таксон">
+        <input type="submit" class="btn btn-primary" value="Move taxon">
      </form>
 </main>
 

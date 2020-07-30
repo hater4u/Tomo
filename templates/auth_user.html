@@ -1,12 +1,12 @@
 {% if authenticated %}
     <div class="row float-sm-left float-md-right">
         <span class="col mt-2 ml-3 text-center ">{{ nickname }}</span>
-        <a href="/logout/" class="btn btn-primary col mb-2 mr-2">Выход</a>
+        <a href="/logout/" class="btn btn-primary col mb-2 mr-2">Log out</a>
     </div>
 
 {% else %}
     <div class="row float-sm-left float-md-right">
-        <a href="/login/" class="btn btn-primary mb-2 mr-2 ml-3">Вход</a>
+        <a href="/login/" class="btn btn-primary mb-2 mr-2 ml-3">Log in</a>
     </div>
 
 {%  endif %}

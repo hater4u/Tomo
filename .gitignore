@@ -5,5 +5,6 @@ venv
 .idea
 log.txt
 uwsgi_params
+django.log
 migrations
 staticfiles

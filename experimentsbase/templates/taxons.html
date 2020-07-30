@@ -9,10 +9,10 @@
     {% if user_auth %}
     <br>
     <div class="taxon-buttons">
-        <a href="/taxon/new/" class="btn btn-success">Добавить таксон</a>
-        <a href="/taxon/rename/{{ taxon_id }}/" class="btn btn-primary {% if index_taxons %}disabled{% endif %}">Переименовать таксон</a>
-        <a href="/taxon/move/{{ taxon_id }}/" class="btn btn-primary {% if index_taxons %}disabled{% endif %}">Переместить таксон</a>
-        <a href="/taxon/delete/{{ taxon_id }}/" class="btn btn-danger {% if index_taxons %}disabled{% endif %}">Удалить таксон</a>
+        <a href="/taxon/new/" class="btn btn-success">Add taxon</a>
+        <a href="/taxon/rename/{{ taxon_id }}/" class="btn btn-primary {% if index_taxons %}disabled{% endif %}">Rename taxon</a>
+        <a href="/taxon/move/{{ taxon_id }}/" class="btn btn-primary {% if index_taxons %}disabled{% endif %}">Move taxon</a>
+        <a href="/taxon/delete/{{ taxon_id }}/" class="btn btn-danger {% if index_taxons %}disabled{% endif %}">Delete taxon</a>
     </div>
     <br>
     {% endif %}
@@ -20,7 +20,7 @@
     <div class="taxons-hierarchy">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/taxons/">Корень</a></li>
+                <li class="breadcrumb-item"><a href="/taxons/">Root</a></li>
                 {% for el in hierarchy %}
                     <li class="breadcrumb-item {% if forloop.last %}active{% endif %}">
                         {% if forloop.last %}{{ el.name }}
@@ -40,7 +40,7 @@
     <br>
 
     {% if user_auth %}
-    <a href="/experiment/add/" class="btn btn-success m-2">Добавить эксперимент</a>
+    <a href="/experiment/add/" class="btn btn-success m-2">Add experiment</a>
     {% endif %}
 
 

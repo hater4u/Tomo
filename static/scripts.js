@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function ()  {
 
             let filesAndDirs = document.getElementsByClassName('filesdirs'+id)[0];
             if(pathInput.value) filesAndDirs.innerHTML = '<div onclick="backToPreviousDirectory(this)" data-id="'+ id +
-                '" class="badge badge-warning"><h6>Назад</h6></div>';
+                '" class="badge badge-warning"><h6>Back</h6></div>';
         }
     }
 });
@@ -124,7 +124,7 @@ function addAdditionalProperty()
 
     let labelForKey = document.createElement('label');
     labelForKey.htmlFor = newNodeKeyField.id;
-    labelForKey.innerText = 'Ключ ' + childrenLength;
+    labelForKey.innerText = 'Key ' + childrenLength;
 
     newNode.children[0].append(labelForKey);
     newNode.children[0].append(newNodeKeyField);
@@ -138,7 +138,7 @@ function addAdditionalProperty()
 
     let labelForValue = document.createElement('label');
     labelForValue.htmlFor = newNodeValueField.id;
-    labelForValue.innerText = 'Значение ' + childrenLength;
+    labelForValue.innerText = 'Value ' + childrenLength;
 
     newNode.children[1].append(labelForValue);
     newNode.children[1].append(newNodeValueField);
@@ -154,11 +154,11 @@ function addMetaboliteField() {
     newNode.classList.add('form-row');
     newNode.innerHTML = '<div class="col-6 col-md-3"><label for="pubChemCid' + childrenLength + '">' + 'pubChemCid ' + childrenLength + '</label>' +
         '<input data-metabolite="true" type="number" min="0" value="0" class="form-control" id="pubChemCid' + childrenLength + '" name="pubChemCid' + childrenLength + '" required></div>' +
-        '<div class="col-6 col-md-3"><label for="metaName' + childrenLength + '">' + 'Имя метаболита ' + childrenLength + '</label>' +
+        '<div class="col-6 col-md-3"><label for="metaName' + childrenLength + '">' + 'Metabolite name ' + childrenLength + '</label>' +
         '<input data-metabolite="true" type="text" class="form-control" id="metaName' + childrenLength + '" name="metaName' + childrenLength + '" required></div>' +
-        '<div class="col-6 col-md-3"><label for="concentration' + childrenLength + '">' + 'Концентрация ' + childrenLength + '</label>' +
+        '<div class="col-6 col-md-3"><label for="concentration' + childrenLength + '">' + 'Concentration ' + childrenLength + '</label>' +
         '<input data-metabolite="true" type="number" min="0" value="0" step="0.01" class="form-control" id="concentration' + childrenLength + '" name="concentration' + childrenLength + '" required></div>' +
-        '<div class="col-6 col-md-3"><label for="analysisMethod' + childrenLength + '">' + 'Название метода анализа ' + childrenLength + '</label>' +
+        '<div class="col-6 col-md-3"><label for="analysisMethod' + childrenLength + '">' + 'Analysis method name ' + childrenLength + '</label>' +
         '<input data-metabolite="true" type="text" class="form-control" id="analysisMethod' + childrenLength + '" name="analysisMethod' + childrenLength + '" required></div>';
 
     el.append(newNode);
@@ -206,7 +206,7 @@ function addPartToPathString(element)
         //     els[0].remove();
         // }
         fd.innerHTML = '<div onclick="backToPreviousDirectory(this)" data-id="'+ id +
-                    '" class="badge badge-pill badge-warning"><h6>Назад</h6></div>';
+                    '" class="badge badge-pill badge-warning"><h6>Back</h6></div>';
 
         pathInput.value += element.textContent;
     }
@@ -247,7 +247,7 @@ function getFunctionForUpdateFileField(value)
 
             let pathInput = document.getElementById('filepath' + id);
             if(pathInput.value) el.innerHTML = '<div onclick="backToPreviousDirectory(this)" data-id="'+ id +
-                                    '" class="badge badge-warning"><h6>Назад</h6></div>';
+                                    '" class="badge badge-warning"><h6>Back</h6></div>';
 
             for(let i = 0; i < dirs.length; i++)
             {
@@ -291,7 +291,7 @@ function addFileField()
     let newNode = document.createElement('div');
     newNode.append(newHiddenFileField);
     newNode.setAttribute('aria-label', 'breadcrumb');
-    newNode.innerHTML += '<label>Путь ' + childrenLength + '</label><ol class="breadcrumb" id="bc' + childrenLength + '"><li class="breadcrumb-item">Корень</li></ol>' +
+    newNode.innerHTML += '<label>Path ' + childrenLength + '</label><ol class="breadcrumb" id="bc' + childrenLength + '"><li class="breadcrumb-item">Root</li></ol>' +
         '<div class="filesdirs' + childrenLength + '"></div>';
     el.append(newNode);
 
@@ -302,16 +302,16 @@ function addAdditionalField(element) {
 
     switch (element.dataset.inputtype) {
         case 'environmentalFactors':
-            addSimpleField('environmentalFactors', 'environmentalFactor', 'Фактор');
+            addSimpleField('environmentalFactors', 'environmentalFactor', 'Factor');
             break;
         case 'diseases':
-            addSimpleField('diseases', 'disease', 'Заболевание');
+            addSimpleField('diseases', 'disease', 'Disease');
             break;
         case 'withdrawConditions':
-            addSimpleField('withdrawConditions', 'withdrawCondition', 'Условие забора')
+            addSimpleField('withdrawConditions', 'withdrawCondition', 'Withdraw condition')
             break;
         case 'comments':
-            addSimpleField('comments', 'comment', 'Комментарий')
+            addSimpleField('comments', 'comment', 'Comment')
             break;
         case 'additionalProperties':
             addAdditionalProperty();
@@ -320,7 +320,7 @@ function addAdditionalField(element) {
             addMetaboliteField();
             break;
         case 'filepaths':
-            // addSimpleField('filepaths', 'filepath', 'Путь');
+            // addSimpleField('filepaths', 'filepath', 'Path');
             addFileField();
             break;
     }
@@ -460,7 +460,7 @@ function addCheckboxAndButton(element)
     newNode.classList.add('btn-success');
     newNode.classList.add('m-2');
     newNode.classList.add('download-button');
-    newNode.innerText = 'Скачать эксперименты';
+    newNode.innerText = 'Download experiments';
     newNode.onclick = sendExperimentsJson;
 
     document.getElementsByClassName('adding-button')[0].after(newNode);

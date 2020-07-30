@@ -165,6 +165,12 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': 'django.log'
+        },
         # 'mail_admins': {
         #     'level': 'ERROR',
         #     'class': 'django.utils.log.AdminEmailHandler',
@@ -173,7 +179,7 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'propagate': True,
         },
         # 'django.request': {

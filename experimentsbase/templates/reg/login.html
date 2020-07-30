@@ -11,12 +11,12 @@
     <div class="row  justify-content-center">
         <form class="form-signin col-auto" action="/login/" method="post">
             {% csrf_token %}
-            <h1 class="h3 mb-3 font-weight-normal">Вход</h1>
+            <h1 class="h3 mb-3 font-weight-normal">Log in</h1>
 
-            <label for="inputNickname" class="sr-only">Логин</label>
+            <label for="inputNickname" class="sr-only">Nickname</label>
             <input type="text" id="inputNickname" name="username" class="form-control" placeholder="Nickname" required autofocus>
 
-            <label for="inputPassword" class="sr-only">Пароль</label>
+            <label for="inputPassword" class="sr-only">Password</label>
             <input type="password" id="inputPassword" name="password" class="form-control" placeholder="Password" required>
 
             <input class="btn btn-lg btn-primary btn-block" type="submit" value="Войти">

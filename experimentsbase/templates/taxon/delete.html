@@ -7,8 +7,8 @@
 <main class="container">
 
     <br>
-    <h3>Удаление таксона</h3>
-    <h6>Вы уверены, что хотите удалить таксон {{ taxon_name }}({{ taxon_id }})?</h6>
+    <h3>Deleting a taxon</h3>
+    <h6>Are you sure you want to delete the taxon {{ taxon_name }}({{ taxon_id }})?</h6>
     <br>
     <form action="/taxon/delete/{{ taxon_id }}/" method="post">
         {% csrf_token %}
@@ -24,12 +24,12 @@
         <div class="alert alert-danger">
             {{ message }}
         </div>
-        <a href="/taxons/" class="btn btn-primery" >Вернуться на главную</a>
-        <input type="submit" class="btn btn-danger" name="delete" value="Удалить">
+        <a href="/taxons/" class="btn btn-primery" >Go back to the main page</a>
+        <input type="submit" class="btn btn-danger" name="delete" value="Delete">
         {% endif %}
         {% else %}
-        <a href="/taxons/" class="btn btn-primery" >Вернуться на главную</a>
-        <input type="submit" class="btn btn-danger" name="delete" value="Удалить">
+        <a href="/taxons/" class="btn btn-primery" >Go back to the main page</a>
+        <input type="submit" class="btn btn-danger" name="delete" value="Delete">
         {% endif %}
 
 
