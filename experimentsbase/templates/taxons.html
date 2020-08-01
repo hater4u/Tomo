@@ -9,10 +9,9 @@
     {% if user_auth %}
     <br>
     <div class="taxon-buttons">
-        <a href="/taxon/new/" class="btn btn-success">Add taxon</a>
-        <a href="/taxon/rename/{{ taxon_id }}/" class="btn btn-primary {% if index_taxons %}disabled{% endif %}">Rename taxon</a>
-        <a href="/taxon/move/{{ taxon_id }}/" class="btn btn-primary {% if index_taxons %}disabled{% endif %}">Move taxon</a>
-        <a href="/taxon/delete/{{ taxon_id }}/" class="btn btn-danger {% if index_taxons %}disabled{% endif %}">Delete taxon</a>
+        <a href="/admin/experimentsbase/taxon/add/" class="btn btn-success">Add taxon</a>
+        <a href="/admin/experimentsbase/taxon/{{ taxon_id }}/change/" class="btn btn-warning {% if index_taxons %}disabled{% endif %}">Change taxon</a>
+        <a href="/admin/experimentsbase/taxon/{{ taxon_id }}/delete/" class="btn btn-danger {% if index_taxons %}disabled{% endif %}">Delete taxon</a>
     </div>
     <br>
     {% endif %}
@@ -28,14 +27,81 @@
                         {% endif %}
                     </li>
                 {% endfor %}
-<!--                <li class="breadcrumb-item"><a href="#">Library</a></li>-->
-<!--                <li class="breadcrumb-item active" aria-current="page">Data</li>-->
             </ol>
         </nav>
-        {% for el in children %}
-        <a href="/taxons/{{ el.id }}" class="badge badge-pill badge-primary"><h6>{{ el.name }}</h6></a>
-        {% endfor %}
+        {% if index_taxons %}
+            Popular taxons:
+            {% for el in popular_taxons %}
+                <a href="/taxons/{{ el.pk }}" class="badge badge-pill badge-primary"><h6>{{ el.taxon_name }}</h6></a>
+            {% endfor %}
+        {% else %}
+            Children:
+            {% for el in children %}
+                <a href="/taxons/{{ el.pk }}" class="badge badge-pill badge-primary"><h6>{{ el.taxon_name }}</h6></a>
+            {% endfor %}
+        {% endif %}
     </div>
+
+    {% if index_taxons %}
+    <div id="tree"></div>
+    <script>
+		$(function () {
+
+			var tree = [
+                          {
+                            text: "Node 1",
+                            href: "node1",
+                            nodes: [
+                              {
+                                text: "Sub Node 1",
+                                href: "subnode1",
+                                nodes: [
+                                  {
+                                    id:    "sub-node-1",
+                                    text:  "Sub Child Node 1",
+                                    class: "nav-level-3",
+                                    href:  "https://google.com",
+                                    nodes: [
+                                        {
+                                            text:  "Sub sub Child Node 1",
+                                        },
+                                        {
+                                            text: "Sub sub Child Node 2",
+                                        }]
+                                  },
+                                  {
+                                    text: "Sub Child Node 2",
+                                  }
+                                ]
+                              },
+                              {
+                                text: "Sub Node 2",
+                                nodes: []
+                              }
+                            ]
+                          },
+                          {
+                            text: "Node 2",
+                          },
+                          {
+                            text: "Node 3",
+                          },
+                          {
+                            text: "Node 4",
+                          },
+                          {
+                            text: "Node 5",
+                          }
+                        ];
+
+			$('#tree').treeview({
+				data: tree,
+                showBorder: false,
+                color: "#428bca",
+			});
+		});
+	</script>
+    {% endif %}
 
     <br>
 
