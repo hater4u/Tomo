@@ -95,8 +95,36 @@ def get_taxon_children(taxon_id):
 def experiments_search(search_dict):
     try:
         headers = {'Content-type': 'application/json'}
-        return requests.post(API_URL + '/experiments/search',
-                             data=json.dumps(search_dict), headers=headers).json()['value']
+
+        print(search_dict)
+        founded_experiments = Experiment.objects.filter(
+            experiment_name=search_dict['experimentName'],
+            taxon_name=search_dict['taxonName'],
+            way_of_life__in=search_dict['wayOfLife'],
+            habitat__in=search_dict['habitat'],
+            gender__in=search_dict['gender'],
+            month_age__gte=search_dict['ageFrom'],
+            month_age__lte=search_dict['ageTo'],
+            hours_post_mortem__gte=search_dict['hoursPostMortemFrom'],
+            hours_post_mortem__lte=search_dict['hoursPostMortemTo'],
+            weight__gte=search_dict['weightFrom'],
+            weight__lte=search_dict['weightTo'],
+            length__gte=search_dict['lengthFrom'],
+            length__lte=search_dict['lengthTo'],
+            temperature__gte=search_dict['temperatureFrom'],
+            temperature__lte=search_dict['temperatureTo'],
+            environmental_factors__in=search_dict['environmentalFactors'],
+            diseases__in=search_dict['diseases'],
+            withdraw_place=search_dict['withdrawPlace'],
+            withdraw_date__gte=search_dict['withdrawDateFrom'],
+            withdraw_date__lte=search_dict['withdrawDateTo'],
+        )
+        print(founded_experiments)
+        if not founded_experiments.exists():
+            return dict(Experiment.objects.values())
+        return dict(set(founded_experiments.values()))
+        # return requests.post(API_URL + '/experiments/search',
+        #                      data=json.dumps(search_dict), headers=headers).json()['value']
     except Exception as e:
         experimentbase_logger.error('experiments found error: ' + str(e))
         return []
@@ -888,34 +916,34 @@ def experiments(request):
 
         # Age
         if request.POST['ageFrom'] == '':
-            search_dict['ageFrom'] = 'null'
+            search_dict['ageFrom'] = 0
         else:
             search_dict['ageFrom'] = request.POST['ageFrom']
 
         if request.POST['ageTo'] == '':
-            search_dict['ageTo'] = 'null'
+            search_dict['ageTo'] = 0
         else:
             search_dict['ageTo'] = request.POST['ageTo']
 
         # Weight
         if request.POST['weightFrom'] == '':
-            search_dict['weightFrom'] = 'null'
+            search_dict['weightFrom'] = 0
         else:
             search_dict['weightFrom'] = request.POST['weightFrom']
 
         if request.POST['weightTo'] == '':
-            search_dict['weightTo'] = 'null'
+            search_dict['weightTo'] = 0
         else:
             search_dict['weightTo'] = request.POST['weightTo']
 
         # Length
         if request.POST['lengthFrom'] == '':
-            search_dict['lengthFrom'] = 'null'
+            search_dict['lengthFrom'] = 0
         else:
             search_dict['lengthFrom'] = request.POST['lengthFrom']
 
         if request.POST['lengthTo'] == '':
-            search_dict['lengthTo'] = 'null'
+            search_dict['lengthTo'] = 0
         else:
             search_dict['lengthTo'] = request.POST['lengthTo']
 
@@ -944,23 +972,23 @@ def experiments(request):
 
         # Seconds post mortem
         if request.POST['hoursPostMortemFrom'] == '':
-            search_dict['hoursPostMortemFrom'] = 'null'
+            search_dict['hoursPostMortemFrom'] = 0
         else:
             search_dict['hoursPostMortemFrom'] = request.POST['secondsPostMortemFrom']
 
         if request.POST['hoursPostMortemTo'] == '':
-            search_dict['hoursPostMortemTo'] = 'null'
+            search_dict['hoursPostMortemTo'] = 0
         else:
             search_dict['hoursPostMortemTo'] = request.POST['secondsPostMortemTo']
 
         # Temperature
         if request.POST['temperatureFrom'] == '':
-            search_dict['temperatureFrom'] = 'null'
+            search_dict['temperatureFrom'] = 0
         else:
             search_dict['temperatureFrom'] = request.POST['temperatureFrom']
 
         if request.POST['temperatureTo'] == '':
-            search_dict['temperatureTo'] = 'null'
+            search_dict['temperatureTo'] = 0
         else:
             search_dict['temperatureTo'] = request.POST['temperatureTo']
 
