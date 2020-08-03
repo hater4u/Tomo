@@ -70,7 +70,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
 
 
 class MetaboliteAdmin(admin.ModelAdmin):
-    list_display = ('metabolite_name', 'pubchemcid',)
+    list_display = ('metabolite_name', 'pubchemcid', 'pk',)
     ordering = ('metabolite_name',)
 
 

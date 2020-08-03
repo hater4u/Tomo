@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
 from tomo.settings import API_URL, SHARED_FILES_DIR, LOGGING
-from .models import Taxon, Experiment, Prob, ProbMetabolite
+from .models import Taxon, Experiment, Prob, ProbMetabolite, MetaboliteName
 
 import requests
 import json
@@ -27,7 +27,7 @@ experimentbase_logger = logging.getLogger('django')
 
 # TODO: write normal index
 def index(request):
-    return redirect('taxons')
+    return redirect('taxons/')
 
 
 def login(request):
@@ -847,8 +847,8 @@ def get_torrent(request, experiment_id, torrent_index):
 def experiments(request):
     args = dict()
     args = check_auth_user(request, args)
+    args.update(csrf(request))
     if request.POST:
-        args.update(csrf(request))
         search_dict = dict()
 
         args['filled_fields'] = dict()
@@ -1011,3 +1011,47 @@ def experiments(request):
             args = {}
 
     return render(request, 'experiments.html', args)
+
+
+def find_by_metabolites(request):
+
+    args = dict()
+    args = check_auth_user(request, args)
+    args.update(csrf(request))
+
+    if request.POST:
+        metabolite_names = request.POST.get('metaboliteNames', False)
+        if metabolite_names:
+            metabolite_names = metabolite_names.split(' AND ')
+            meta_lenght = len(metabolite_names)
+
+            found_names = set()
+            not_found_names = []
+            for el in metabolite_names:
+                try:
+                    query = MetaboliteName.objects.get(metabolite_synonym=el)
+                    found_names.add(query.metabolite_id)
+                except ObjectDoesNotExist as e:
+                    not_found_names.append(el)
+
+            if len(not_found_names) > 0:
+                args['error'] = 'Not found metabolites: ' + ', '.join(not_found_names)
+            else:
+                all_probs_with_metabolites = ProbMetabolite.objects.filter(metabolite_id__in=found_names)
+
+                prob_ids = set()
+                for el in all_probs_with_metabolites:
+                    prob_ids.add(el.prob_id)
+
+                exp_ids = set()
+                for el in prob_ids:
+                    query = all_probs_with_metabolites.filter(prob_id=el.pk)
+                    if query.count() == meta_lenght:
+                        exp_ids.add(el.experiment_id)
+
+                if len(exp_ids) == 0:
+                    args['error'] = 'Experiments with this conditions not found'
+                else:
+                    args['experiments'] = exp_ids
+
+    return render(request, 'find_by_metabolites.html', args)

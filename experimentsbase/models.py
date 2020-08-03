@@ -123,6 +123,18 @@ class Metabolite(models.Model):
     def __str__(self):
         return self.metabolite_name
 
+    # It need for adding synonym for this metabolite with the same name
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super(Metabolite, self).save(*args, **kwargs)
+            MetaboliteName.objects.create(metabolite_synonym=self.metabolite_name, metabolite_id=self)
+        else:
+            old_self = Metabolite.objects.get(pk=self.pk)
+            metabolite_name = MetaboliteName.objects.get(metabolite_synonym=old_self.metabolite_name)
+            metabolite_name.metabolite_synonym = self.metabolite_name
+            metabolite_name.save()
+            super(Metabolite, self).save(*args, **kwargs)
+
 
 # for search one metabolite by different names
 class MetaboliteName(models.Model):

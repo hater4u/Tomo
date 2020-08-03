@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
-import os
 import environ
 
 
@@ -18,8 +17,7 @@ env = environ.Env()
 environ.Env.read_env('.env')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+ROOT_DIR = environ.Path(__file__) - 2
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -61,8 +59,8 @@ ROOT_URLCONF = 'tomo.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates'),
-                 os.path.join(BASE_DIR, 'experimentsbase/templates'), ]
+        'DIRS': [ROOT_DIR.path('templates'),
+                 ROOT_DIR.path('experimentsbase/templates'), ]
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -72,6 +70,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries': {
+                'exp_filters': 'experimentsbase.templatetags.exp_filters',
+            },
         },
     },
 ]
@@ -125,16 +126,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-    'static/',
+    str(ROOT_DIR.path('static')),
 ]
-
-# AUTH_USER_MODEL = 'experimentsbase.User'
 
 API_URL = 'http://' + env.str('API_HOST') + ':8080/api'
 
 SHARED_FILES_DIR = env.str('SHARED_FILES_DIR')
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = ROOT_DIR.path(env.str('STATIC_FILES_DIR'))
 
 LOGGING = {
     'version': 1,
@@ -169,7 +167,7 @@ LOGGING = {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
             'formatter': 'verbose',
-            'filename': 'django.log'
+            'filename': env.str('LOG')
         },
         # 'mail_admins': {
         #     'level': 'ERROR',

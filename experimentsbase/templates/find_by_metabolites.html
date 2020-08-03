@@ -1,0 +1,45 @@
+{% extends 'index.html' %}
+
+{% block experiment_meta_active %}active{% endblock %}
+
+{% block body %}
+
+    <main class="container">
+    <br>
+    <h3>Find experiments by metabolites</h3>
+
+    <form action="/find/metabolites/#table" method="post">
+        {% csrf_token %}
+
+        <div class="form-row">
+            <div class="col">
+                <label for="metaboliteNames">Write name of metabolites</label>
+                <input type="text" class="form-control" id="metaboliteNames" name="metaboliteNames" aria-describedby="metaboliteNamesHelp" value="{{ filled_fields.ageFrom }}">
+                <small id="metaboliteNamesHelp" class="form-text text-muted">You can use " AND " for searching experiments with some metabolites</small>
+            </div>
+        </div>
+
+        <input type="submit" class="btn btn-primary m-2" value="Search">
+    </form>
+
+
+    {% if error %}
+        <h5 class="alert alert-danger">
+            {{ error }}
+        </h5>
+    {% else %}
+
+        <br>
+        {% if experiments %}
+            <div id="table">
+                {% if user_auth %}
+                    <a href="/admin/experimentsbase/experiment/add/" class="btn btn-success m-2">Add experiment</a>
+                {% endif %}
+
+                {% include 'experiments_table.html' %}
+            </div>
+        {% endif %}
+
+    {% endif %}
+    </main>
+{% endblock %}
