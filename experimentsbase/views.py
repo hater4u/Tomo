@@ -4,6 +4,7 @@ from django.template.context_processors import csrf
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import model_to_dict
 
 from tomo.settings import API_URL, SHARED_FILES_DIR, LOGGING
 from .models import Taxon, Experiment, Prob, ProbMetabolite, MetaboliteName
@@ -18,7 +19,6 @@ import string
 import shutil
 import logging
 import logging.config
-
 
 logging.config.dictConfig(LOGGING)
 experimentbase_logger = logging.getLogger('django')
@@ -94,37 +94,9 @@ def get_taxon_children(taxon_id):
 
 def experiments_search(search_dict):
     try:
-        headers = {'Content-type': 'application/json'}
+        founded_experiments_qs = Experiment.objects.filter(**search_dict)
 
-        print(search_dict)
-        founded_experiments = Experiment.objects.filter(
-            experiment_name=search_dict['experimentName'],
-            taxon_name=search_dict['taxonName'],
-            way_of_life__in=search_dict['wayOfLife'],
-            habitat__in=search_dict['habitat'],
-            gender__in=search_dict['gender'],
-            month_age__gte=search_dict['ageFrom'],
-            month_age__lte=search_dict['ageTo'],
-            hours_post_mortem__gte=search_dict['hoursPostMortemFrom'],
-            hours_post_mortem__lte=search_dict['hoursPostMortemTo'],
-            weight__gte=search_dict['weightFrom'],
-            weight__lte=search_dict['weightTo'],
-            length__gte=search_dict['lengthFrom'],
-            length__lte=search_dict['lengthTo'],
-            temperature__gte=search_dict['temperatureFrom'],
-            temperature__lte=search_dict['temperatureTo'],
-            environmental_factors__in=search_dict['environmentalFactors'],
-            diseases__in=search_dict['diseases'],
-            withdraw_place=search_dict['withdrawPlace'],
-            withdraw_date__gte=search_dict['withdrawDateFrom'],
-            withdraw_date__lte=search_dict['withdrawDateTo'],
-        )
-        print(founded_experiments)
-        if not founded_experiments.exists():
-            return dict(Experiment.objects.values())
-        return dict(set(founded_experiments.values()))
-        # return requests.post(API_URL + '/experiments/search',
-        #                      data=json.dumps(search_dict), headers=headers).json()['value']
+        return founded_experiments_qs
     except Exception as e:
         experimentbase_logger.error('experiments found error: ' + str(e))
         return []
@@ -590,7 +562,7 @@ def experiment(request, experiment_id):
             all_metabolites.append(pms)
 
         meta_id_in_num = dict()
-        prob_metabolites = ProbMetabolite.objects.filter(prob_id=max_metabolites_prob.pk).\
+        prob_metabolites = ProbMetabolite.objects.filter(prob_id=max_metabolites_prob.pk). \
             order_by('metabolite_id__metabolite_name')
 
         for counter, m in enumerate(prob_metabolites):
@@ -857,152 +829,129 @@ def experiments(request):
                 args['filled_fields'][key] = value
 
         if not request.POST['experimentName'] == '':
-            search_dict['name'] = request.POST['experimentName']
+            search_dict['experiment_name'] = request.POST['experimentName']
 
         args['error'] = dict()
         if not request.POST['taxonSearchName'] == '':
-            try:
-                all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
-                found = False
-                for real_taxon in all_taxons:
-                        if real_taxon['name'] == request.POST['taxonSearchName']:
-                            search_dict['taxonIds'] = [real_taxon['id']]
-                            found = True
-                            break
-                if not found:
-                    args['error'] = 'Invalid taxon name'
-            except Exception as e:
-                args['error'] = 'API access problem. Contact the server administrator'
-                experimentbase_logger.error('Problems with API or parse JSON ' + str(e))
+            search_dict['taxon_id__taxon_name'] = request.POST['taxonSearchName']
 
         # Ways of life
-        search_dict['waysOfLife'] = []
+        search_dict['way_of_life__in'] = []
         if request.POST.get('diurnalWayCheckbox', False):
-            search_dict['waysOfLife'].append('DIURNAL')
+            search_dict['way_of_life__in'].append(0)
 
         if request.POST.get('nocturnalWayCheckbox', False):
-            search_dict['waysOfLife'].append('NOCTURNAL')
+            search_dict['way_of_life__in'].append(1)
 
         if request.POST.get('twilightWayCheckbox', False):
-            search_dict['waysOfLife'].append('TWILIGHT')
+            search_dict['way_of_life__in'].append(2)
 
         if request.POST.get('otherWayCheckbox', False):
-            search_dict['waysOfLife'].append('OTHER')
+            search_dict['way_of_life__in'].append(3)
+
+        # TODO remove kostyls
+        if not search_dict['way_of_life__in']:
+            search_dict.pop('way_of_life__in')
 
         # Habitat
-        search_dict['habitats'] = []
+        search_dict['habitat__in'] = []
         if request.POST.get('wildHabitatCheckbox', False):
-            search_dict['habitats'].append('WILD')
+            search_dict['habitat__in'].append(0)
 
         if request.POST.get('laboratoryHabitatCheckbox', False):
-            search_dict['habitats'].append('LABORATORY')
+            search_dict['habitat__in'].append(1)
 
         if request.POST.get('farmHabitatCheckbox', False):
-            search_dict['habitats'].append('FARM')
+            search_dict['habitat__in'].append(2)
 
         if request.POST.get('otherHabitatCheckbox', False):
-            search_dict['habitats'].append('OTHER')
+            search_dict['habitat__in'].append(3)
+
+        # TODO remove kostyls
+        if not search_dict['habitat__in']:
+            search_dict.pop('habitat__in')
 
         # Gender
-        search_dict['genders'] = []
+        search_dict['gender__in'] = []
         if request.POST.get('maleGenderCheckbox', False):
-            search_dict['genders'].append('MALE')
+            search_dict['gender__in'].append(0)
 
         if request.POST.get('femaleGenderCheckbox', False):
-            search_dict['genders'].append('FEMALE')
+            search_dict['gender__in'].append(1)
 
         if request.POST.get('otherGenderCheckbox', False):
-            search_dict['genders'].append('OTHER')
+            search_dict['gender__in'].append(2)
+
+        # TODO remove kostyls
+        if not search_dict['gender__in']:
+            search_dict.pop('gender__in')
 
         # Age
-        if request.POST['ageFrom'] == '':
-            search_dict['ageFrom'] = 0
-        else:
-            search_dict['ageFrom'] = request.POST['ageFrom']
+        if not request.POST['ageFrom'] == '':
+            # search_dict['month_age__gte'] = 0
+            # else:
+            search_dict['month_age__gte'] = request.POST['ageFrom']
 
-        if request.POST['ageTo'] == '':
-            search_dict['ageTo'] = 0
-        else:
-            search_dict['ageTo'] = request.POST['ageTo']
+        if not request.POST['ageTo'] == '':
+            search_dict['month_age__lte'] = request.POST['ageTo']
 
         # Weight
-        if request.POST['weightFrom'] == '':
-            search_dict['weightFrom'] = 0
-        else:
-            search_dict['weightFrom'] = request.POST['weightFrom']
+        if not request.POST['weightFrom'] == '':
+            search_dict['weight__gte'] = request.POST['weightFrom']
 
-        if request.POST['weightTo'] == '':
-            search_dict['weightTo'] = 0
-        else:
-            search_dict['weightTo'] = request.POST['weightTo']
+        if not request.POST['weightTo'] == '':
+            search_dict['weight__lte'] = request.POST['weightTo']
 
         # Length
-        if request.POST['lengthFrom'] == '':
-            search_dict['lengthFrom'] = 0
-        else:
-            search_dict['lengthFrom'] = request.POST['lengthFrom']
+        if not request.POST['lengthFrom'] == '':
+            search_dict['length__gte'] = request.POST['lengthFrom']
 
-        if request.POST['lengthTo'] == '':
-            search_dict['lengthTo'] = 0
-        else:
-            search_dict['lengthTo'] = request.POST['lengthTo']
+        if not request.POST['lengthTo'] == '':
+            search_dict['length__lte'] = request.POST['lengthTo']
 
         # Environmental factors
         if not request.POST['environmentalFactors'] == '':
-            search_dict['environmentalFactors'] = [request.POST['environmentalFactors']]
+            search_dict['environmental_factors__in'] = [request.POST['environmentalFactors']]
 
         # Diseases
         if not request.POST['diseases'] == '':
-            search_dict['diseases'] = [request.POST['diseases']]
+            search_dict['diseases__in'] = [request.POST['diseases']]
 
         # Withdraw place
         if not request.POST['withdrawPlace'] == '':
-            search_dict['withdrawPlace'] = request.POST['withdrawPlace']
+            search_dict['withdraw_place'] = request.POST['withdrawPlace']
 
         # Withdraw date
         if request.POST['withdrawDateFrom'] != '':
             #     search_dict['withdrawDateFrom'] = 'null'
             # else:
-            search_dict['withdrawDateFrom'] = request.POST['withdrawDateFrom'] + ' 00:00:00'
+            search_dict['withdraw_date__gte'] = request.POST['withdrawDateFrom'] + ' 00:00:00'
 
         if request.POST['withdrawDateTo'] != '':
             #     search_dict['withdrawDateTo'] = 'null'
             # else:
-            search_dict['withdrawDateTo'] = request.POST['withdrawDateTo'] + ' 00:00:00'
+            search_dict['withdraw_date__lte'] = request.POST['withdrawDateTo'] + ' 00:00:00'
 
         # Seconds post mortem
-        if request.POST['hoursPostMortemFrom'] == '':
-            search_dict['hoursPostMortemFrom'] = 0
-        else:
-            search_dict['hoursPostMortemFrom'] = request.POST['secondsPostMortemFrom']
+        if not request.POST['hoursPostMortemFrom'] == '':
+            search_dict['hours_post_mortem__gte'] = request.POST['secondsPostMortemFrom']
 
-        if request.POST['hoursPostMortemTo'] == '':
-            search_dict['hoursPostMortemTo'] = 0
-        else:
-            search_dict['hoursPostMortemTo'] = request.POST['secondsPostMortemTo']
+        if not request.POST['hoursPostMortemTo'] == '':
+            search_dict['hours_post_mortem__lte'] = request.POST['secondsPostMortemTo']
 
         # Temperature
-        if request.POST['temperatureFrom'] == '':
-            search_dict['temperatureFrom'] = 0
-        else:
-            search_dict['temperatureFrom'] = request.POST['temperatureFrom']
+        if not request.POST['temperatureFrom'] == '':
+            search_dict['temperature__gte'] = request.POST['temperatureFrom']
 
-        if request.POST['temperatureTo'] == '':
-            search_dict['temperatureTo'] = 0
-        else:
-            search_dict['temperatureTo'] = request.POST['temperatureTo']
+        if not request.POST['temperatureTo'] == '':
+            search_dict['temperature__lte'] = request.POST['temperatureTo']
 
         # Comments
         if not request.POST['comments'] == '':
             search_dict['comments'] = [request.POST['comments']]
 
-        # Metabolite names
-        if not request.POST['metaboliteNames'] == '':
-            search_dict['metaboliteNames'] = [request.POST['metaboliteNames']]
-
         try:
             if not args['error']:
-                # args['experiments'] = translate_experiments(experiments_search(search_dict))
                 args['experiments'] = experiments_search(search_dict)
             else:
                 args['experiments'] = {}
@@ -1014,7 +963,6 @@ def experiments(request):
 
 
 def find_by_metabolites(request):
-
     args = dict()
     args = check_auth_user(request, args)
     args.update(csrf(request))

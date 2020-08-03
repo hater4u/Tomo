@@ -1,5 +1,7 @@
 {% extends "index.html" %}
 
+{% load exp_filters %}
+
 {% block experiment_active %}active{% endblock %}
 
 {% block body %}
@@ -201,11 +203,6 @@
                 <label for="comments">Comments</label>
                 <input type="text" class="form-control" id="comments" name="comments" aria-describedby="commentsHelp" value="{{ filled_fields.comments }}">
                 <small id="commentsHelp" class="form-text text-muted">String</small>
-            </div>
-            <div class="col">
-                <label for="metaboliteNames">Metabolite name</label>
-                <input type="text" class="form-control" id="metaboliteNames" name="metaboliteNames" aria-describedby="metaboliteNamesHelp" value="{{ filled_fields.metabolitName }}">
-                <small id="metaboliteNamesHelp" class="form-text text-muted">String</small>
             </div>
         </div>
         <br>

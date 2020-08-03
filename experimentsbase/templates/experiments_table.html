@@ -1,5 +1,7 @@
 <button class="btn btn-warning m-2 adding-button" onclick="addCheckboxAndButton(this)">Select</button>
 
+{% load exp_filters%}
+
 <div class="table-experiments">
     <form action="/experiment/download/" method="post" class="experiments-id-form">
         {% csrf_token %}
@@ -28,9 +30,9 @@
                 <input class="exp-check" type="hidden" data-exp-id="{{ el.pk }}" data-exp-quantity="{{ el.fileInfos|length }}">
             </th>
             <td><a href="/experiment/{{ el.pk }}/">{{ el.experiment_name }}</a></td>
-            <td>{{ el.way_of_life }}</td>
-            <td>{{ el.habitat }}</td>
-            <td>{{ el.gender }}</td>
+            <td>{{ el.way_of_life|way_of_life}}</td>
+            <td>{{ el.habitat|habitat }}</td>
+            <td>{{ el.gender|gender }}</td>
             <td>{{ el.month_age }}</td>
             <td>{{ el.weight }}</td>
             <td>{{ el.length }}</td>
