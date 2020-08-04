@@ -2,21 +2,14 @@ from django.shortcuts import render, redirect
 from django.contrib import auth
 from django.template.context_processors import csrf
 from django.http import HttpResponse, JsonResponse
-from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django.forms.models import model_to_dict
 
 from tomo.settings import API_URL, SHARED_FILES_DIR, LOGGING
 from .models import Taxon, Experiment, Prob, ProbMetabolite, MetaboliteName
 
 import requests
-import json
 import os
 import base64
-import zipfile
-import random
-import string
-import shutil
 import logging
 import logging.config
 
@@ -89,16 +82,6 @@ def get_taxon_children(taxon_id):
         return requests.get(API_URL + '/taxa/byParent', params={'parentId': taxon_id}).json()['value']
     except Exception:
         experimentbase_logger.error('children found error, maybe problems with API')
-        return []
-
-
-def experiments_search(search_dict):
-    try:
-        founded_experiments_qs = Experiment.objects.filter(**search_dict)
-
-        return founded_experiments_qs
-    except Exception as e:
-        experimentbase_logger.error('experiments found error: ' + str(e))
         return []
 
 
@@ -255,246 +238,21 @@ def taxons(request):
     return taxons_id(request, '')
 
 
-# def taxon_parent_search(request):
-#     if request.POST:
-#         parent_name = request.POST['parentName']
-#         try:
-#             all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
-#             taxons = []
-#             for el in all_taxons:
-#                 if el['name'].startswith(parent_name):
-#                     taxons.append(el)
-#             return JsonResponse({'value': taxons})
-#         except Exception as e:
-#             experimentbase_logger.error('Taxon search error:' + str(e))
-#             return JsonResponse({'value': []})
-#     else:
-#         return redirect('taxons')
-#
-#
-# def taxon_add(request):
-#     args = dict()
-#     args = check_auth_user(request, args)
-#     args.update(csrf(request))
-#     if request.user.is_authenticated:
-#         if request.user.is_staff:
-#             if request.POST:
-#                 if request.POST['taxonName'] == '':
-#                     args['success'] = False
-#                     args['message'] = 'Taxon name is missing'
-#                     return render(request, 'taxon/new.html', args)
-#
-#                 try:
-#                     all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
-#                     all_taxons.append({'name': '', 'id': ''})
-#                     # experimentbase_logger.info('all taxons: ' + all_taxons)
-#                     for el in all_taxons:
-#                         if el['name'] == request.POST['taxonParentName']:
-#                             parent_id = el['id']
-#                             try:
-#                                 headers = {'Content-Type': 'application/json'}
-#                                 if requests.post(API_URL + '/taxa/add',
-#                                                  data=json.dumps({'name': request.POST['taxonName'],
-#                                                                   'parentId': parent_id}),
-#                                                  headers=headers,
-#                                                  auth=('docker_admin', '123qweasdzxc')).status_code == 200:
-#                                     args['success'] = True
-#                                     args['message'] = 'Taxon added successfully'
-#                                 else:
-#                                     args['success'] = False
-#                                     args['message'] = 'Taxon has not been added. Contact the server administrator.'
-#                                 return render(request, 'taxon/new.html', args)
-#
-#                             except Exception as exp:
-#                                 experimentbase_logger.error('Error add taxon:' + str(exp))
-#                                 args['success'] = False
-#                                 args['message'] = 'Taxon add problem. Contact the server administrator.'
-#                                 return render(request, 'taxon/new.html', args)
-#                     args['success'] = False
-#                     args['message'] = 'No such taxon parent found'
-#                     return render(request, 'taxon/new.html', args)
-#                 except Exception as e:
-#                     experimentbase_logger.error('Error add taxon:' + str(e))
-#                     args['success'] = False
-#                     args['message'] = 'API access problem. Contact the server administrator.'
-#                     return render(request, 'taxon/new.html', args)
-#             else:
-#                 return render(request, 'taxon/new.html', args)
-#         else:
-#             return render(request, 'reg/403.html', args)
-#     else:
-#         return redirect('login')
-#
-#
-# def taxon_rename_id(request, taxon_id):
-#     args = dict()
-#     args['taxon_id'] = taxon_id
-#     args = check_auth_user(request, args)
-#     args.update(csrf(request))
-#     if request.user.is_authenticated:
-#         if request.user.is_staff:
-#
-#             try:
-#                 args['taxon_name'] = requests.get(API_URL + '/taxa', params={'id': taxon_id}).json()['value']['name']
-#             except Exception as e:
-#                 experimentbase_logger.error('API troubles: ' + str(e))
-#                 args['success'] = False
-#                 args['message'] = 'API access problem. Contact the server administrator.'
-#                 return render(request, 'taxon/rename.html', args)
-#
-#             if request.POST:
-#                 if request.POST['taxonName'] == '':
-#                     args['success'] = False
-#                     args['message'] = 'Taxon name is missing'
-#                     return render(request, 'taxon/rename.html', args)
-#
-#                 try:
-#                     headers = {'Content-Type': 'application/json'}
-#                     if requests.post(API_URL + '/taxa/rename',
-#                                      data=json.dumps({'id': taxon_id, 'name': request.POST['taxonName']}),
-#                                      headers=headers,
-#                                      auth=('docker_admin', '123qweasdzxc')).status_code == 200:
-#                         args['success'] = True
-#                         args['message'] = 'Taxon name changed successfully'
-#                     else:
-#                         args['success'] = False
-#                         args['message'] = 'Taxon name has not been changed. Contact the server administrator.'
-#                     return render(request, 'taxon/rename.html', args)
-#                 except Exception as e:
-#                     experimentbase_logger.error('Error rename taxon:' + str(e))
-#                     args['success'] = False
-#                     args['message'] = 'API access problem. Contact the server administrator.'
-#                     return render(request, 'taxon/rename.html', args)
-#
-#             else:
-#                 return render(request, 'taxon/rename.html', args)
-#         else:
-#             return render(request, 'reg/403.html')
-#     else:
-#         return redirect('login')
-#
-#
-# def taxon_rename(request):
-#     return redirect('taxons')
-#
-#
-# def taxon_move_id(request, taxon_id):
-#     args = dict()
-#     args = check_auth_user(request, args)
-#     args.update(csrf(request))
-#     if request.user.is_authenticated:
-#         if request.user.is_staff:
-#             args['taxon_id'] = taxon_id
-#             try:
-#                 values = requests.get(API_URL + '/taxa',
-#                                       params={'id': taxon_id}).json()['value']
-#                 args['taxon_name'] = values['name']
-#                 if values['parentId']:
-#                     args['taxon_parent_name'] = requests.get(API_URL + '/taxa',
-#                                                              params={'id': values['parentId']}).json()['value']['name']
-#                 else:
-#                     args['taxon_parent_name'] = ''
-#             except Exception as e:
-#                 experimentbase_logger.error('Error move taxon, getting taxon_parent_id :' + str(e))
-#                 args['success'] = False
-#                 args['message'] = 'API access problem. Contact the server administrator.'
-#                 return render(request, 'taxon/move.html', args)
-#
-#             if request.POST:
-#                 try:
-#                     all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
-#                     all_taxons.append({'name': '', 'id': ''})
-#                     # experimentbase_logger.info('all taxons: ' + all_taxons)
-#                     for el in all_taxons:
-#                         if el['name'] == request.POST['taxonParentName']:
-#                             parent_id = el['id']
-#                             try:
-#                                 headers = {'Content-Type': 'application/json'}
-#                                 if requests.post(API_URL + '/taxa/move',
-#                                                  data=json.dumps({'id': taxon_id,
-#                                                                   'parentId': parent_id}),
-#                                                  headers=headers,
-#                                                  auth=('docker_admin', '123qweasdzxc')).status_code == 200:
-#                                     args['success'] = True
-#                                     args['message'] = 'Taxon successfully moved'
-#                                 else:
-#                                     args['success'] = False
-#                                     args['message'] = 'Taxon has not been moved. Contact the server administrator.'
-#                                 return render(request, 'taxon/move.html', args)
-#
-#                             except Exception as exp:
-#                                 experimentbase_logger.error('Error move taxon:' + str(exp))
-#                                 args['success'] = False
-#                                 args['message'] = 'Taxon move problem. Contact the server administrator. '
-#                                 return render(request, 'taxon/move.html', args)
-#                     args['success'] = False
-#                     args['message'] = 'No such taxon parent found'
-#                     return render(request, 'taxon/move.html', args)
-#                 except Exception as e:
-#                     experimentbase_logger.error('Error add taxon:' + str(e))
-#                     args['success'] = False
-#                     args['message'] = 'API access problem. Contact the server administrator.'
-#                     return render(request, 'taxon/move.html', args)
-#             else:
-#                 return render(request, 'taxon/move.html', args)
-#         else:
-#             return render(request, 'reg/403.html', args)
-#     else:
-#         return redirect('login')
-#
-#
-# def taxon_move(request):
-#     return redirect('taxons')
-#
-#
-# def taxon_delete_id(request, taxon_id):
-#     args = dict()
-#     # Terrible
-#     args = check_auth_user(request, args)
-#     args.update(csrf(request))
-#     if request.user.is_authenticated:
-#         if request.user.is_staff:
-#             args['taxon_id'] = taxon_id
-#
-#             try:
-#                 args['taxon_name'] = requests.get(API_URL + '/taxa', params={'id': taxon_id}).json()['value'][
-#                     'name']
-#             except Exception as e:
-#                 experimentbase_logger.error('Error delete taxon, getting taxon_name :' + str(e))
-#                 args['success'] = False
-#                 args['message'] = 'API access problem. Contact the server administrator.'
-#                 return render(request, 'taxon/delete.html', args)
-#
-#             if request.POST:
-#                 if request.POST['delete']:
-#                     try:
-#                         headers = {'Content-Type': 'application/json'}
-#                         req = requests.post(API_URL + '/taxa/delete',
-#                                          data=json.dumps({'id': taxon_id}),
-#                                          headers=headers,
-#                                          auth=('docker_admin', '123qweasdzxc'))
-#                         if req.status_code == 200:
-#                             args['success'] = True
-#                             args['message'] = 'Taxon deleted successfully'
-#                         else:
-#                             args['success'] = False
-#                             args['message'] = 'Taxon has not been deleted. Contact the server administrator.'
-#                         return render(request, 'taxon/delete.html', args)
-#                     except Exception as e:
-#                         experimentbase_logger.error('Error delete taxon, getting taxon_name :' + str(e))
-#                         args['success'] = False
-#                         args['message'] = 'API access problem. Contact the server administrator.'
-#                         return render(request, 'taxon/delete.html', args)
-#             else:
-#                 return render(request, 'taxon/delete.html', args)
-#         else:
-#             return render(request, 'reg/403.html')
-#     else:
-#         return redirect('login')
-#
-#
-# def taxon_delete(request):
-#     return redirect('taxons')
+def taxon_parent_search(request):
+    if request.POST:
+        parent_name = request.POST['parentName']
+        try:
+            all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
+            taxons = []
+            for el in all_taxons:
+                if el['name'].startswith(parent_name):
+                    taxons.append(el)
+            return JsonResponse({'value': taxons})
+        except Exception as e:
+            experimentbase_logger.error('Taxon search error:' + str(e))
+            return JsonResponse({'value': []})
+    else:
+        return redirect('taxons')
 
 
 def search_file(request, experiment_id):
@@ -589,206 +347,6 @@ def experiment(request, experiment_id):
     return render(request, 'experiment.html', args)
 
 
-# def experiment_add(request):
-#     args = dict()
-#     args = check_auth_user(request, args)
-#     args.update(csrf(request))
-#     if request.user.is_authenticated:
-#         if request.user.is_staff:
-#             if request.method == 'POST':
-#                 try:
-#                     data = json.loads(request.body)
-#                 except ValueError as e:
-#                     experimentbase_logger.error('JSON parse error: ' + str(e))
-#                     args['success'] = False
-#                     args['message'] = 'Incorrect request form.'
-#                     return render(request, 'experiment/add.html', args)
-#                 info_dict = check_experiments_data(data)
-#                 if not info_dict['error']:
-#                     try:
-#                         headers = {'Content-Type': 'application/json'}
-#                         req = requests.post(API_URL + '/experiments/add', data=json.dumps(data),
-#                                             headers=headers,
-#                                             auth=('docker_admin', '123qweasdzxc'))
-#                         if req.status_code == 200:
-#                             info_dict['success'] = 'Experiment added successfully'
-#                         else:
-#                             info_dict['error'].append('Incorrect form data.')
-#                     except Exception as e:
-#                         info_dict['error'].append('API access problem. Contact the server administrator.')
-#                         experimentbase_logger.error('Problems with API')
-#                 # return JsonResponse(json.dumps(info_dict))
-#                 return JsonResponse(info_dict)
-#             else:
-#                 return render(request, 'experiment/add.html', args)
-#         else:
-#             return render(request, 'reg/403.html')
-#     else:
-#         return redirect('login')
-#
-#
-# def zipdir(path, ziph):
-#     # ziph is zipfile handle
-#     for root, dirs, files in os.walk(path):
-#         for file in files:
-#             ziph.write(os.path.join(root, file))
-#
-#
-# def create_random_str(size):
-#     return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(size))
-#
-#
-# def experiment_download(request):
-#
-#     if request.POST:
-#         try:
-#             experiments_list = json.loads(request.POST['experiments'])['experiments']
-#
-#             folder = create_random_str(16)
-#             os.mkdir('/tmp/' + folder)
-#
-#             for counter, el in enumerate(experiments_list):
-#                 os.mkdir('/tmp/' + folder + '/experiment' + str(counter))
-#
-#                 i = 0
-#                 while i < int(el['quantity']):
-#                     req = requests.get(API_URL + '/experiments', params={'id': el['id']})
-#                     value = req.json()['value']
-#                     torrent_path = value['fileInfos'][i]['torrentFilePath']
-#                     file_name = os.path.basename(value['fileInfos'][i]['filepath'])
-#
-#                     req = requests.get(API_URL + '/experiments/getTorrent', params={'torrentPath': torrent_path})
-#                     torrent_file = base64.b64decode(req.json()['value'])
-#
-#                     f1 = open('/tmp/' + folder + '/experiment' + str(counter) + '/' + file_name + str(i) + '.torrent', 'wb')
-#                     f1.write(torrent_file)
-#                     f1.close()
-#
-#                     i += 1
-#
-#             path_to_archive = '/tmp/experiment_torrents_' + folder + '.zip'
-#
-#             zipf = zipfile.ZipFile(path_to_archive, 'w', zipfile.ZIP_DEFLATED)
-#             zipdir('/tmp/' + folder, zipf)
-#             zipf.close()
-#
-#             archive = open(path_to_archive, 'rb').read()
-#             response = HttpResponse(archive)
-#
-#             response['status_code'] = 200
-#             response['Content-Type'] = 'application/zip'
-#             response['Content-Length'] = os.path.getsize(path_to_archive)
-#             response['Content-Disposition'] = "attachment; filename=experiment_torrents.zip"
-#
-#             os.remove(path_to_archive)
-#             shutil.rmtree('/tmp/' + folder)
-#
-#             return response
-#
-#         except Exception as e:
-#             experimentbase_logger.error('Creation zip archive error: ' + str(e))
-#             return JsonResponse({'error': 'cant create archive'})
-#
-#     return render(request, '', {})
-#
-#
-# def experiment_change(request, experiment_id):
-#     args = dict()
-#     args = check_auth_user(request, args)
-#     args.update(csrf(request))
-#     if request.user.is_authenticated:
-#         if request.user.is_staff:
-#             # get experiment fields and set them to inputs
-#             try:
-#                 req = requests.get(API_URL + '/experiments', params={'id': experiment_id})
-#                 args['experiment'] = req.json()['value']
-#
-#                 # get taxon_name from taxon_id
-#                 req = requests.get(API_URL + '/taxa', params={'id': args['experiment']['taxonId']})
-#                 args['experiment']['taxon_name'] = req.json()['value']['name']
-#
-#                 # get date from datetime - minus 9 symbols(' 00:00:00')
-#                 args['experiment']['withdrawDate'] = args['experiment']['withdrawDate'][:-9]
-#             except Exception as e:
-#                 experimentbase_logger.error('Incorrect experiment id or troubles with API ' + str(e))
-#                 args['success'] = False
-#                 args['message'] = 'Incorrect experiment id or troubles with API.'
-#
-#             if request.method == 'POST':
-#                 try:
-#                     data = json.loads(request.body)
-#                 except ValueError as e:
-#                     experimentbase_logger.error('JSON parse error: ' + str(e))
-#                     args['success'] = False
-#                     args['message'] = 'Incorrect request form.'
-#                     return render(request, 'experiment/change.html', args)
-#                 info_dict = check_experiments_data(data)
-#                 if not info_dict['error']:
-#                     try:
-#                         data['id'] = experiment_id
-#                         headers = {'Content-Type': 'application/json'}
-#                         req = requests.post(API_URL + '/experiments/edit', params={'id': experiment_id}, data=json.dumps(data),
-#                                             headers=headers,
-#                                             auth=('docker_admin', '123qweasdzxc'))
-#                         if req.status_code == 200:
-#                             info_dict['success'] = 'Experiment succesfully changed'
-#                         else:
-#                             info_dict['error'].append('Incorrect form data')
-#                     except Exception as e:
-#                         info_dict['error'].append('API access problem. Contact the server administrator.')
-#                         experimentbase_logger.error('Problems with API')
-#                 # return JsonResponse(json.dumps(info_dict))
-#                 return JsonResponse(info_dict)
-#             else:
-#                 return render(request, 'experiment/change.html', args)
-#         else:
-#             return render(request, 'reg/403.html')
-#     else:
-#         return redirect('login')
-#
-#
-# def experiment_delete(request, experiment_id):
-#     args = dict()
-#     args = check_auth_user(request, args)
-#     args.update(csrf(request))
-#     if request.user.is_authenticated:
-#         if request.user.is_staff:
-#             args['experiment_id'] = experiment_id
-#             try:
-#                 args['experiment_name'] = requests.get(API_URL + '/experiments', params={'id': experiment_id}).json()[
-#                     'value']['name']
-#             except Exception as e:
-#                 experimentbase_logger.error('Error delete experiment, getting experiment_name :' + str(e))
-#                 args['success'] = False
-#                 args['message'] = 'API access problem. Contact the server administrator.'
-#                 return render(request, 'experiment/delete.html', args)
-#             if request.POST:
-#                 try:
-#                     headers = {'Content-Type': 'application/json'}
-#                     req = requests.post(API_URL + '/experiments/delete',
-#                                         data=json.dumps({'id': experiment_id}),
-#                                         headers=headers,
-#                                         auth=('docker_admin', '123qweasdzxc'))
-#                     if req.status_code == 200:
-#                         args['success'] = True
-#                         args['message'] = 'Experiment deleted successfully'
-#                     else:
-#                         args['success'] = False
-#                         args['message'] = 'Experiment has not been deleted. Contact the server administrator.'
-#                     return render(request, 'experiment/delete.html', args)
-#                 except Exception as e:
-#                     experimentbase_logger.error('error delete experiment:' + str(e))
-#                     args['success'] = False
-#                     args['message'] = 'API access problem. Contact the server administrator.'
-#                     return render(request, 'experiment/delete.html', args)
-#             else:
-#                 return render(request, 'experiment/delete.html', args)
-#         else:
-#             return render(request, 'reg/403.html')
-#     else:
-#         return redirect('login')
-
-
 def get_torrent(request, experiment_id, torrent_index):
     args = dict()
     args = check_auth_user(request, args)
@@ -813,6 +371,16 @@ def get_torrent(request, experiment_id, torrent_index):
     except Exception as e:
         experimentbase_logger.error("getting torrent error")
         return redirect('index')
+
+
+def experiments_search(search_dict):
+    try:
+        founded_experiments_qs = Experiment.objects.filter(**search_dict)
+
+        return founded_experiments_qs
+    except Exception as e:
+        experimentbase_logger.error('experiments found error: ' + str(e))
+        return []
 
 
 # TODO refactor search experiments
