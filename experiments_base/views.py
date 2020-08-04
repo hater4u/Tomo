@@ -280,15 +280,31 @@ def taxons(request):
     return taxons_id(request, '')
 
 
-def taxon_parent_search(request):
+# def taxon_parent_search(request):
+#     if request.POST:
+#         parent_name = request.POST['parentName']
+#         try:
+#             # all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
+#             all_taxons = Taxon.objects.filter(parent_id__taxon__taxon_name__contains=parent_name)
+#             taxons = []
+#             for el in all_taxons:
+#                  taxons.append(el.taxon_name)
+#             return JsonResponse({'value': taxons})
+#         except Exception as e:
+#             experiments_base_logger.error('Taxon search error:' + str(e))
+#             return JsonResponse({'value': []})
+#     else:
+#         return redirect('taxons')
+
+def taxon_search(request):
     if request.POST:
-        parent_name = request.POST['parentName']
+        search_word = request.POST['taxonName']
         try:
-            all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
+            # all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
+            all_taxons = Taxon.objects.filter(taxon_name__contains=search_word)
             taxons = []
             for el in all_taxons:
-                if el['name'].startswith(parent_name):
-                    taxons.append(el)
+                 taxons.append(el.taxon_name)
             return JsonResponse({'value': taxons})
         except Exception as e:
             experiments_base_logger.error('Taxon search error:' + str(e))

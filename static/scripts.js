@@ -20,19 +20,23 @@ function createChildren() {
     let children = JSON.parse(this.responseText).value;
 
     el.innerHTML = '';
+    // for(let i = 0; i < children.length; i++) {
+    //     el.innerHTML += '<div onclick="addParentId(this)" data-parentId="'+ children[i].id +
+    //         '" class="badge badge-pill badge-primary"><h6>' +  children[i].name + '</h6></div>';
+    // }
     for(let i = 0; i < children.length; i++) {
-        el.innerHTML += '<div onclick="addParentId(this)" data-parentId="'+ children[i].id +
-            '" class="badge badge-pill badge-primary"><h6>' +  children[i].name + '</h6></div>';
+        el.innerHTML += '<div onclick="addParentId(this)" class="badge badge-pill badge-primary"><h6>' +
+            children[i] + '</h6></div>';
     }
 
 }
 
-function searchParentId(event) {
+function searchTaxons(event) {
     let xhr = new XMLHttpRequest();
-    let parentName = encodeURIComponent(event.currentTarget.value);
-    if(parentName === "") return;
+    let taxonName = encodeURIComponent(event.currentTarget.value);
+    if(taxonName === "") return;
 
-    let body = 'csrfmiddlewaretoken=' + document.getElementsByName('csrfmiddlewaretoken')[0].value + '&' + 'parentName=' + parentName;
+    let body = 'csrfmiddlewaretoken=' + document.getElementsByName('csrfmiddlewaretoken')[0].value + '&' + 'taxonName=' + taxonName;
 
     xhr.open("POST", "/taxon/search/", true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -52,10 +56,10 @@ document.addEventListener('DOMContentLoaded', function ()  {
     if(form1) form1.onsubmit = sendJson;
 
     let el = document.getElementById("taxonParentName");
-    if(el) el.addEventListener('keyup', searchParentId);
+    if(el) el.addEventListener('keyup', searchTaxons);
 
     let taxId = document.getElementById("taxonSearchName");
-    if(taxId) taxId.addEventListener('keyup', searchParentId);
+    if(taxId) taxId.addEventListener('keyup', searchTaxons);
 
     let bcs = document.getElementsByClassName('bc-ol');
     if(bcs)

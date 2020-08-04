@@ -7,7 +7,7 @@ from . import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('taxons/', views.taxons, name='taxons'),
-    # path('taxon/search/', views.taxon_parent_search, name='taxon_search'),
+    path('taxon/search/', views.taxon_search, name='taxon_search'),
     # path('taxon/new/', views.taxon_add, name='taxon_add'),
     # path('taxon/rename/<slug:taxon_id>/', views.taxon_rename_id, name='taxon_rename_id'),
     # path('taxon/rename/', views.taxon_rename, name='taxon_rename'),
