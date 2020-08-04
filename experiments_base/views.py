@@ -14,8 +14,8 @@ import logging
 import logging.config
 
 logging.config.dictConfig(LOGGING)
-experimentbase_logger = logging.getLogger('django')
-# experimentbase_logger_admin = logging.getLogger('django.request')
+experiments_base_logger = logging.getLogger('django')
+# experiments_base_logger_admin = logging.getLogger('django.request')
 
 
 # TODO: write normal index
@@ -83,7 +83,7 @@ def check_auth_user(request, args):
     args['interface_experiments_page_hint_temperature'] = InterfaceName.objects.get(
         search_name='experiments_hint_temperature').value
     args['interface_experiments_page_hint_comments'] = InterfaceName.objects.get(
-        search_name='experiments_hint_commnets').value
+        search_name='experiments_hint_comments').value
 
     args['interface_find_metabolites_page_title'] = InterfaceName.objects.get(
         search_name='metabolites_search_title').value
@@ -115,7 +115,7 @@ def get_taxon_path(taxon_id):
             parent_taxon = parent_taxon.parent_id
         return hierarchy
     except Exception:
-        experimentbase_logger.warning('hierarchy found error, maybe it is root')
+        experiments_base_logger.warning('hierarchy found error, maybe it is root')
         return []
 
 
@@ -123,7 +123,7 @@ def get_taxon_children(taxon_id):
     try:
         return requests.get(API_URL + '/taxa/byParent', params={'parentId': taxon_id}).json()['value']
     except Exception:
-        experimentbase_logger.error('children found error, maybe problems with API')
+        experiments_base_logger.error('children found error, maybe problems with API')
         return []
 
 
@@ -164,7 +164,7 @@ def get_taxon_children(taxon_id):
 #             return info_dict
 #     except Exception as e:
 #         info_dict['error'] = ['API access problem. Contact the server administrator.']
-#         experimentbase_logger.error('Problems with API')
+#         experiments_base_logger.error('Problems with API')
 #         return info_dict
 #
 #     fields_lists = {
@@ -291,7 +291,7 @@ def taxon_parent_search(request):
                     taxons.append(el)
             return JsonResponse({'value': taxons})
         except Exception as e:
-            experimentbase_logger.error('Taxon search error:' + str(e))
+            experiments_base_logger.error('Taxon search error:' + str(e))
             return JsonResponse({'value': []})
     else:
         return redirect('taxons')
@@ -305,7 +305,7 @@ def search_file(request, experiment_id):
                 try:
                     path = request.POST.get('path', False)
                 except Exception as e:
-                    experimentbase_logger.error('Incorrect path: ' + str(e))
+                    experiments_base_logger.error('Incorrect path: ' + str(e))
                     return JsonResponse({'error': 'Incorrect path'})
 
                 if path.find('.') != -1:
@@ -327,7 +327,7 @@ def search_file(request, experiment_id):
                     return JsonResponse({'files': files, 'dirs': dirs})
 
                 except FileNotFoundError as e:
-                    experimentbase_logger.error('File not found: ' + str(e))
+                    experiments_base_logger.error('File not found: ' + str(e))
                     return JsonResponse({'error': 'File is not found'})
 
             else:
@@ -382,9 +382,9 @@ def experiment(request, experiment_id):
 
     except ObjectDoesNotExist as e:
         args['error'] = 'Experiment not found'
-        experimentbase_logger.error('Experiment error(ObjectDoesNotExist):' + str(e))
+        experiments_base_logger.error('Experiment error(ObjectDoesNotExist):' + str(e))
     except Exception as e:
-        experimentbase_logger.error('Experiment error:' + str(e))
+        experiments_base_logger.error('Experiment error:' + str(e))
         args = {}
     return render(request, 'experiment.html', args)
 
@@ -411,7 +411,7 @@ def get_torrent(request, experiment_id, torrent_index):
         return response
 
     except Exception as e:
-        experimentbase_logger.error("getting torrent error: " + str(e))
+        experiments_base_logger.error("getting torrent error: " + str(e))
         return redirect('index')
 
 
@@ -421,7 +421,7 @@ def experiments_search(search_dict):
 
         return founded_experiments_qs
     except Exception as e:
-        experimentbase_logger.error('experiments found error: ' + str(e))
+        experiments_base_logger.error('experiments found error: ' + str(e))
         return []
 
 
@@ -566,7 +566,7 @@ def experiments(request):
             else:
                 args['experiments'] = {}
         except Exception as e:
-            experimentbase_logger.error('Search error:' + str(e))
+            experiments_base_logger.error('Search error:' + str(e))
             args = {}
 
     return render(request, 'experiments.html', args)

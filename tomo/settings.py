@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'experimentsbase.apps.ExperimentbaseConfig',
+    'experiments_base.apps.ExperimentBaseConfig',
     'nested_admin',
 ]
 
@@ -60,7 +60,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [ROOT_DIR.path('templates'),
-                 ROOT_DIR.path('experimentsbase/templates'), ],
+                 ROOT_DIR.path('experiments_base/templates'), ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -70,7 +70,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
             'libraries': {
-                'exp_filters': 'experimentsbase.templatetags.exp_filters',
+                'exp_filters': 'experiments_base.templatetags.exp_filters',
             },
         },
     },

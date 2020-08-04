@@ -178,7 +178,7 @@ class MetaboliteName(models.Model):
         verbose_name_plural = 'metabolite names'
 
     metabolite_synonym = models.CharField(max_length=128, verbose_name='Синоним основному имени метаболита')
-    metabolite_id = models.ForeignKey('experimentsbase.Metabolite',
+    metabolite_id = models.ForeignKey('experiments_base.Metabolite',
                                       verbose_name='Метаболит, для которого добавляем синонимичное имя',
                                       on_delete=models.DO_NOTHING)
 
@@ -192,8 +192,8 @@ class ProbMetabolite(models.Model):
         verbose_name = 'prob metabolite'
         verbose_name_plural = 'prob metabolites'
 
-    prob_id = models.ForeignKey('experimentsbase.Prob', verbose_name='Проба', on_delete=models.DO_NOTHING)
-    metabolite_id = models.ForeignKey('experimentsbase.Metabolite', verbose_name='Метаболит',
+    prob_id = models.ForeignKey('experiments_base.Prob', verbose_name='Проба', on_delete=models.DO_NOTHING)
+    metabolite_id = models.ForeignKey('experiments_base.Metabolite', verbose_name='Метаболит',
                                       on_delete=models.DO_NOTHING)
     concentration = models.FloatField(default=0, validators=[MinValueValidator(0)],
                                       verbose_name='Концентрация(нмоль/г)')
@@ -209,7 +209,7 @@ class Prob(models.Model):
         verbose_name_plural = 'probs'
 
     prob_name = models.CharField(max_length=128, verbose_name='Имя пробы')
-    experiment_id = models.ForeignKey('experimentsbase.Experiment', verbose_name='Эксперимент',
+    experiment_id = models.ForeignKey('experiments_base.Experiment', verbose_name='Эксперимент',
                                       on_delete=models.DO_NOTHING)
 
     way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices, verbose_name='Образ жизни')
@@ -242,7 +242,7 @@ class Experiment(models.Model):
         verbose_name_plural = 'experiments'
 
     experiment_name = models.CharField(max_length=128, verbose_name='Имя эксперимента')
-    taxon_id = models.ForeignKey('experimentsbase.Taxon', verbose_name='Таксон', on_delete=models.DO_NOTHING)
+    taxon_id = models.ForeignKey('experiments_base.Taxon', verbose_name='Таксон', on_delete=models.DO_NOTHING)
 
     way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices, verbose_name='Образ жизни')
     habitat = models.IntegerField(default=Habitat.OTHER, choices=Habitat.choices, verbose_name='Ареал обитания')
@@ -261,7 +261,7 @@ class Experiment(models.Model):
     diseases = models.ManyToManyField(Disease, verbose_name='Заболевания', blank=True)
     withdraw_conditions = models.ManyToManyField(WithdrawCondition, verbose_name='Условия забора', blank=True)
 
-    withdraw_place = models.ForeignKey('experimentsbase.WithdrawPlace', verbose_name='Место забора',
+    withdraw_place = models.ForeignKey('experiments_base.WithdrawPlace', verbose_name='Место забора',
                                        on_delete=models.DO_NOTHING, blank=True, null=True)
     withdraw_date = models.DateTimeField(default=timezone.now, verbose_name='Дата забора')
 

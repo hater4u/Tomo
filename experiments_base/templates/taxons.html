@@ -9,9 +9,9 @@
     {% if user_auth %}
     <br>
     <div class="taxon-buttons">
-        <a href="/admin/experimentsbase/taxon/add/" class="btn btn-success">Add taxon</a>
-        <a href="/admin/experimentsbase/taxon/{{ taxon_id }}/change/" class="btn btn-warning {% if index_taxons %}disabled{% endif %}">Change taxon</a>
-        <a href="/admin/experimentsbase/taxon/{{ taxon_id }}/delete/" class="btn btn-danger {% if index_taxons %}disabled{% endif %}">Delete taxon</a>
+        <a href="/admin/experiments_base/taxon/add/" class="btn btn-success">Add taxon</a>
+        <a href="/admin/experiments_base/taxon/{{ taxon_id }}/change/" class="btn btn-warning {% if index_taxons %}disabled{% endif %}">Change taxon</a>
+        <a href="/admin/experiments_base/taxon/{{ taxon_id }}/delete/" class="btn btn-danger {% if index_taxons %}disabled{% endif %}">Delete taxon</a>
     </div>
     <br>
     {% endif %}
@@ -106,7 +106,7 @@
     <br>
 
     {% if user_auth %}
-    <a href="/admin/experimentsbase/experiment/add/" class="btn btn-success m-2">Add experiment</a>
+    <a href="/admin/experiments_base/experiment/add/" class="btn btn-success m-2">Add experiment</a>
     {% endif %}
 
 
