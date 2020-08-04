@@ -19,7 +19,7 @@
     <div class="taxons-hierarchy">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/taxons/">Root</a></li>
+                <li class="breadcrumb-item"><a href="/taxons/">{{ interface_taxons_page_root_taxon }}</a></li>
                 {% for el in hierarchy %}
                     <li class="breadcrumb-item {% if forloop.last %}active{% endif %}">
                         {% if forloop.last %}{{ el.name }}
@@ -30,12 +30,12 @@
             </ol>
         </nav>
         {% if index_taxons %}
-            Popular taxons:
+            {{ interface_taxons_page_popular_taxons }}:
             {% for el in popular_taxons %}
                 <a href="/taxons/{{ el.pk }}" class="badge badge-pill badge-primary"><h6>{{ el.taxon_name }}</h6></a>
             {% endfor %}
         {% else %}
-            Children:
+            {{ interface_taxons_page_children}}:
             {% for el in children %}
                 <a href="/taxons/{{ el.pk }}" class="badge badge-pill badge-primary"><h6>{{ el.taxon_name }}</h6></a>
             {% endfor %}

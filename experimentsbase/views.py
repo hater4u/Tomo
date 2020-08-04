@@ -55,6 +55,43 @@ def check_auth_user(request, args):
     args['interface_experiments_name'] = InterfaceName.objects.get(search_name='experiments_name').value
     args['interface_find_by_metabolites_name'] = InterfaceName.objects.get(search_name='find_by_metabolites_name').value
 
+    args['interface_taxons_page_root_taxon'] = InterfaceName.objects.get(search_name='root_taxon').value
+    args['interface_taxons_page_popular_taxons'] = InterfaceName.objects.get(search_name='popular_taxons').value
+    args['interface_taxons_page_children'] = InterfaceName.objects.get(search_name='children').value
+
+    args['interface_experiments_page_title'] = InterfaceName.objects.get(search_name='experiments_title').value
+    args['interface_experiments_page_hint_experiment_name'] = InterfaceName.objects.get(
+        search_name='experiments_hint_experiment_name').value
+    args['interface_experiments_page_hint_taxon_name'] = InterfaceName.objects.get(
+        search_name='experiments_hint_taxon_name').value
+    args['interface_experiments_page_hint_age'] = InterfaceName.objects.get(
+        search_name='experiments_hint_age').value
+    args['interface_experiments_page_hint_weight'] = InterfaceName.objects.get(
+        search_name='experiments_hint_weight').value
+    args['interface_experiments_page_hint_length'] = InterfaceName.objects.get(
+        search_name='experiments_hint_length').value
+    args['interface_experiments_page_hint_environmental_factors'] = InterfaceName.objects.get(
+        search_name='experiments_hint_environmental_factors').value
+    args['interface_experiments_page_hint_diseases'] = InterfaceName.objects.get(
+        search_name='experiments_hint_diseases').value
+    args['interface_experiments_page_hint_withdraw_place'] = InterfaceName.objects.get(
+        search_name='experiments_hint_withdraw_place').value
+    args['interface_experiments_page_hint_withdraw_date'] = InterfaceName.objects.get(
+        search_name='experiments_hint_withdraw_date').value
+    args['interface_experiments_page_hint_hours_post_mortem'] = InterfaceName.objects.get(
+        search_name='experiments_hint_hours_post_mortem').value
+    args['interface_experiments_page_hint_temperature'] = InterfaceName.objects.get(
+        search_name='experiments_hint_temperature').value
+    args['interface_experiments_page_hint_comments'] = InterfaceName.objects.get(
+        search_name='experiments_hint_commnets').value
+
+    args['interface_find_metabolites_page_title'] = InterfaceName.objects.get(
+        search_name='metabolites_search_title').value
+    args['interface_find_metabolites_page_field'] = InterfaceName.objects.get(
+        search_name='metabolites_search_field').value
+    args['interface_find_metabolites_page_hint'] = InterfaceName.objects.get(
+        search_name='metabolites_search_hint').value
+
     if request.user.is_authenticated:
         args['nickname'] = request.user.get_username()
         args['authenticated'] = True

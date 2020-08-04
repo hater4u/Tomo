@@ -302,5 +302,6 @@ class InterfaceName(models.Model):
         verbose_name_plural = 'interface names'
 
     name = models.CharField(max_length=128, verbose_name='Имя')
+    # TODO increase length value
     value = models.CharField(max_length=64, verbose_name='Значение')
     search_name = models.CharField(max_length=64, verbose_name='Имя для поиска', unique=True)

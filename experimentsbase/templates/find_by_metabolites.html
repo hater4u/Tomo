@@ -6,16 +6,16 @@
 
     <main class="container">
     <br>
-    <h3>Find experiments by metabolites</h3>
+    <h3>{{ interface_find_metabolites_page_title }}</h3>
 
     <form action="/find/metabolites/#table" method="post">
         {% csrf_token %}
 
         <div class="form-row">
             <div class="col">
-                <label for="metaboliteNames">Write name of metabolites</label>
+                <label for="metaboliteNames">{{ interface_find_metabolites_page_field }}</label>
                 <input type="text" class="form-control" id="metaboliteNames" name="metaboliteNames" aria-describedby="metaboliteNamesHelp" value="{{ filled_fields.ageFrom }}">
-                <small id="metaboliteNamesHelp" class="form-text text-muted">You can use " AND " for searching experiments with some metabolites</small>
+                <small id="metaboliteNamesHelp" class="form-text text-muted">{{ interface_find_metabolites_page_hint }}</small>
             </div>
         </div>
 
