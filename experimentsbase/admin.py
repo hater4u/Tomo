@@ -6,8 +6,9 @@ from .models import InterfaceName
 
 
 class TaxonAdmin(admin.ModelAdmin):
-    list_display = ('taxon_name', 'taxon_parent_name', 'is_tissue', 'view_in_popular')
+    list_display = ('taxon_name', 'taxon_parent_name', 'is_tissue', 'view_in_popular', 'taxon_folder')
     ordering = ('taxon_name',)
+    exclude = ('taxon_folder',)
 
     def taxon_parent_name(self, obj):
         if obj.parent_id is None:
@@ -35,7 +36,8 @@ class ProbMetaboliteAdminInline(nested_admin.NestedTabularInline):
 
 class ProbAdmin(nested_admin.NestedModelAdmin):
     list_display = ('prob_name', 'way_of_life', 'habitat', 'gender',
-                    'month_age', 'hours_post_mortem', 'weight', 'length', 'temperature',)
+                    'month_age', 'hours_post_mortem', 'weight', 'length', 'temperature',
+                    'prob_file',)
     ordering = ('prob_name',)
     inlines = (ProbMetaboliteAdminInline, )
 
@@ -52,9 +54,10 @@ class ProbAdminInline(nested_admin.NestedTabularInline):
 class ExperimentAdmin(nested_admin.NestedModelAdmin):
     list_display = ('experiment_name', 'taxon_id', 'way_of_life', 'habitat', 'gender',
                     'month_age', 'hours_post_mortem', 'weight', 'length', 'temperature',
-                    'withdraw_place', 'withdraw_date')
+                    'withdraw_place', 'withdraw_date', 'experiment_folder')
 
     ordering = ('experiment_name',)
+    exclude = ('experiment_folder',)
     inlines = (ProbAdminInline, )
 
     def taxon_id(self, obj):
@@ -70,7 +73,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
 
 
 class MetaboliteAdmin(admin.ModelAdmin):
-    list_display = ('metabolite_name', 'pubchemcid', 'pk',)
+    list_display = ('metabolite_name', 'pub_chem_cid', 'pk',)
     ordering = ('metabolite_name',)
 
 

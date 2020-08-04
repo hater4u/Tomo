@@ -90,108 +90,108 @@ def get_taxon_children(taxon_id):
         return []
 
 
-def check_experiments_data(data_json):
-    info_dict = dict()
-    info_dict['error'] = []
-    fields = {'experimentName': 'Experiment name is missing',
-              'taxonSearchName': 'Taxon name is missing',
-              'wayOfLife': 'Empty field value "Way of life"',
-              'habitat': 'Empty field value "Habitat"',
-              'gender': 'Empty field value "Gender"',
-              'monthsAge': 'Empty field value "Age"',
-              'weight': 'Empty field value "Weight"',
-              'length': 'Empty field value "Length"',
-              'withdrawDate': 'Empty field value "Withdraw date"',
-              # 'withdrawPlace': 'Empty field value ""',
-              'hoursPostMortem': 'Empty field value "Hours post mortem"',
-              'temperature': 'Empty field value "Temperature"',
-              }
-    for key, value in fields.items():
-        if data_json.get(key, False):
-            if data_json[key] == '':
-                info_dict['error'].append(value)
-        else:
-            info_dict['error'].append('Missing field ' + key)
-
-    try:
-        all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
-        found = False
-        for el in all_taxons:
-            if el['name'] == data_json['taxonSearchName']:
-                data_json['taxonId'] = el['id']
-                found = True
-                break
-        if not found:
-            info_dict['error'] = ['Invalid taxon name']
-
-            return info_dict
-    except Exception as e:
-        info_dict['error'] = ['API access problem. Contact the server administrator.']
-        experimentbase_logger.error('Problems with API')
-        return info_dict
-
-    fields_lists = {
-        'environmentalFactors': 'Empty value in fields "Environmental factors"',
-        'diseases': 'Empty value in fields "Diseases"',
-        'comments': 'Empty value in fields "Comments"',
-        'filepaths': 'Empty value in fields "File paths"',
-    }
-
-    for key, value in fields_lists.items():
-        if data_json.get(key, False):
-            for el in data_json[key]:
-                if el == '':
-                    info_dict['error'].append(value)
-
-    if data_json.get('additionalProperties', False):
-        for el in data_json['additionalProperties']:
-            for key, value in el.items():
-                # for key, value in data_json['additionalProperties'].items():
-                if key == '':
-                    info_dict['error'].append('Empty key in add. properties')
-                if value == '':
-                    info_dict['error'].append('Empty value ' + key + ' in add. properties')
-
-        add_props = dict()
-        for el in data_json['additionalProperties']:
-            for key, value in el.items():
-                add_props[key] = value
-
-        data_json['additionalProperties'] = add_props
-
-    metabolit_fields = ['pubChemCid', 'metaName', 'concentration', 'analysisMethod']
-
-    if data_json.get('metabolites', False):
-        for el in data_json['metabolites']:
-            empty_field = False
-            for field in metabolit_fields:
-                if not el.get(field, False):
-                    info_dict['error'].append('Missing field ' + field + ' in metabolite')
-                    empty_field = True
-            if not empty_field:
-                for field in metabolit_fields:
-                    if el[field] == '':
-                        info_dict['error'].append('Empty value ' + field + ' in metabolite')
-
-        for el in data_json['metabolites']:
-            el['name'] = el['metaName']
-            el.pop('metaName', None)
-
-    if data_json.get('csrfmiddlewaretoken', False):
-        data_json.pop('csrfmiddlewaretoken', None)
-
-    if data_json.get('taxonSearchName', False):
-        data_json.pop('taxonSearchName', None)
-
-    # File paths
-    if data_json.get('withdrawDate', False):
-        data_json['withdrawDate'] += " 00:00:00"
-    if data_json.get('experimentName', False):
-        data_json['name'] = data_json['experimentName']
-        data_json.pop('experimentName', None)
-
-    return info_dict
-
+# def check_experiments_data(data_json):
+#     info_dict = dict()
+#     info_dict['error'] = []
+#     fields = {'experimentName': 'Experiment name is missing',
+#               'taxonSearchName': 'Taxon name is missing',
+#               'wayOfLife': 'Empty field value "Way of life"',
+#               'habitat': 'Empty field value "Habitat"',
+#               'gender': 'Empty field value "Gender"',
+#               'monthsAge': 'Empty field value "Age"',
+#               'weight': 'Empty field value "Weight"',
+#               'length': 'Empty field value "Length"',
+#               'withdrawDate': 'Empty field value "Withdraw date"',
+#               # 'withdrawPlace': 'Empty field value ""',
+#               'hoursPostMortem': 'Empty field value "Hours post mortem"',
+#               'temperature': 'Empty field value "Temperature"',
+#               }
+#     for key, value in fields.items():
+#         if data_json.get(key, False):
+#             if data_json[key] == '':
+#                 info_dict['error'].append(value)
+#         else:
+#             info_dict['error'].append('Missing field ' + key)
+#
+#     try:
+#         all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
+#         found = False
+#         for el in all_taxons:
+#             if el['name'] == data_json['taxonSearchName']:
+#                 data_json['taxonId'] = el['id']
+#                 found = True
+#                 break
+#         if not found:
+#             info_dict['error'] = ['Invalid taxon name']
+#
+#             return info_dict
+#     except Exception as e:
+#         info_dict['error'] = ['API access problem. Contact the server administrator.']
+#         experimentbase_logger.error('Problems with API')
+#         return info_dict
+#
+#     fields_lists = {
+#         'environmentalFactors': 'Empty value in fields "Environmental factors"',
+#         'diseases': 'Empty value in fields "Diseases"',
+#         'comments': 'Empty value in fields "Comments"',
+#         'filepaths': 'Empty value in fields "File paths"',
+#     }
+#
+#     for key, value in fields_lists.items():
+#         if data_json.get(key, False):
+#             for el in data_json[key]:
+#                 if el == '':
+#                     info_dict['error'].append(value)
+#
+#     if data_json.get('additionalProperties', False):
+#         for el in data_json['additionalProperties']:
+#             for key, value in el.items():
+#                 # for key, value in data_json['additionalProperties'].items():
+#                 if key == '':
+#                     info_dict['error'].append('Empty key in add. properties')
+#                 if value == '':
+#                     info_dict['error'].append('Empty value ' + key + ' in add. properties')
+#
+#         add_props = dict()
+#         for el in data_json['additionalProperties']:
+#             for key, value in el.items():
+#                 add_props[key] = value
+#
+#         data_json['additionalProperties'] = add_props
+#
+#     metabolit_fields = ['pubChemCid', 'metaName', 'concentration', 'analysisMethod']
+#
+#     if data_json.get('metabolites', False):
+#         for el in data_json['metabolites']:
+#             empty_field = False
+#             for field in metabolit_fields:
+#                 if not el.get(field, False):
+#                     info_dict['error'].append('Missing field ' + field + ' in metabolite')
+#                     empty_field = True
+#             if not empty_field:
+#                 for field in metabolit_fields:
+#                     if el[field] == '':
+#                         info_dict['error'].append('Empty value ' + field + ' in metabolite')
+#
+#         for el in data_json['metabolites']:
+#             el['name'] = el['metaName']
+#             el.pop('metaName', None)
+#
+#     if data_json.get('csrfmiddlewaretoken', False):
+#         data_json.pop('csrfmiddlewaretoken', None)
+#
+#     if data_json.get('taxonSearchName', False):
+#         data_json.pop('taxonSearchName', None)
+#
+#     # File paths
+#     if data_json.get('withdrawDate', False):
+#         data_json['withdrawDate'] += " 00:00:00"
+#     if data_json.get('experimentName', False):
+#         data_json['name'] = data_json['experimentName']
+#         data_json.pop('experimentName', None)
+#
+#     return info_dict
+#
 
 def get_sub_taxons(taxon_id):
     all_sub_taxons = []
@@ -268,7 +268,7 @@ def search_file(request, experiment_id):
                 try:
                     path = request.POST.get('path', False)
                 except Exception as e:
-                    experimentbase_logger.error('Incorrect path')
+                    experimentbase_logger.error('Incorrect path: ' + str(e))
                     return JsonResponse({'error': 'Incorrect path'})
 
                 if path.find('.') != -1:
@@ -290,7 +290,7 @@ def search_file(request, experiment_id):
                     return JsonResponse({'files': files, 'dirs': dirs})
 
                 except FileNotFoundError as e:
-                    experimentbase_logger.error('File not found')
+                    experimentbase_logger.error('File not found: ' + str(e))
                     return JsonResponse({'error': 'File is not found'})
 
             else:
@@ -334,12 +334,12 @@ def experiment(request, experiment_id):
         dict_of_metabolites = {}
         for counter, m in enumerate(prob_metabolites):
             dict_of_metabolites[counter] = {'name': m.metabolite_id.metabolite_name,
-                                            'pubchemcid': m.metabolite_id.pubchemcid,
-                                            'consentrations': {x: '' for x in range(max_metabolites_num)}}
+                                            'pub_chem_cid': m.metabolite_id.pub_chem_cid,
+                                            'concentrations': {x: '' for x in range(max_metabolites_num)}}
 
         for counter, pms in enumerate(all_metabolites):
             for m in pms:
-                dict_of_metabolites[meta_id_in_num[m.metabolite_id]]['consentrations'][counter] = m.concentration
+                dict_of_metabolites[meta_id_in_num[m.metabolite_id]]['concentrations'][counter] = m.concentration
 
         args['metabolites'] = dict_of_metabolites
 
@@ -374,7 +374,7 @@ def get_torrent(request, experiment_id, torrent_index):
         return response
 
     except Exception as e:
-        experimentbase_logger.error("getting torrent error")
+        experimentbase_logger.error("getting torrent error: " + str(e))
         return redirect('index')
 
 
@@ -544,7 +544,7 @@ def find_by_metabolites(request):
         metabolite_names = request.POST.get('metaboliteNames', False)
         if metabolite_names:
             metabolite_names = metabolite_names.split(' AND ')
-            meta_lenght = len(metabolite_names)
+            meta_length = len(metabolite_names)
 
             found_names = set()
             not_found_names = []
@@ -552,7 +552,7 @@ def find_by_metabolites(request):
                 try:
                     query = MetaboliteName.objects.get(metabolite_synonym=el)
                     found_names.add(query.metabolite_id)
-                except ObjectDoesNotExist as e:
+                except ObjectDoesNotExist:
                     not_found_names.append(el)
 
             if len(not_found_names) > 0:
@@ -567,7 +567,7 @@ def find_by_metabolites(request):
                 exp_ids = set()
                 for el in prob_ids:
                     query = all_probs_with_metabolites.filter(prob_id=el.pk)
-                    if query.count() == meta_lenght:
+                    if query.count() == meta_length:
                         exp_ids.add(el.experiment_id)
 
                 if len(exp_ids) == 0:

@@ -2,6 +2,22 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 
+from tomo.settings import SHARED_FILES_DIR
+
+import os
+
+
+def get_full_path(taxon):
+    if taxon.parent_id is None:
+        return taxon.taxon_folder
+    else:
+        return get_full_path(taxon.parent_id) + '/' + taxon.taxon_folder
+
+
+def r_replace(s, old, new, occurrence):
+    li = s.rsplit(old, occurrence)
+    return new.join(li)
+
 
 class Taxon(models.Model):
     class Meta:
@@ -15,6 +31,8 @@ class Taxon(models.Model):
     view_in_popular = models.BooleanField(default=False, verbose_name='Отображать в популярных таксонах')
     is_tissue = models.BooleanField(default=False, verbose_name='Ткань')
 
+    taxon_folder = models.CharField(default='old_taxon', max_length=128, verbose_name='Папка таксона')
+
     def __str__(self):
         if self.parent_id is None:
             parent_name = 'ROOT'
@@ -26,8 +44,24 @@ class Taxon(models.Model):
         name = 'ROOT' if self.taxon_name is None else self.taxon_name
         return '{0} ({1})'.format(name, parent_name)
 
-    # TODO realise creation directory in initialization taxon object and renaming directory
-    #  in file system while renaming taxon
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super(Taxon, self).save(*args, **kwargs)
+            self.taxon_folder = self.taxon_name + '_' + str(self.pk)
+            super(Taxon, self).save(*args, **kwargs)
+            full_path = str(SHARED_FILES_DIR) + '/' + get_full_path(self)
+            os.mkdir(full_path)
+
+        else:
+            old_self = Taxon.objects.get(pk=self.pk)
+            old_taxon_folder = old_self.taxon_folder
+            full_path_old = str(SHARED_FILES_DIR) + '/' + get_full_path(self)
+            self.taxon_folder = self.taxon_name + '_' + str(self.pk)
+            # replace with right side 1 occurrence in string - need for security(can be same names of taxons)
+            full_path_new = r_replace(full_path_old, old_taxon_folder, self.taxon_folder, 1)
+
+            os.rename(full_path_old, full_path_new)
+            super(Taxon, self).save(*args, **kwargs)
 
 
 class WayOfLife(models.IntegerChoices):
@@ -118,7 +152,7 @@ class Metabolite(models.Model):
         verbose_name_plural = 'metabolites'
 
     metabolite_name = models.CharField(max_length=128, verbose_name='Основное имя метаболита')
-    pubchemcid = models.IntegerField(default=0, blank=True, verbose_name='PubChemCid')
+    pub_chem_cid = models.IntegerField(default=0, blank=True, verbose_name='PubChemCid')
 
     def __str__(self):
         return self.metabolite_name
@@ -191,7 +225,13 @@ class Prob(models.Model):
     temperature = models.FloatField(default=0, validators=[MinValueValidator(0)],
                                     verbose_name='Температура(градусы Цельсия)')
 
-    # TODO realise downloading file
+    def get_upload_path(self, file_name):
+        return str(SHARED_FILES_DIR) + '/' + \
+               get_full_path(self.experiment_id.taxon_id) + '/' + \
+               self.experiment_id.experiment_folder + '/' + file_name
+
+    prob_file = models.FileField(upload_to=get_upload_path, default='', max_length=1024)
+    
     # TODO loading data from previous prob when you adding new prob(copy all fields and ProbMetabolites)
 
 
@@ -230,12 +270,29 @@ class Experiment(models.Model):
     additional_properties = models.ManyToManyField(AdditionalProperty, verbose_name='Дополнительные свойства',
                                                    blank=True)
 
+    experiment_folder = models.CharField(default='old_experiment', max_length=128, verbose_name='Папка таксона')
+
     def __str__(self):
         parent_name = 'ROOT' if self.taxon_id.taxon_name == '' else self.taxon_id.taxon_name
         return '{0} ({1})'.format(self.experiment_name, parent_name)
 
-    # TODO realise creation directory in initialization experiment object(exp_name + random str) and renaming directory
-    #  in file system while renaming experiment
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super(Experiment, self).save(*args, **kwargs)
+            self.experiment_folder = self.experiment_name + '_' + str(self.pk)
+            super(Experiment, self).save(*args, **kwargs)
+            full_path = str(SHARED_FILES_DIR) + '/' + get_full_path(self.taxon_id) + '/' + self.experiment_folder
+            os.mkdir(full_path)
+        else:
+            old_self = Experiment.objects.get(pk=self.pk)
+            old_experiment_folder = old_self.experiment_folder
+            full_path_old = str(SHARED_FILES_DIR) + '/' + get_full_path(self.taxon_id) + '/' + self.experiment_folder
+            self.experiment_folder = self.experiment_name + '_' + str(self.pk)
+            # replace with right side 1 occurrence in string - need for security(can be same names of taxons)
+            full_path_new = r_replace(full_path_old, old_experiment_folder, self.experiment_folder, 1)
+
+            os.rename(full_path_old, full_path_new)
+            super(Experiment, self).save(*args, **kwargs)
 
 
 class InterfaceName(models.Model):

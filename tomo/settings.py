@@ -130,8 +130,9 @@ STATICFILES_DIRS = [
 
 API_URL = 'http://' + env.str('API_HOST') + ':8080/api'
 
-SHARED_FILES_DIR = env.str('SHARED_FILES_DIR')
+SHARED_FILES_DIR = ROOT_DIR.path(env.str('SHARED_FILES_DIR'))
 STATIC_ROOT = ROOT_DIR.path(env.str('STATIC_FILES_DIR'))
+MEDIA_ROOT = ROOT_DIR.path(env.str('SHARED_FILES_DIR'))
 
 LOGGING = {
     'version': 1,
