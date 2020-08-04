@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from tomo.settings import API_URL, SHARED_FILES_DIR, LOGGING
-from .models import Taxon, Experiment, Prob, ProbMetabolite, MetaboliteName
+from .models import Taxon, Experiment, Prob, ProbMetabolite, MetaboliteName, InterfaceName
 
 import requests
 import os
@@ -50,6 +50,11 @@ def logout(request):
 
 
 def check_auth_user(request, args):
+
+    args['interface_taxons_name'] = InterfaceName.objects.get(search_name='taxons_name').value
+    args['interface_experiments_name'] = InterfaceName.objects.get(search_name='experiments_name').value
+    args['interface_find_by_metabolites_name'] = InterfaceName.objects.get(search_name='find_by_metabolites_name').value
+
     if request.user.is_authenticated:
         args['nickname'] = request.user.get_username()
         args['authenticated'] = True
