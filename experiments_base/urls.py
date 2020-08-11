@@ -27,4 +27,5 @@ urlpatterns = [
     path('experiment/gettorrent/<slug:experiment_id>/<slug:torrent_index>/', views.get_torrent, name='get_torrent'),
     path('experiment/<slug:experiment_id>/', views.experiment, name='experiment'),
     path('find/metabolites/', views.find_by_metabolites, name='find_by_metabolites'),
+    path('metabolite/<slug:metabolite_id>', views.metabolite, name='metabolite'),
 ]

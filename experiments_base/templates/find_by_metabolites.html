@@ -19,6 +19,21 @@
             </div>
         </div>
 
+{#        <div class="form-group">#}
+{#            <label for="MetaboliteSelect">Select the metabolite</label>#}
+{#            <select class="form-control" id="MetaboliteSelect">#}
+{#                {% for metabolite in  metabolites %}#}
+{#                <option value="/metabolite/{{ metabolite.pk }}">{{ metabolite.metabolite_name }}</option>#}
+{#                {% endfor %}#}
+{#            </select>#}
+{#        </div>#}
+
+         <div>
+             {% for metabolite in metabolites %}
+             <a href="/metabolite/{{ metabolite.pk }}">{{ metabolite.metabolite_name }}</a>
+             <br>
+             {% endfor %}
+         </div>
         <input type="submit" class="btn btn-primary m-2" value="Search">
     </form>
 

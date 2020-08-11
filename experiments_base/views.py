@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from tomo.settings import API_URL, SHARED_FILES_DIR, LOGGING
-from .models import Taxon, Experiment, Prob, ProbMetabolite, MetaboliteName, InterfaceName
+from .models import Taxon, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName, InterfaceName
 
 import requests
 import os
@@ -301,9 +301,9 @@ def taxon_search(request):
         search_word = request.POST['taxonName']
         try:
             # all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
-            all_taxons = Taxon.objects.filter(taxon_name__contains=search_word)
+            founded_taxons = Taxon.objects.filter(taxon_name__contains=search_word)
             taxons = []
-            for el in all_taxons:
+            for el in founded_taxons:
                  taxons.append(el.taxon_name)
             return JsonResponse({'value': taxons})
         except Exception as e:
@@ -627,5 +627,22 @@ def find_by_metabolites(request):
                     args['error'] = 'Experiments with this conditions not found'
                 else:
                     args['experiments'] = exp_ids
-
+    else:
+        all_metabolites = list(Metabolite.objects.all())
+        # filter_metabolites_names = dict()
+        args['metabolites'] = all_metabolites
     return render(request, 'find_by_metabolites.html', args)
+
+
+def metabolite(request, metabolite_id):
+    args = dict()
+    args = check_auth_user(request, args)
+    try:
+        args['metabolite'] = Metabolite.objects.get(pk=metabolite_id)
+    except ObjectDoesNotExist as e:
+        args['error'] = 'Metabolite not found'
+        experiments_base_logger.error('Metabolite error(ObjectDoesNotExist):' + str(e))
+    except Exception as e:
+        experiments_base_logger.error('Metabolite error:' + str(e))
+        args = {}
+    return render(request, 'metabolite.html', args)

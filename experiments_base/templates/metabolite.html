@@ -1,0 +1,49 @@
+{% extends 'index.html' %}
+{% load exp_filters %}
+
+{% block body %}
+
+<main class="container">
+    <br>
+{#    {% if user_auth %}#}
+{#    <div>#}
+{#        <a href="/admin/experiments_base/experiment/{{ experiment.pk }}/change/" class="btn btn-warning mb-2">Change experiment</a>#}
+{#        <a href="/admin/experiments_base/experiment/{{ experiment.pk }}/delete/" class="btn btn-danger mb-2">Delete experiment</a>#}
+{#    </div>#}
+{#    {% endif %}#}
+
+    {% if error %}
+    <h5 class="alert alert-danger">
+        {{ error }}
+    </h5>
+    {% else %}
+
+    <div class="table-">
+        <table class="table table-striped table-hover table-responsive">
+            <thead class="thead-default">
+            <tr>
+                <th>Property</th>
+                <th>Value</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th>Name</th>
+                <td>{{ metabolite.metabolite_name }}</td>
+            </tr>
+            <tr>
+                <th>PubChemCID</th>
+                <td>{{ metabolite.pub_chem_cid }}</td>
+            </tr>
+            <tr>
+                <th>More information</th>
+                <td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ metabolite.pub_chem_cid }}">Link</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    {% endif %}
+</main>
+
+{% endblock %}
