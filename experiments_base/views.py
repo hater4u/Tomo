@@ -11,6 +11,7 @@ import requests
 import os
 import base64
 import logging
+import json
 
 logging.config.dictConfig(LOGGING)
 experiments_base_logger = logging.getLogger('django')
@@ -148,6 +149,21 @@ def get_taxon_and_sub_taxon_experiments(taxon_id):
     return all_experiments
 
 
+def get_taxon_children(taxon_id):
+    children = Taxon.objects.filter(parent_id=taxon_id)
+
+    if children.count():
+        children_list = []
+        for ch in children:
+            children_list.append({'text': ch.taxon_name,
+                                  'href': '/taxons/' + str(ch.pk),
+                                  'nodes': get_taxon_children(ch.pk)})
+
+        return children_list
+    else:
+        return []
+
+
 def taxons_id(request, taxon_id):
     args = dict()
     args.update(csrf(request))
@@ -163,6 +179,7 @@ def taxons_id(request, taxon_id):
         args['index_taxons'] = True
         experiments_dict = []
         args['popular_taxons'] = Taxon.objects.filter(view_in_popular=True)
+        args['taxon_tree'] = json.dumps(get_taxon_children(None))
     else:
         args['children'] = Taxon.objects.filter(parent_id=taxon_id)
         experiments_dict = get_taxon_and_sub_taxon_experiments(taxon_id)

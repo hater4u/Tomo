@@ -47,57 +47,13 @@
     <script>
 		$(function () {
 
-			var tree = [
-                          {
-                            text: "Node 1",
-                            href: "node1",
-                            nodes: [
-                              {
-                                text: "Sub Node 1",
-                                href: "subnode1",
-                                nodes: [
-                                  {
-                                    id:    "sub-node-1",
-                                    text:  "Sub Child Node 1",
-                                    class: "nav-level-3",
-                                    href:  "https://google.com",
-                                    nodes: [
-                                        {
-                                            text:  "Sub sub Child Node 1",
-                                        },
-                                        {
-                                            text: "Sub sub Child Node 2",
-                                        }]
-                                  },
-                                  {
-                                    text: "Sub Child Node 2",
-                                  }
-                                ]
-                              },
-                              {
-                                text: "Sub Node 2",
-                                nodes: []
-                              }
-                            ]
-                          },
-                          {
-                            text: "Node 2",
-                          },
-                          {
-                            text: "Node 3",
-                          },
-                          {
-                            text: "Node 4",
-                          },
-                          {
-                            text: "Node 5",
-                          }
-                        ];
+            var tree = {{ taxon_tree|safe }};
 
 			$('#tree').treeview({
 				data: tree,
                 showBorder: false,
                 color: "#428bca",
+                enableLinks: true,
 			});
 		});
 	</script>
