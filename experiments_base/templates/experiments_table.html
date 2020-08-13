@@ -14,10 +14,6 @@
             <th>Name</th>
             <th>Way of life</th>
             <th>Habitat</th>
-            <th>Gender</th>
-            <th>Age</th>
-            <th>Weight(kg)</th>
-            <th>Length(cm)</th>
             <th>Environmental factors</th>
             <th>Diseases</th>
         </tr>
@@ -32,10 +28,6 @@
             <td><a href="/experiment/{{ el.pk }}/">{{ el.experiment_name }}</a></td>
             <td>{{ el.way_of_life|way_of_life}}</td>
             <td>{{ el.habitat|habitat }}</td>
-            <td>{{ el.gender|gender }}</td>
-            <td>{{ el.month_age }}</td>
-            <td>{{ el.weight }}</td>
-            <td>{{ el.length }}</td>
             <td>
                 {% for elem in el.environmental_factors.all %}
                     {{ elem.factor_name }}<br>
