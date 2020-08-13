@@ -11,7 +11,6 @@ import requests
 import os
 import base64
 import logging
-import logging.config
 
 logging.config.dictConfig(LOGGING)
 experiments_base_logger = logging.getLogger('django')
@@ -119,116 +118,13 @@ def get_taxon_path(taxon_id):
         return []
 
 
-def get_taxon_children(taxon_id):
-    try:
-        return requests.get(API_URL + '/taxa/byParent', params={'parentId': taxon_id}).json()['value']
-    except Exception:
-        experiments_base_logger.error('children found error, maybe problems with API')
-        return []
-
-
-# def check_experiments_data(data_json):
-#     info_dict = dict()
-#     info_dict['error'] = []
-#     fields = {'experimentName': 'Experiment name is missing',
-#               'taxonSearchName': 'Taxon name is missing',
-#               'wayOfLife': 'Empty field value "Way of life"',
-#               'habitat': 'Empty field value "Habitat"',
-#               'gender': 'Empty field value "Gender"',
-#               'monthsAge': 'Empty field value "Age"',
-#               'weight': 'Empty field value "Weight"',
-#               'length': 'Empty field value "Length"',
-#               'withdrawDate': 'Empty field value "Withdraw date"',
-#               # 'withdrawPlace': 'Empty field value ""',
-#               'hoursPostMortem': 'Empty field value "Hours post mortem"',
-#               'temperature': 'Empty field value "Temperature"',
-#               }
-#     for key, value in fields.items():
-#         if data_json.get(key, False):
-#             if data_json[key] == '':
-#                 info_dict['error'].append(value)
-#         else:
-#             info_dict['error'].append('Missing field ' + key)
-#
+# def get_taxon_children(taxon_id):
 #     try:
-#         all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
-#         found = False
-#         for el in all_taxons:
-#             if el['name'] == data_json['taxonSearchName']:
-#                 data_json['taxonId'] = el['id']
-#                 found = True
-#                 break
-#         if not found:
-#             info_dict['error'] = ['Invalid taxon name']
-#
-#             return info_dict
-#     except Exception as e:
-#         info_dict['error'] = ['API access problem. Contact the server administrator.']
-#         experiments_base_logger.error('Problems with API')
-#         return info_dict
-#
-#     fields_lists = {
-#         'environmentalFactors': 'Empty value in fields "Environmental factors"',
-#         'diseases': 'Empty value in fields "Diseases"',
-#         'comments': 'Empty value in fields "Comments"',
-#         'filepaths': 'Empty value in fields "File paths"',
-#     }
-#
-#     for key, value in fields_lists.items():
-#         if data_json.get(key, False):
-#             for el in data_json[key]:
-#                 if el == '':
-#                     info_dict['error'].append(value)
-#
-#     if data_json.get('additionalProperties', False):
-#         for el in data_json['additionalProperties']:
-#             for key, value in el.items():
-#                 # for key, value in data_json['additionalProperties'].items():
-#                 if key == '':
-#                     info_dict['error'].append('Empty key in add. properties')
-#                 if value == '':
-#                     info_dict['error'].append('Empty value ' + key + ' in add. properties')
-#
-#         add_props = dict()
-#         for el in data_json['additionalProperties']:
-#             for key, value in el.items():
-#                 add_props[key] = value
-#
-#         data_json['additionalProperties'] = add_props
-#
-#     metabolit_fields = ['pubChemCid', 'metaName', 'concentration', 'analysisMethod']
-#
-#     if data_json.get('metabolites', False):
-#         for el in data_json['metabolites']:
-#             empty_field = False
-#             for field in metabolit_fields:
-#                 if not el.get(field, False):
-#                     info_dict['error'].append('Missing field ' + field + ' in metabolite')
-#                     empty_field = True
-#             if not empty_field:
-#                 for field in metabolit_fields:
-#                     if el[field] == '':
-#                         info_dict['error'].append('Empty value ' + field + ' in metabolite')
-#
-#         for el in data_json['metabolites']:
-#             el['name'] = el['metaName']
-#             el.pop('metaName', None)
-#
-#     if data_json.get('csrfmiddlewaretoken', False):
-#         data_json.pop('csrfmiddlewaretoken', None)
-#
-#     if data_json.get('taxonSearchName', False):
-#         data_json.pop('taxonSearchName', None)
-#
-#     # File paths
-#     if data_json.get('withdrawDate', False):
-#         data_json['withdrawDate'] += " 00:00:00"
-#     if data_json.get('experimentName', False):
-#         data_json['name'] = data_json['experimentName']
-#         data_json.pop('experimentName', None)
-#
-#     return info_dict
-#
+#         return requests.get(API_URL + '/taxa/byParent', params={'parentId': taxon_id}).json()['value']
+#     except Exception:
+#         experiments_base_logger.error('children found error, maybe problems with API')
+#         return []
+
 
 def get_sub_taxons(taxon_id):
     all_sub_taxons = []
@@ -280,32 +176,15 @@ def taxons(request):
     return taxons_id(request, '')
 
 
-# def taxon_parent_search(request):
-#     if request.POST:
-#         parent_name = request.POST['parentName']
-#         try:
-#             # all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
-#             all_taxons = Taxon.objects.filter(parent_id__taxon__taxon_name__contains=parent_name)
-#             taxons = []
-#             for el in all_taxons:
-#                  taxons.append(el.taxon_name)
-#             return JsonResponse({'value': taxons})
-#         except Exception as e:
-#             experiments_base_logger.error('Taxon search error:' + str(e))
-#             return JsonResponse({'value': []})
-#     else:
-#         return redirect('taxons')
-
 def taxon_search(request):
     if request.POST:
         search_word = request.POST['taxonName']
         try:
-            # all_taxons = requests.get(API_URL + '/taxa/all').json()['value']
             founded_taxons = Taxon.objects.filter(taxon_name__contains=search_word)
-            taxons = []
+            taxon_names = []
             for el in founded_taxons:
-                 taxons.append(el.taxon_name)
-            return JsonResponse({'value': taxons})
+                taxon_names.append(el.taxon_name)
+            return JsonResponse({'value': taxon_names})
         except Exception as e:
             experiments_base_logger.error('Taxon search error:' + str(e))
             return JsonResponse({'value': []})
