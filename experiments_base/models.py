@@ -212,8 +212,6 @@ class Prob(models.Model):
     experiment_id = models.ForeignKey('experiments_base.Experiment', verbose_name='Эксперимент',
                                       on_delete=models.DO_NOTHING)
 
-    way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices, verbose_name='Образ жизни')
-    habitat = models.IntegerField(default=Habitat.OTHER, choices=Habitat.choices, verbose_name='Ареал обитания')
     gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Пол')
 
     month_age = models.IntegerField(default=0, validators=[MinValueValidator(0)], verbose_name='Возраст(месяцы)')
@@ -246,16 +244,6 @@ class Experiment(models.Model):
 
     way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices, verbose_name='Образ жизни')
     habitat = models.IntegerField(default=Habitat.OTHER, choices=Habitat.choices, verbose_name='Ареал обитания')
-    gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Пол')
-
-    month_age = models.IntegerField(default=0, validators=[MinValueValidator(0)], verbose_name='Возраст(месяцы)')
-    hours_post_mortem = models.IntegerField(default=0, validators=[MinValueValidator(0)],
-                                            verbose_name='Время после смерти(часы)')
-
-    weight = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Вес(кг)')
-    length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Рост/длина(см)')
-    temperature = models.FloatField(default=0, validators=[MinValueValidator(0)],
-                                    verbose_name='Температура(градусы Цельсия)')
 
     environmental_factors = models.ManyToManyField(EnvironmentalFactor, verbose_name='Факторы среды', blank=True)
     diseases = models.ManyToManyField(Disease, verbose_name='Заболевания', blank=True)
@@ -302,6 +290,5 @@ class InterfaceName(models.Model):
         verbose_name_plural = 'interface names'
 
     name = models.CharField(max_length=128, verbose_name='Имя')
-    # TODO increase length value
-    value = models.CharField(max_length=64, verbose_name='Значение')
+    value = models.CharField(max_length=128, verbose_name='Значение')
     search_name = models.CharField(max_length=64, verbose_name='Имя для поиска', unique=True)

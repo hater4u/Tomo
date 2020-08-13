@@ -35,8 +35,9 @@ class ProbMetaboliteAdminInline(nested_admin.NestedTabularInline):
 
 
 class ProbAdmin(nested_admin.NestedModelAdmin):
-    list_display = ('prob_name', 'way_of_life', 'habitat', 'gender',
-                    'month_age', 'hours_post_mortem', 'weight', 'length', 'temperature',
+    list_display = ('prob_name', 'gender',
+                    'month_age', 'hours_post_mortem',
+                    'weight', 'length', 'temperature',
                     'prob_file',)
     ordering = ('prob_name',)
     inlines = (ProbMetaboliteAdminInline, )
@@ -52,8 +53,7 @@ class ProbAdminInline(nested_admin.NestedTabularInline):
 
 
 class ExperimentAdmin(nested_admin.NestedModelAdmin):
-    list_display = ('experiment_name', 'taxon_id', 'way_of_life', 'habitat', 'gender',
-                    'month_age', 'hours_post_mortem', 'weight', 'length', 'temperature',
+    list_display = ('experiment_name', 'taxon_id', 'way_of_life', 'habitat',
                     'withdraw_place', 'withdraw_date', 'experiment_folder')
 
     ordering = ('experiment_name',)
@@ -65,8 +65,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
 
     fieldsets = (
         (None, {'fields': ('experiment_name', 'taxon_id')}),
-        (None, {'fields': ('way_of_life', 'habitat', 'gender')}),
-        (None, {'fields': ('month_age', 'hours_post_mortem', 'weight', 'length', 'temperature')}),
+        (None, {'fields': ('way_of_life', 'habitat',)}),
         (None, {'fields': ('withdraw_place', 'withdraw_date', 'comments')}),
         (None, {'fields': (('environmental_factors', 'diseases', 'withdraw_conditions'), 'additional_properties',)}),
                  )
