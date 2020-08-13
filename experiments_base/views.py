@@ -351,7 +351,7 @@ def experiments(request):
                 args['filled_fields'][key] = value
 
         if not request.POST['experimentName'] == '':
-            search_dict['experiment_name'] = request.POST['experimentName']
+            search_dict['experiment_name__contains'] = request.POST['experimentName']
 
         args['error'] = dict()
         if not request.POST['taxonSearchName'] == '':
@@ -394,42 +394,42 @@ def experiments(request):
             search_dict.pop('habitat__in')
 
         # Gender
-        search_dict['gender__in'] = []
+        search_dict['prob__gender__in'] = []
         if request.POST.get('maleGenderCheckbox', False):
-            search_dict['gender__in'].append(0)
+            search_dict['prob__gender__in'].append(0)
 
         if request.POST.get('femaleGenderCheckbox', False):
-            search_dict['gender__in'].append(1)
+            search_dict['prob__gender__in'].append(1)
 
         if request.POST.get('otherGenderCheckbox', False):
-            search_dict['gender__in'].append(2)
+            search_dict['prob__gender__in'].append(2)
 
         # TODO remove kostyls
-        if not search_dict['gender__in']:
-            search_dict.pop('gender__in')
+        if not search_dict['prob__gender__in']:
+            search_dict.pop('prob__gender__in')
 
         # Age
         if not request.POST['ageFrom'] == '':
             # search_dict['month_age__gte'] = 0
             # else:
-            search_dict['month_age__gte'] = request.POST['ageFrom']
+            search_dict['prob__month_age__gte'] = request.POST['ageFrom']
 
         if not request.POST['ageTo'] == '':
-            search_dict['month_age__lte'] = request.POST['ageTo']
+            search_dict['prob__month_age__lte'] = request.POST['ageTo']
 
         # Weight
         if not request.POST['weightFrom'] == '':
-            search_dict['weight__gte'] = request.POST['weightFrom']
+            search_dict['prob__weight__gte'] = request.POST['weightFrom']
 
         if not request.POST['weightTo'] == '':
-            search_dict['weight__lte'] = request.POST['weightTo']
+            search_dict['prob__weight__lte'] = request.POST['weightTo']
 
         # Length
         if not request.POST['lengthFrom'] == '':
-            search_dict['length__gte'] = request.POST['lengthFrom']
+            search_dict['prob__length__gte'] = request.POST['lengthFrom']
 
         if not request.POST['lengthTo'] == '':
-            search_dict['length__lte'] = request.POST['lengthTo']
+            search_dict['prob__length__lte'] = request.POST['lengthTo']
 
         # Environmental factors
         if not request.POST['environmentalFactors'] == '':
@@ -456,17 +456,17 @@ def experiments(request):
 
         # Seconds post mortem
         if not request.POST['hoursPostMortemFrom'] == '':
-            search_dict['hours_post_mortem__gte'] = request.POST['secondsPostMortemFrom']
+            search_dict['prob__hours_post_mortem__gte'] = request.POST['secondsPostMortemFrom']
 
         if not request.POST['hoursPostMortemTo'] == '':
-            search_dict['hours_post_mortem__lte'] = request.POST['secondsPostMortemTo']
+            search_dict['prob__hours_post_mortem__lte'] = request.POST['secondsPostMortemTo']
 
         # Temperature
         if not request.POST['temperatureFrom'] == '':
-            search_dict['temperature__gte'] = request.POST['temperatureFrom']
+            search_dict['prob__temperature__gte'] = request.POST['temperatureFrom']
 
         if not request.POST['temperatureTo'] == '':
-            search_dict['temperature__lte'] = request.POST['temperatureTo']
+            search_dict['prob__temperature__lte'] = request.POST['temperatureTo']
 
         # Comments
         if not request.POST['comments'] == '':
