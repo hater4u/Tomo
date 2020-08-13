@@ -100,112 +100,122 @@
         <br>
         <br>
 
-        <div class="form-row">
-            <div class="col">
-                <label for="ageFrom">Age from</label>
-                <input type="number" class="form-control" min="0" placeholder="0" id="ageFrom" name="ageFrom" aria-describedby="ageFromHelp" value="{{ filled_fields.ageFrom }}">
-                <small id="ageFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_age }}</small>
-            </div>
-            <div class="col">
-                <label for="ageTo">to</label>
-                <input type="number" class="form-control" min="0" placeholder="100" id="ageTo" name="ageTo" value="{{ filled_fields.ageTo }}">
+
+        <div id="accordion" role="tablist" aria-multiselectable="true">
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="headingOne">
+                    <h6 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Show additional fields</a>
+                    </h6>
+                </div>
+                <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                    <div class="form-row">
+                        <div class="col">
+                            <label for="ageFrom">Age from</label>
+                            <input type="number" class="form-control" min="0" placeholder="0" id="ageFrom" name="ageFrom" aria-describedby="ageFromHelp" value="{{ filled_fields.ageFrom }}">
+                            <small id="ageFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_age }}</small>
+                        </div>
+                        <div class="col">
+                            <label for="ageTo">to</label>
+                            <input type="number" class="form-control" min="0" placeholder="100" id="ageTo" name="ageTo" value="{{ filled_fields.ageTo }}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col">
+                            <label for="weightFrom">Weight from</label>
+                            <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="weightFrom" name="weightFrom" aria-describedby="weightFromHelp" value="{{ filled_fields.weightFrom }}">
+                            <small id="weightFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_weight }}</small>
+                        </div>
+                        <div class="col">
+                            <label for="weightTo">to</label>
+                            <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="weightTo" name="weightTo" value="{{ filled_fields.weightTo }}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col">
+                            <label for="lengthFrom">Length from</label>
+                            <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="lengthFrom" name="lengthFrom" aria-describedby="lengthFromHelp" value="{{ filled_fields.lengthFrom }}">
+                            <small id="lengthFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_length }}</small>
+                        </div>
+                        <div class="col">
+                            <label for="lengthTo">to</label>
+                            <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="lengthTo" name="lengthTo" value="{{ filled_fields.lengthTo }}">
+                        </div>
+                    </div>
+
+
+                    <div class="form-row">
+                        <div class="col">
+                            <label for="environmentalFactors">Environmental factors</label>
+                            <input type="text" class="form-control" id="environmentalFactors" name="environmentalFactors" aria-describedby="environmentalFactorsHelp" value="{{ filled_fields.environmentalFactors }}">
+                            <small id="environmentalFactorsHelp" class="form-text text-muted">{{ interface_experiments_page_hint_environmental_factors }}</small>
+                        </div>
+                        <div class="col">
+                            <label for="diseases">Diseases</label>
+                            <input type="text" class="form-control" id="diseases" name="diseases" aria-describedby="diseasesHelp" value="{{ filled_fields.diseases }}">
+                            <small id="diseasesHelp" class="form-text text-muted">{{ interface_experiments_page_hint_diseases }}</small>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="withdrawPlace">Withdraw place</label>
+                        <input type="text" class="form-control" id="withdrawPlace" name="withdrawPlace" aria-describedby="withdrawPlaceHelp" value="{{ filled_fields.withdrawPlace }}">
+                        <small id="withdrawPlaceHelp" class="form-text text-muted">{{ interface_experiments_page_hint_withdraw_place }}</small>
+                    </div>
+
+
+                    <div class="form-row">
+                        <div class="col">
+                            <label for="withdrawDateFrom">Withdraw date from</label>
+                            <input type="date" class="form-control" id="withdrawDateFrom" name="withdrawDateFrom" aria-describedby="withdrawDateFromHelp" value="{{ filled_fields.withdrawDateFrom }}">
+                            <small id="withdrawDateFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_withdraw_date }}</small>
+                        </div>
+                        <div class="col">
+                            <label for="withdrawDateTo">to</label>
+                            <input type="date" class="form-control" id="withdrawDateTo" name="withdrawDateTo" value="{{ filled_fields.withdrawDateTo }}">
+                        </div>
+                    </div>
+
+
+                    <div class="form-row">
+                        <div class="col">
+                            <label for="hoursPostMortemFrom">Hours post mortem from</label>
+                            <input type="number" class="form-control" min="0" placeholder="0" id="hoursPostMortemFrom" name="hoursPostMortemFrom" aria-describedby="hoursPostMortemFromHelp" value="{{ filled_fields.hoursPostMortemFrom }}">
+                            <small id="hoursPostMortemFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_hours_post_mortem }}</small>
+                        </div>
+                        <div class="col">
+                            <label for="hoursPostMortemTo">to</label>
+                            <input type="number" class="form-control" min="0" placeholder="100" id="hoursPostMortemTo" name="hoursPostMortemTo" value="{{ filled_fields.hoursPostMortemTo }}">
+                        </div>
+                    </div>
+
+
+                    <div class="form-row">
+                        <div class="col">
+                            <label for="temperatureFrom">Temperature from</label>
+                            <input type="number" step="0.01" class="form-control" min="-100" placeholder="0" id="temperatureFrom" name="temperatureFrom" aria-describedby="temperatureFromHelp" value="{{ filled_fields.temperatureFrom }}">
+                            <small id="temperatureFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_temperature }}</small>
+                        </div>
+                        <div class="col">
+                            <label for="temperatureTo">to</label>
+                            <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="temperatureTo" name="temperatureTo" value="{{ filled_fields.temperatureTo }}">
+                        </div>
+                    </div>
+
+
+                    <div class="form-row">
+                        <div class="col">
+                            <label for="comments">Comments</label>
+                            <input type="text" class="form-control" id="comments" name="comments" aria-describedby="commentsHelp" value="{{ filled_fields.comments }}">
+                            <small id="commentsHelp" class="form-text text-muted">{{ interface_experiments_page_hint_comments }}</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="form-row">
-            <div class="col">
-                <label for="weightFrom">Weight from</label>
-                <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="weightFrom" name="weightFrom" aria-describedby="weightFromHelp" value="{{ filled_fields.weightFrom }}">
-                <small id="weightFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_weight }}</small>
-            </div>
-            <div class="col">
-                <label for="weightTo">to</label>
-                <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="weightTo" name="weightTo" value="{{ filled_fields.weightTo }}">
-            </div>
-        </div>
-
-        <div class="form-row">
-            <div class="col">
-                <label for="lengthFrom">Length from</label>
-                <input type="number" step="0.01" class="form-control" min="0" placeholder="0" id="lengthFrom" name="lengthFrom" aria-describedby="lengthFromHelp" value="{{ filled_fields.lengthFrom }}">
-                <small id="lengthFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_length }}</small>
-            </div>
-            <div class="col">
-                <label for="lengthTo">to</label>
-                <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="lengthTo" name="lengthTo" value="{{ filled_fields.lengthTo }}">
-            </div>
-        </div>
-
-
-
-        <div class="form-row">
-            <div class="col">
-                <label for="environmentalFactors">Environmental factors</label>
-                <input type="text" class="form-control" id="environmentalFactors" name="environmentalFactors" aria-describedby="environmentalFactorsHelp" value="{{ filled_fields.environmentalFactors }}">
-                <small id="environmentalFactorsHelp" class="form-text text-muted">{{ interface_experiments_page_hint_environmental_factors }}</small>
-            </div>
-            <div class="col">
-                <label for="diseases">Diseases</label>
-                <input type="text" class="form-control" id="diseases" name="diseases" aria-describedby="diseasesHelp" value="{{ filled_fields.diseases }}">
-                <small id="diseasesHelp" class="form-text text-muted">{{ interface_experiments_page_hint_diseases }}</small>
-            </div>
-        </div>
-
-
-        <div class="form-group">
-            <label for="withdrawPlace">Withdraw place</label>
-            <input type="text" class="form-control" id="withdrawPlace" name="withdrawPlace" aria-describedby="withdrawPlaceHelp" value="{{ filled_fields.withdrawPlace }}">
-            <small id="withdrawPlaceHelp" class="form-text text-muted">{{ interface_experiments_page_hint_withdraw_place }}</small>
-        </div>
-
-
-        <div class="form-row">
-            <div class="col">
-                <label for="withdrawDateFrom">Withdraw date from</label>
-                <input type="date" class="form-control" id="withdrawDateFrom" name="withdrawDateFrom" aria-describedby="withdrawDateFromHelp" value="{{ filled_fields.withdrawDateFrom }}">
-                <small id="withdrawDateFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_withdraw_date }}</small>
-            </div>
-            <div class="col">
-                <label for="withdrawDateTo">to</label>
-                <input type="date" class="form-control" id="withdrawDateTo" name="withdrawDateTo" value="{{ filled_fields.withdrawDateTo }}">
-            </div>
-        </div>
-
-
-        <div class="form-row">
-            <div class="col">
-                <label for="hoursPostMortemFrom">Hours post mortem from</label>
-                <input type="number" class="form-control" min="0" placeholder="0" id="hoursPostMortemFrom" name="hoursPostMortemFrom" aria-describedby="hoursPostMortemFromHelp" value="{{ filled_fields.hoursPostMortemFrom }}">
-                <small id="hoursPostMortemFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_hours_post_mortem }}</small>
-            </div>
-            <div class="col">
-                <label for="hoursPostMortemTo">to</label>
-                <input type="number" class="form-control" min="0" placeholder="100" id="hoursPostMortemTo" name="hoursPostMortemTo" value="{{ filled_fields.hoursPostMortemTo }}">
-            </div>
-        </div>
-
-
-        <div class="form-row">
-            <div class="col">
-                <label for="temperatureFrom">Temperature from</label>
-                <input type="number" step="0.01" class="form-control" min="-100" placeholder="0" id="temperatureFrom" name="temperatureFrom" aria-describedby="temperatureFromHelp" value="{{ filled_fields.temperatureFrom }}">
-                <small id="temperatureFromHelp" class="form-text text-muted">{{ interface_experiments_page_hint_temperature }}</small>
-            </div>
-            <div class="col">
-                <label for="temperatureTo">to</label>
-                <input type="number" step="0.01" class="form-control" min="0" placeholder="100,01" id="temperatureTo" name="temperatureTo" value="{{ filled_fields.temperatureTo }}">
-            </div>
-        </div>
-
-
-        <div class="form-row">
-            <div class="col">
-                <label for="comments">Comments</label>
-                <input type="text" class="form-control" id="comments" name="comments" aria-describedby="commentsHelp" value="{{ filled_fields.comments }}">
-                <small id="commentsHelp" class="form-text text-muted">{{ interface_experiments_page_hint_comments }}</small>
-            </div>
-        </div>
-        <br>
 
         <input type="submit" class="btn btn-primary m-2" value="Search">
     </form>

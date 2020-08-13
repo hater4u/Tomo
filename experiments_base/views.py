@@ -489,6 +489,8 @@ def find_by_metabolites(request):
     args = check_auth_user(request, args)
     args.update(csrf(request))
 
+    args['metabolites'] = Metabolite.objects.all().order_by('metabolite_name')
+
     if request.POST:
         metabolite_names = request.POST.get('metaboliteNames', False)
         if metabolite_names:
@@ -523,10 +525,7 @@ def find_by_metabolites(request):
                     args['error'] = 'Experiments with this conditions not found'
                 else:
                     args['experiments'] = exp_ids
-    else:
-        all_metabolites = list(Metabolite.objects.all())
-        # filter_metabolites_names = dict()
-        args['metabolites'] = all_metabolites
+
     return render(request, 'find_by_metabolites.html', args)
 
 
@@ -535,6 +534,8 @@ def metabolite(request, metabolite_id):
     args = check_auth_user(request, args)
     try:
         args['metabolite'] = Metabolite.objects.get(pk=metabolite_id)
+        names = MetaboliteName.objects.filter(metabolite_id=metabolite_id).order_by('metabolite_synonym')
+        args['synonyms'] = [x.metabolite_synonym for x in names]
     except ObjectDoesNotExist as e:
         args['error'] = 'Metabolite not found'
         experiments_base_logger.error('Metabolite error(ObjectDoesNotExist):' + str(e))

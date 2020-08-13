@@ -28,12 +28,6 @@
 {#            </select>#}
 {#        </div>#}
 
-         <div>
-             {% for metabolite in metabolites %}
-             <a href="/metabolite/{{ metabolite.pk }}">{{ metabolite.metabolite_name }}</a>
-             <br>
-             {% endfor %}
-         </div>
         <input type="submit" class="btn btn-primary m-2" value="Search">
     </form>
 
@@ -56,5 +50,21 @@
         {% endif %}
 
     {% endif %}
+
+    <div id="accordion" role="tablist" aria-multiselectable="true">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="headingOne">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Show all metabolites</a>
+                </h4>
+            </div>
+            <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                {% for metabolite in metabolites %}
+                    <h6><a href="/metabolite/{{ metabolite.pk }}">{{ forloop.counter }}. {{ metabolite.metabolite_name }}</a></h6>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
     </main>
 {% endblock %}
