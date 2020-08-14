@@ -20,15 +20,15 @@
 
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item {% block taxon_active %}{% endblock %}">
-                    <a class="nav-link" href="/taxons/">{{ interface_taxons_name }}</a>
+                    <a class="nav-link" href="{% url 'taxons' %}">{{ interface_taxons_name }}</a>
                 </li>
 
                 <li class="nav-item {% block experiment_active %}{% endblock %}">
-                    <a class="nav-link" href="/experiments/">{{ interface_experiments_name }}</a>
+                    <a class="nav-link" href="{% url 'experiments' %}">{{ interface_experiments_name }}</a>
                 </li>
 
                 <li class="nav-item {% block experiment_meta_active %}{% endblock %}">
-                    <a class="nav-link" href="/find/metabolites/">{{ interface_find_by_metabolites_name}}</a>
+                    <a class="nav-link" href="{% url 'find_by_metabolites' %}">{{ interface_find_by_metabolites_name}}</a>
                 </li>
 
             </ul>

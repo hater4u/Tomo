@@ -20,7 +20,7 @@ experiments_base_logger = logging.getLogger('django')
 
 # TODO: write normal index
 def index(request):
-    return redirect('taxons/')
+    return redirect('taxons')
 
 
 def login(request):
@@ -114,8 +114,11 @@ def get_taxon_path(taxon_id):
             hierarchy.append({'id': parent_taxon.pk, 'name': parent_taxon.taxon_name})
             parent_taxon = parent_taxon.parent_id
         return hierarchy
-    except Exception:
+    except ObjectDoesNotExist:
         experiments_base_logger.warning('hierarchy found error, maybe it is root')
+        return []
+    except Exception:
+        experiments_base_logger.error('get_taxon_path unknown error')
         return []
 
 
@@ -139,7 +142,11 @@ def get_sub_taxons(taxon_id):
 
 
 def get_taxon_and_sub_taxon_experiments(taxon_id):
-    all_sub_taxons = [Taxon.objects.get(pk=taxon_id)]
+    try:
+        all_sub_taxons = [Taxon.objects.get(pk=taxon_id)]
+    except ObjectDoesNotExist:
+        experiments_base_logger.error('get_taxon_and_sub_taxon_experiments error(ObjectDoesNotExist)')
+        return []
     all_sub_taxons += get_sub_taxons(taxon_id)
 
     all_experiments = []

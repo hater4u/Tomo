@@ -8,7 +8,7 @@
     <br>
     <h3>{{ interface_find_metabolites_page_title }}</h3>
 
-    <form action="/find/metabolites/#table" method="post">
+    <form action="{% url 'find_by_metabolites' %}#table" method="post">
         {% csrf_token %}
 
         <div class="form-row">
@@ -60,7 +60,7 @@
             </div>
             <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                 {% for metabolite in metabolites %}
-                    <h6><a href="/metabolite/{{ metabolite.pk }}">{{ forloop.counter }}. {{ metabolite.metabolite_name }}</a></h6>
+                    <h6><a href="{% url 'metabolite' metabolite.pk %}">{{ forloop.counter }}. {{ metabolite.metabolite_name }}</a></h6>
                 {% endfor %}
             </div>
         </div>

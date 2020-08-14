@@ -3,6 +3,7 @@
 {% load exp_filters%}
 
 <div class="table-experiments">
+    {# TODO do normal url when dowload will be work  #}
     <form action="/experiment/download/" method="post" class="experiments-id-form">
         {% csrf_token %}
         <input type="hidden" value="" class="experiments-id-input" name="experiments">
@@ -25,7 +26,7 @@
                 {{ forloop.counter }}
                 <input class="exp-check" type="hidden" data-exp-id="{{ el.pk }}" data-exp-quantity="{{ el.fileInfos|length }}">
             </th>
-            <td><a href="/experiment/{{ el.pk }}/">{{ el.experiment_name }}</a></td>
+            <td><a href="{% url 'experiment' el.pk %}">{{ el.experiment_name }}</a></td>
             <td>{{ el.way_of_life|way_of_life}}</td>
             <td>{{ el.habitat|habitat }}</td>
             <td>
