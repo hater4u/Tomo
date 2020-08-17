@@ -2,9 +2,11 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 
-from tomo.settings import SHARED_FILES_DIR
+from tomo.settings import SHARED_FILES_DIR, API_URL, API_AUTH
 
 import os
+import requests
+import json
 
 
 def get_full_path(taxon):
@@ -229,8 +231,48 @@ class Prob(models.Model):
                self.experiment_id.experiment_folder + '/' + file_name
 
     prob_file = models.FileField(upload_to=get_upload_path, default='', max_length=1024)
-    
+    prob_torrent_file = models.FileField(default='', max_length=1024)
+
     # TODO loading data from previous prob when you adding new prob(copy all fields and ProbMetabolites)
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old_self = Prob.objects.get(pk=self.pk)
+            if old_self.prob_file == self.prob_file:
+                super(Prob, self).save(*args, **kwargs)
+                return
+            else:
+                try:
+                    req = requests.post(API_URL + '/torrent/stop',
+                                        json=json.dumps({'torrentPaths': [str(old_self.prob_torrent_file)]}),
+                                        auth=API_AUTH)
+                    # maybe need checking answer and deleting file
+
+                except Exception as e:
+                    print('Stopping torrent error: ' + str(e))
+
+        super(Prob, self).save(*args, **kwargs)
+        # creating torrent
+        try:
+            req = requests.post(API_URL + '/torrents/seed',
+                                json=json.dumps({'files': [str(self.prob_file)]}),
+                                auth=API_AUTH)
+            if req.status_code == 200:
+                data = req.json()
+                if not data['errors']:
+                    self.prob_torrent_file = data['value'][0]
+                else:
+                    self.prob_torrent_file = 'file_error'
+                    print('Creating torrent error: ' + data['errors'])
+            else:
+                self.prob_torrent_file = 'file_error'
+                print('Creating torrent error: ' + req.text)
+
+        except Exception as e:
+            self.prob_torrent_file = 'file_error'
+            print('Creating torrent error: ' + str(e))
+        finally:
+            super(Prob, self).save(*args, **kwargs)
 
 
 class Experiment(models.Model):

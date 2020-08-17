@@ -41,22 +41,22 @@
                 <th>Habitat</th>
                 <td>{{ experiment.habitat|habitat }}</td>
             </tr>
-            <tr>
-                <th>Gender</th>
-                <td>{{ experiment.gender|gender }}</td>
-            </tr>
-            <tr>
-                <th>Age, months</th>
-                <td>{{ experiment.month_age }}</td>
-            </tr>
-            <tr>
-                <th>Weight, kg</th>
-                <td>{{ experiment.weight }}</td>
-            </tr>
-            <tr>
-                <th>Height/Length(cm)</th>
-                <td>{{ experiment.length }}</td>
-            </tr>
+{#            <tr>#}
+{#                <th>Gender</th>#}
+{#                <td>{{ experiment.gender|gender }}</td>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <th>Age, months</th>#}
+{#                <td>{{ experiment.month_age }}</td>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <th>Weight, kg</th>#}
+{#                <td>{{ experiment.weight }}</td>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <th>Height/Length(cm)</th>#}
+{#                <td>{{ experiment.length }}</td>#}
+{#            </tr>#}
             <tr>
                 <th>Environmental factors</th>
                 <td>
@@ -89,14 +89,14 @@
                     {% endfor %}
                 </td>
             </tr>
-            <tr>
-                <th>Hours post mortem</th>
-                <td>{{ experiment.hours_post_mortem }}</td>
-            </tr>
-            <tr>
-                <th>Temperature,°C</th>
-                <td>{{ experiment.temperature }}</td>
-            </tr>
+{#            <tr>#}
+{#                <th>Hours post mortem</th>#}
+{#                <td>{{ experiment.hours_post_mortem }}</td>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <th>Temperature,°C</th>#}
+{#                <td>{{ experiment.temperature }}</td>#}
+{#            </tr>#}
             <tr>
                 <th>Comments</th>
                 <td>
@@ -143,19 +143,19 @@
 
                 <tbody>
 
-                    <tr>
-                        <th scope="row">Way of life</th>
-                        {% for prob in probs %}
-                            <td>{{ prob.way_of_life|way_of_life }}</td>
-                        {% endfor %}
-                    </tr>
-
-                    <tr>
-                        <th scope="row">Habitat</th>
-                        {% for prob in probs %}
-                            <td>{{ prob.habitat|habitat }}</td>
-                        {% endfor %}
-                    </tr>
+{#                    <tr>#}
+{#                        <th scope="row">Way of life</th>#}
+{#                        {% for prob in probs %}#}
+{#                            <td>{{ prob.way_of_life|way_of_life }}</td>#}
+{#                        {% endfor %}#}
+{#                    </tr>#}
+{##}
+{#                    <tr>#}
+{#                        <th scope="row">Habitat</th>#}
+{#                        {% for prob in probs %}#}
+{#                            <td>{{ prob.habitat|habitat }}</td>#}
+{#                        {% endfor %}#}
+{#                    </tr>#}
 
                     <tr>
                         <th scope="row">Gender</th>

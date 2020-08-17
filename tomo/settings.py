@@ -129,6 +129,7 @@ STATICFILES_DIRS = [
 ]
 
 API_URL = 'http://' + env.str('API_HOST') + ':8080/api'
+API_AUTH = ('docker_admin', '123qweasdzxc')
 
 SHARED_FILES_DIR = ROOT_DIR.path(env.str('SHARED_FILES_DIR'))
 STATIC_ROOT = ROOT_DIR.path(env.str('STATIC_FILES_DIR'))

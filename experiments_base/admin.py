@@ -40,6 +40,7 @@ class ProbAdmin(nested_admin.NestedModelAdmin):
                     'weight', 'length', 'temperature',
                     'prob_file',)
     ordering = ('prob_name',)
+    exclude = ('prob_torrent_file',)
     inlines = (ProbMetaboliteAdminInline, )
 
     def experiment_name(self, obj):
@@ -50,6 +51,7 @@ class ProbAdminInline(nested_admin.NestedTabularInline):
     model = Prob
     extra = 0
     inlines = (ProbMetaboliteAdminInline, )
+    exclude = ('prob_torrent_file',)
 
 
 class ExperimentAdmin(nested_admin.NestedModelAdmin):
