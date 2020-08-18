@@ -243,8 +243,9 @@ class Prob(models.Model):
                 return
             else:
                 try:
+                    torrent_paths = str(old_self.prob_torrent_file) #.replace('/var/metabolites/torrents')
                     req = requests.post(API_URL + '/torrent/stop',
-                                        json=json.dumps({'torrentPaths': [str(old_self.prob_torrent_file)]}),
+                                        json=json.dumps({'torrentPaths': [torrent_paths]}),
                                         auth=API_AUTH)
                     # maybe need checking answer and deleting file
 
@@ -254,13 +255,19 @@ class Prob(models.Model):
         super(Prob, self).save(*args, **kwargs)
         # creating torrent
         try:
+            print(str(self.prob_file))
+            file_path = str(self.prob_file).replace(str(SHARED_FILES_DIR) + '/', '')
+            print(file_path)
+            print(json.dumps({'files': [file_path]}))
+            headers = {'Content-Type': 'application/json'}
             req = requests.post(API_URL + '/torrents/seed',
-                                json=json.dumps({'files': [str(self.prob_file)]}),
-                                auth=API_AUTH)
+                                data=json.dumps({'files': [file_path]}),
+                                auth=API_AUTH,
+                                headers=headers)
             if req.status_code == 200:
                 data = req.json()
                 if not data['errors']:
-                    self.prob_torrent_file = data['value'][0]
+                    self.prob_torrent_file = data['value'][0].replace('/var/metabolites/torrents/', '')
                 else:
                     self.prob_torrent_file = 'file_error'
                     print('Creating torrent error: ' + data['errors'])

@@ -4,7 +4,7 @@ from django.template.context_processors import csrf
 from django.http import HttpResponse, JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 
-from tomo.settings import API_URL, SHARED_FILES_DIR, LOGGING
+from tomo.settings import API_URL, SHARED_FILES_DIR, TORRENT_DIR, LOGGING
 from .models import Taxon, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName, InterfaceName
 
 import requests
@@ -12,6 +12,10 @@ import os
 import base64
 import logging
 import json
+import zipfile
+import random
+import string
+import shutil
 
 logging.config.dictConfig(LOGGING)
 experiments_base_logger = logging.getLogger('django')
@@ -269,7 +273,7 @@ def experiment(request, experiment_id):
         args['probs'] = probs
 
         max_metabolites_num = 0
-        max_metabolites_prob = 0
+        max_metabolites_prob = None
         all_metabolites = []
         for prob in probs:
             pms = ProbMetabolite.objects.filter(prob_id=prob.pk)
@@ -280,24 +284,27 @@ def experiment(request, experiment_id):
 
             all_metabolites.append(pms)
 
-        meta_id_in_num = dict()
-        prob_metabolites = ProbMetabolite.objects.filter(prob_id=max_metabolites_prob.pk). \
-            order_by('metabolite_id__metabolite_name')
+        if max_metabolites_prob:
+            meta_id_in_num = dict()
+            prob_metabolites = ProbMetabolite.objects.filter(prob_id=max_metabolites_prob.pk). \
+                order_by('metabolite_id__metabolite_name')
 
-        for counter, m in enumerate(prob_metabolites):
-            meta_id_in_num[m.metabolite_id] = counter
+            for counter, m in enumerate(prob_metabolites):
+                meta_id_in_num[m.metabolite_id] = counter
 
-        dict_of_metabolites = {}
-        for counter, m in enumerate(prob_metabolites):
-            dict_of_metabolites[counter] = {'name': m.metabolite_id.metabolite_name,
-                                            'pub_chem_cid': m.metabolite_id.pub_chem_cid,
-                                            'concentrations': {x: '' for x in range(max_metabolites_num)}}
+            dict_of_metabolites = {}
+            for counter, m in enumerate(prob_metabolites):
+                dict_of_metabolites[counter] = {'name': m.metabolite_id.metabolite_name,
+                                                'pub_chem_cid': m.metabolite_id.pub_chem_cid,
+                                                'concentrations': {x: '' for x in range(max_metabolites_num)}}
 
-        for counter, pms in enumerate(all_metabolites):
-            for m in pms:
-                dict_of_metabolites[meta_id_in_num[m.metabolite_id]]['concentrations'][counter] = m.concentration
+            for counter, pms in enumerate(all_metabolites):
+                for m in pms:
+                    dict_of_metabolites[meta_id_in_num[m.metabolite_id]]['concentrations'][counter] = m.concentration
 
-        args['metabolites'] = dict_of_metabolites
+            args['metabolites'] = dict_of_metabolites
+        else:
+            args['metabolites'] = []
 
     except ObjectDoesNotExist as e:
         args['error'] = 'Experiment not found'
@@ -489,6 +496,106 @@ def experiments(request):
             args = {}
 
     return render(request, 'experiments.html', args)
+
+
+def zipdir(path, ziph):
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            ziph.write(os.path.join(root, file))
+
+
+def create_random_str(size):
+    return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(size))
+
+
+def archive_and_get_response(folder):
+    path_to_archive = folder + '.zip'
+
+    zipf = zipfile.ZipFile(path_to_archive, 'w', zipfile.ZIP_DEFLATED)
+    zipdir(folder, zipf)
+    zipf.close()
+
+    archive = open(path_to_archive, 'rb').read()
+    response = HttpResponse(archive)
+
+    response['status_code'] = 200
+    response['Content-Type'] = 'application/zip'
+    response['Content-Length'] = os.path.getsize(path_to_archive)
+    response['Content-Disposition'] = "attachment; filename={}".format(os.path.basename(path_to_archive))
+
+    os.remove(path_to_archive)
+    shutil.rmtree(folder)
+
+    return response
+
+
+def experiment_download(request):
+
+    if request.POST:
+        try:
+            data = json.loads(request.POST['experiments'])
+        except KeyError as e:
+            experiments_base_logger.warning('Probs downloading error:' + str(e))
+            return JsonResponse({'error': 'Invalid field'})
+
+        if data.get('probs', False):
+            prob_ids = [prob['id'] for prob in data['probs']]
+
+            torrents = []
+            try:
+                for pr in prob_ids:
+                    prob = Prob.objects.get(pk=pr)
+                    torrents.append({'name': prob.prob_name, 'path': TORRENT_DIR + str(prob.prob_torrent_file)})
+            except ObjectDoesNotExist:
+                return JsonResponse({'error': 'Invalid prob id'})
+
+            try:
+                folder = '/tmp/probs_' + create_random_str(16) + '/'
+                os.mkdir(folder)
+
+                for t in torrents:
+                    shutil.copy(t['path'], folder + t['name'] + '_' + os.path.basename(t['path']))
+
+                return archive_and_get_response(folder[:-1])
+
+            except Exception as e:
+                experiments_base_logger.error('Probs downloading error:' + str(e))
+                return JsonResponse({'error': 'Cant create archive'})
+        else:
+            if data.get('experiments', False):
+                experiment_ids = [exp['id'] for exp in data['experiments']]
+
+                try:
+                    folder = '/tmp/experiments_' + create_random_str(16) + '/'
+                    os.mkdir(folder)
+
+                    try:
+                        for exp_id in experiment_ids:
+                            exp = Experiment.objects.get(pk=exp_id)
+                            probs = Prob.objects.filter(experiment_id=exp_id)
+
+                            if probs.count() > 0:
+                                exp_folder = folder + exp.experiment_name + '_' + create_random_str(4) + '/'
+                                os.mkdir(exp_folder)
+
+                                for pr in probs:
+                                    tp = TORRENT_DIR + str(pr.prob_torrent_file)
+                                    shutil.copy(tp, exp_folder + pr.prob_name + '_' + os.path.basename(tp))
+
+                    except ObjectDoesNotExist:
+                        shutil.rmtree(folder)
+                        return JsonResponse({'error': 'Invalid experiment id'})
+
+                    return archive_and_get_response(folder[:-1])
+
+                except Exception as e:
+                    experiments_base_logger.error('Experiments downloading error:' + str(e))
+                    return JsonResponse({'error': 'Cant create archive'})
+            else:
+                return JsonResponse({'error': 'Invalid data'})
+
+    return render(request, '', {})
 
 
 def find_by_metabolites(request):

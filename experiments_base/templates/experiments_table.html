@@ -1,10 +1,10 @@
-<button class="btn btn-warning m-2 adding-button" onclick="addCheckboxAndButton(this)">Select</button>
+<button class="btn btn-warning m-2 adding-button" data-type="experiment" onclick="addCheckboxAndButton(this)">Select</button>
 
 {% load exp_filters%}
 
 <div class="table-experiments">
     {# TODO do normal url when dowload will be work  #}
-    <form action="/experiment/download/" method="post" class="experiments-id-form">
+    <form action="/experiment/download/" method="post" class="id-form">
         {% csrf_token %}
         <input type="hidden" value="" class="experiments-id-input" name="experiments">
     </form>
@@ -24,7 +24,7 @@
         <tr>
             <th scope="row">
                 {{ forloop.counter }}
-                <input class="exp-check" type="hidden" data-exp-id="{{ el.pk }}" data-exp-quantity="{{ el.fileInfos|length }}">
+                <input class="exp-check" type="hidden" data-id="{{ el.pk }}">
             </th>
             <td><a href="{% url 'experiment' el.pk %}">{{ el.experiment_name }}</a></td>
             <td>{{ el.way_of_life|way_of_life}}</td>

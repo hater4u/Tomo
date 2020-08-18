@@ -81,52 +81,6 @@ document.addEventListener('DOMContentLoaded', function ()  {
         }
     }
 
-    // let tree = [
-    //             {
-    //               text: "Node 1",
-    //               icon: "fa fa-folder",
-    //               nodes: [
-    //                 {
-    //                   text: "Sub Node 1",
-    //                   icon: "fa fa-folder",
-    //                   nodes: [
-    //                     {
-    //                       id:    "sub-node-1",
-    //                       text:  "Sub Child Node 1",
-    //                       icon:  "fa fa-folder",
-    //                       class: "nav-level-3",
-    //                       href:  "https://google.com"
-    //                     },
-    //                     {
-    //                       text: "Sub Child Node 2",
-    //                       icon: "fa fa-folder"
-    //                     }
-    //                   ]
-    //                 },
-    //                 {
-    //                   text: "Sub Node 2",
-    //                    icon: "fa fa-folder"
-    //                 }
-    //               ]
-    //             },
-    //             {
-    //               text: "Node 2",
-    //               icon: "fa fa-folder"
-    //             },
-    //             {
-    //               text: "Node 3",
-    //               icon: "fa fa-folder"
-    //             },
-    //             {
-    //               text: "Node 4",
-    //               icon: "fa fa-folder"
-    //             },
-    //             {
-    //               text: "Node 5",
-    //               icon: "fa fa-folder"
-    //             }];
-    //
-    // $('#tree').bstreeview({ data: tree });
 });
 
 function addSimpleField(className, memberName, inText)
@@ -481,25 +435,43 @@ function sendJson(e) {
     xhr.send(JSON.stringify(data));
 }
 
-function sendExperimentsJson()
+function sendExperimentsJson(element)
 {
     let data = []
+    let checkClass, dataType, idInput;
+    if(element.currentTarget.dataset.type === 'experiment')
+    {
+        checkClass = 'exp-check';
+        dataType = 'experiments';
+        idInput = 'experiments-id-input';
+    }
+    else
+    {
+        checkClass = 'prob-check';
+        dataType = 'probs';
+        idInput = 'probs-id-input';
+    }
 
-    let trs = document.getElementsByClassName('exp-check');
+
+    let trs = document.getElementsByClassName(checkClass);
     for(let item of trs) {
         if(item.checked)
         {
-            data.push({'id': item.dataset.expId, 'quantity': item.dataset.expQuantity});
+            data.push({'id': item.dataset.id});
         }
     }
 
     console.info(data);
 
-    let expInput = document.getElementsByClassName('experiments-id-input')[0];
-    expInput.value = JSON.stringify({'experiments': data});
-    let expForm = document.getElementsByClassName('experiments-id-form')[0];
-    expForm.submit();
+    let input = document.getElementsByClassName(idInput)[0];
+    let obj = {};
+    obj[dataType] = data;
+    input.value = JSON.stringify(obj);
+
+    let form = document.getElementsByClassName('id-form')[0];
+    form.submit();
 }
+
 
 function addCheckboxAndButton(element)
 {
@@ -511,14 +483,27 @@ function addCheckboxAndButton(element)
     newNode.classList.add('btn-success');
     newNode.classList.add('m-2');
     newNode.classList.add('download-button');
-    newNode.innerText = 'Download experiments';
     newNode.onclick = sendExperimentsJson;
+
+    let checkClass;
+    if(element.dataset.type === 'experiment')
+    {
+        newNode.innerText = 'Download experiments';
+        newNode.dataset.type = 'experiment'
+        checkClass = 'exp-check';
+    }
+    else
+    {
+        newNode.innerText = 'Download probs';
+        newNode.dataset.type = 'prob'
+        checkClass = 'prob-check';
+    }
+
 
     document.getElementsByClassName('adding-button')[0].after(newNode);
 
-    let trs = document.getElementsByClassName('exp-check');
+    let trs = document.getElementsByClassName(checkClass);
     for(let item of trs) {
         item.type = 'checkbox';
-
     }
 }

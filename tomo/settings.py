@@ -134,6 +134,7 @@ API_AUTH = ('docker_admin', '123qweasdzxc')
 SHARED_FILES_DIR = ROOT_DIR.path(env.str('SHARED_FILES_DIR'))
 STATIC_ROOT = ROOT_DIR.path(env.str('STATIC_FILES_DIR'))
 MEDIA_ROOT = ROOT_DIR.path(env.str('SHARED_FILES_DIR'))
+TORRENT_DIR = ROOT_DIR.path(env.str('TORRENT_DIR'))
 
 LOGGING = {
     'version': 1,
