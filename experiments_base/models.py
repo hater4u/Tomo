@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 
-from tomo.settings import SHARED_FILES_DIR, API_URL, API_AUTH
+from tomo.settings import SHARED_FILES_DIR, TORRENT_DIR, API_URL, API_AUTH
 
 import os
 import requests
@@ -64,6 +64,13 @@ class Taxon(models.Model):
 
             os.rename(full_path_old, full_path_new)
             super(Taxon, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        experiments = Experiment.objects.filter(taxon_id=self.pk)
+        for e in experiments:
+            e.delete()
+
+        super(Taxon, self).delete(*args, **kwargs)
 
 
 class WayOfLife(models.IntegerChoices):
@@ -153,7 +160,7 @@ class Metabolite(models.Model):
         verbose_name = 'metabolite'
         verbose_name_plural = 'metabolites'
 
-    metabolite_name = models.CharField(max_length=128, verbose_name='Основное имя метаболита')
+    metabolite_name = models.CharField(max_length=128, verbose_name='Основное имя метаболита', unique=True)
     pub_chem_cid = models.IntegerField(default=0, blank=True, verbose_name='PubChemCid')
 
     def __str__(self):
@@ -170,6 +177,13 @@ class Metabolite(models.Model):
             metabolite_name.metabolite_synonym = self.metabolite_name
             metabolite_name.save()
             super(Metabolite, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        metabolite_names = MetaboliteName.objects.filter(metabolite_id=self.pk)
+        for mn in metabolite_names:
+            mn.delete()
+
+        super(Metabolite, self).delete(*args, **kwargs)
 
 
 # for search one metabolite by different names
@@ -198,7 +212,7 @@ class ProbMetabolite(models.Model):
     metabolite_id = models.ForeignKey('experiments_base.Metabolite', verbose_name='Метаболит',
                                       on_delete=models.DO_NOTHING)
     concentration = models.FloatField(default=0, validators=[MinValueValidator(0)],
-                                      verbose_name='Концентрация(нмоль/г)')
+                                      verbose_name='Концентрация(нмоль/г)', null=True, blank=True)
 
     def __str__(self):
         return '{}({} нмоль/г)'.format(self.metabolite_id.metabolite_name, self.concentration)
@@ -230,8 +244,8 @@ class Prob(models.Model):
                get_full_path(self.experiment_id.taxon_id) + '/' + \
                self.experiment_id.experiment_folder + '/' + file_name
 
-    prob_file = models.FileField(upload_to=get_upload_path, default='', max_length=1024)
-    prob_torrent_file = models.FileField(default='', max_length=1024)
+    prob_file = models.FileField(upload_to=get_upload_path, default='', max_length=1024, blank=True)
+    prob_torrent_file = models.FileField(default='', max_length=1024, blank=True)
 
     # TODO loading data from previous prob when you adding new prob(copy all fields and ProbMetabolites)
 
@@ -243,7 +257,7 @@ class Prob(models.Model):
                 return
             else:
                 try:
-                    torrent_paths = str(old_self.prob_torrent_file) #.replace('/var/metabolites/torrents')
+                    torrent_paths = str(old_self.prob_torrent_file)
                     req = requests.post(API_URL + '/torrent/stop',
                                         json=json.dumps({'torrentPaths': [torrent_paths]}),
                                         auth=API_AUTH)
@@ -280,6 +294,29 @@ class Prob(models.Model):
             print('Creating torrent error: ' + str(e))
         finally:
             super(Prob, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        prob_metabolites = ProbMetabolite.objects.filter(prob_id=self.pk)
+        for pm in prob_metabolites:
+            pm.delete()
+
+        try:
+            torrent_paths = str(self.prob_torrent_file)
+            req = requests.post(API_URL + '/torrent/stop',
+                                json=json.dumps({'torrentPaths': [torrent_paths]}),
+                                auth=API_AUTH)
+
+            os.remove(TORRENT_DIR + '/' + str(self.prob_torrent_file))
+            os.remove(TORRENT_DIR + '/' + os.path.splitext(str(self.prob_torrent_file))[0] + '.path')
+        except Exception as e:
+            print('Prob torrent files stopping and deleting error: ' + str(e))
+
+        try:
+            os.remove(str(self.prob_file))
+        except Exception as e:
+            print('Prob files deleting error: ' + str(e))
+
+        super(Prob, self).delete(*args, **kwargs)
 
 
 class Experiment(models.Model):
@@ -330,6 +367,13 @@ class Experiment(models.Model):
 
             os.rename(full_path_old, full_path_new)
             super(Experiment, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        probs = Prob.objects.filter(experiment_id=self.pk)
+        for p in probs:
+            p.delete()
+
+        super(Experiment, self).delete(*args, **kwargs)
 
 
 class InterfaceName(models.Model):

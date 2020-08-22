@@ -16,6 +16,7 @@ import zipfile
 import random
 import string
 import shutil
+import collections
 
 logging.config.dictConfig(LOGGING)
 experiments_base_logger = logging.getLogger('django')
@@ -124,14 +125,6 @@ def get_taxon_path(taxon_id):
     except Exception:
         experiments_base_logger.error('get_taxon_path unknown error')
         return []
-
-
-# def get_taxon_children(taxon_id):
-#     try:
-#         return requests.get(API_URL + '/taxa/byParent', params={'parentId': taxon_id}).json()['value']
-#     except Exception:
-#         experiments_base_logger.error('children found error, maybe problems with API')
-#         return []
 
 
 def get_sub_taxons(taxon_id):
@@ -272,39 +265,24 @@ def experiment(request, experiment_id):
 
         args['probs'] = probs
 
-        max_metabolites_num = 0
-        max_metabolites_prob = None
-        all_metabolites = []
-        for prob in probs:
-            pms = ProbMetabolite.objects.filter(prob_id=prob.pk)
+        prob_metabolites = ProbMetabolite.objects.filter(prob_id__in=probs)
 
-            if pms.count() > max_metabolites_num:
-                max_metabolites_prob = prob
-                max_metabolites_num = pms.count()
+        all_metabolites = [pm.metabolite_id for pm in prob_metabolites]
+        all_metabolites = sorted(list(set(all_metabolites)), key=lambda x: x.metabolite_name)
+        am_length = len(all_metabolites)
 
-            all_metabolites.append(pms)
+        ordered_dict_of_metabolites = collections.OrderedDict()
+        for m in all_metabolites:
+            ordered_dict_of_metabolites[m.pk] = {'name': m.metabolite_name,
+                                                 'pub_chem_cid': m.pub_chem_cid,
+                                                 'concentrations': {x: '-' for x in range(am_length)}}
+        order_dict = {p_id: c for c, p_id in enumerate(sorted([x.pk for x in probs]))}
 
-        if max_metabolites_prob:
-            meta_id_in_num = dict()
-            prob_metabolites = ProbMetabolite.objects.filter(prob_id=max_metabolites_prob.pk). \
-                order_by('metabolite_id__metabolite_name')
+        for pm in prob_metabolites:
+            ordered_dict_of_metabolites[pm.metabolite_id.pk]['concentrations'][order_dict[pm.prob_id.pk]] = \
+                pm.concentration
 
-            for counter, m in enumerate(prob_metabolites):
-                meta_id_in_num[m.metabolite_id] = counter
-
-            dict_of_metabolites = {}
-            for counter, m in enumerate(prob_metabolites):
-                dict_of_metabolites[counter] = {'name': m.metabolite_id.metabolite_name,
-                                                'pub_chem_cid': m.metabolite_id.pub_chem_cid,
-                                                'concentrations': {x: '' for x in range(max_metabolites_num)}}
-
-            for counter, pms in enumerate(all_metabolites):
-                for m in pms:
-                    dict_of_metabolites[meta_id_in_num[m.metabolite_id]]['concentrations'][counter] = m.concentration
-
-            args['metabolites'] = dict_of_metabolites
-        else:
-            args['metabolites'] = []
+        args['metabolites'] = ordered_dict_of_metabolites
 
     except ObjectDoesNotExist as e:
         args['error'] = 'Experiment not found'
