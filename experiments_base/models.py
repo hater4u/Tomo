@@ -218,6 +218,43 @@ class ProbMetabolite(models.Model):
         return '{}({} нмоль/г)'.format(self.metabolite_id.metabolite_name, self.concentration)
 
 
+def stop_torrent(torrent_paths):
+    try:
+        req = requests.post(API_URL + '/torrent/stop',
+                            json=json.dumps({'torrentPaths': torrent_paths}),
+                            auth=API_AUTH)
+        # maybe need checking answer
+
+    except Exception as e:
+        print('Stopping torrent error: ' + str(e))
+
+
+def start_torrent(torrent_path):
+    try:
+        file_path = torrent_path.replace(str(SHARED_FILES_DIR) + '/', '')
+
+        headers = {'Content-Type': 'application/json'}
+        req = requests.post(API_URL + '/torrents/seed',
+                            data=json.dumps({'files': [file_path]}),
+                            auth=API_AUTH,
+                            headers=headers)
+
+        if req.status_code == 200:
+            data = req.json()
+            if not data['errors']:
+                return data['value'][0].replace('/var/metabolites/torrents/', '')
+            else:
+                print('Creating torrent error: ' + data['errors'])
+                return 'file_error'
+        else:
+            print('Creating torrent error: ' + req.text)
+            return 'file_error'
+
+    except Exception as e:
+        print('Creating torrent error: ' + str(e))
+        return 'file_error'
+
+
 class Prob(models.Model):
     class Meta:
         db_table = 'probs'
@@ -228,72 +265,66 @@ class Prob(models.Model):
     experiment_id = models.ForeignKey('experiments_base.Experiment', verbose_name='Эксперимент',
                                       on_delete=models.DO_NOTHING)
 
-    gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Пол')
+    gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Пол', blank=True)
 
-    month_age = models.IntegerField(default=0, validators=[MinValueValidator(0)], verbose_name='Возраст(месяцы)')
+    month_age = models.IntegerField(default=0, validators=[MinValueValidator(0)],
+                                    verbose_name='Возраст(месяцы)', blank=True)
     hours_post_mortem = models.IntegerField(default=0, validators=[MinValueValidator(0)],
-                                            verbose_name='Время после смерти(часы)')
+                                            verbose_name='Время после смерти(часы)', blank=True)
 
-    weight = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Вес(кг)')
-    length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Рост/длина(см)')
+    weight = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Вес(кг)', blank=True)
+    length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Рост/длина(см)', blank=True)
     temperature = models.FloatField(default=0, validators=[MinValueValidator(0)],
-                                    verbose_name='Температура(градусы Цельсия)')
+                                    verbose_name='Температура(градусы Цельсия)', blank=True)
+
+    comment = models.CharField(max_length=1024, verbose_name='Комментарий', blank=True)
 
     def get_upload_path(self, file_name):
         return str(SHARED_FILES_DIR) + '/' + \
                get_full_path(self.experiment_id.taxon_id) + '/' + \
                self.experiment_id.experiment_folder + '/' + file_name
 
-    prob_file = models.FileField(upload_to=get_upload_path, default='', max_length=1024, blank=True)
-    prob_torrent_file = models.FileField(default='', max_length=1024, blank=True)
+    prob_file_nmr = models.FileField(upload_to=get_upload_path, default='', max_length=1024, blank=True)
+    prob_torrent_file_nmr = models.FileField(default='', max_length=1024, blank=True)
 
-    # TODO loading data from previous prob when you adding new prob(copy all fields and ProbMetabolites)
+    prob_file_ms = models.FileField(upload_to=get_upload_path, default='', max_length=1024, blank=True)
+    prob_torrent_file_ms = models.FileField(default='', max_length=1024, blank=True)
 
     def save(self, *args, **kwargs):
+
+        nmr_is_update = True
+        ms_is_update = True
+
         if self.pk:
+
             old_self = Prob.objects.get(pk=self.pk)
-            if old_self.prob_file == self.prob_file:
+            nmr_is_update = old_self.prob_file_nmr != self.prob_file_nmr
+            ms_is_update = old_self.prob_file_ms != self.prob_file_ms
+
+            torrent_paths = []
+            if nmr_is_update:
+                torrent_paths.append(old_self.prob_file_nmr)
+
+            if ms_is_update:
+                torrent_paths.append(old_self.prob_file_ms)
+
+            if not torrent_paths:
                 super(Prob, self).save(*args, **kwargs)
                 return
             else:
-                try:
-                    torrent_paths = str(old_self.prob_torrent_file)
-                    req = requests.post(API_URL + '/torrent/stop',
-                                        json=json.dumps({'torrentPaths': [torrent_paths]}),
-                                        auth=API_AUTH)
-                    # maybe need checking answer and deleting file
-
-                except Exception as e:
-                    print('Stopping torrent error: ' + str(e))
+                stop_torrent(torrent_paths)
+                # maybe need deleting file
 
         super(Prob, self).save(*args, **kwargs)
         # creating torrent
-        try:
-            print(str(self.prob_file))
-            file_path = str(self.prob_file).replace(str(SHARED_FILES_DIR) + '/', '')
-            print(file_path)
-            print(json.dumps({'files': [file_path]}))
-            headers = {'Content-Type': 'application/json'}
-            req = requests.post(API_URL + '/torrents/seed',
-                                data=json.dumps({'files': [file_path]}),
-                                auth=API_AUTH,
-                                headers=headers)
-            if req.status_code == 200:
-                data = req.json()
-                if not data['errors']:
-                    self.prob_torrent_file = data['value'][0].replace('/var/metabolites/torrents/', '')
-                else:
-                    self.prob_torrent_file = 'file_error'
-                    print('Creating torrent error: ' + data['errors'])
-            else:
-                self.prob_torrent_file = 'file_error'
-                print('Creating torrent error: ' + req.text)
 
-        except Exception as e:
-            self.prob_torrent_file = 'file_error'
-            print('Creating torrent error: ' + str(e))
-        finally:
-            super(Prob, self).save(*args, **kwargs)
+        if nmr_is_update and self.prob_file_nmr:
+            self.prob_torrent_file_nmr = start_torrent(str(self.prob_file_nmr))
+
+        if ms_is_update and self.prob_file_ms:
+            self.prob_torrent_file_ms = start_torrent(str(self.prob_file_ms))
+
+        super(Prob, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         prob_metabolites = ProbMetabolite.objects.filter(prob_id=self.pk)
@@ -301,18 +332,18 @@ class Prob(models.Model):
             pm.delete()
 
         try:
-            torrent_paths = str(self.prob_torrent_file)
+            torrent_paths = str(self.prob_torrent_file_nmr)
             req = requests.post(API_URL + '/torrent/stop',
                                 json=json.dumps({'torrentPaths': [torrent_paths]}),
                                 auth=API_AUTH)
 
-            os.remove(TORRENT_DIR + '/' + str(self.prob_torrent_file))
-            os.remove(TORRENT_DIR + '/' + os.path.splitext(str(self.prob_torrent_file))[0] + '.path')
+            os.remove(TORRENT_DIR + '/' + str(self.prob_torrent_file_nmr))
+            os.remove(TORRENT_DIR + '/' + os.path.splitext(str(self.prob_torrent_file_nmr))[0] + '.path')
         except Exception as e:
             print('Prob torrent files stopping and deleting error: ' + str(e))
 
         try:
-            os.remove(str(self.prob_file))
+            os.remove(str(self.prob_file_nmr))
         except Exception as e:
             print('Prob files deleting error: ' + str(e))
 
@@ -328,8 +359,10 @@ class Experiment(models.Model):
     experiment_name = models.CharField(max_length=128, verbose_name='Имя эксперимента')
     taxon_id = models.ForeignKey('experiments_base.Taxon', verbose_name='Таксон', on_delete=models.DO_NOTHING)
 
-    way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices, verbose_name='Образ жизни')
-    habitat = models.IntegerField(default=Habitat.OTHER, choices=Habitat.choices, verbose_name='Ареал обитания')
+    way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices,
+                                      verbose_name='Образ жизни', blank=True)
+    habitat = models.IntegerField(default=Habitat.OTHER, choices=Habitat.choices,
+                                  verbose_name='Ареал обитания', blank=True)
 
     environmental_factors = models.ManyToManyField(EnvironmentalFactor, verbose_name='Факторы среды', blank=True)
     diseases = models.ManyToManyField(Disease, verbose_name='Заболевания', blank=True)
@@ -337,7 +370,7 @@ class Experiment(models.Model):
 
     withdraw_place = models.ForeignKey('experiments_base.WithdrawPlace', verbose_name='Место забора',
                                        on_delete=models.DO_NOTHING, blank=True, null=True)
-    withdraw_date = models.DateTimeField(default=timezone.now, verbose_name='Дата забора')
+    withdraw_date = models.DateTimeField(default=timezone.now, verbose_name='Дата забора', blank=True)
 
     # string ?
     comments = models.CharField(max_length=1024, verbose_name='Комментарии', blank=True)

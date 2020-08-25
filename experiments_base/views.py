@@ -161,8 +161,32 @@ def get_taxon_children(taxon_id):
         for ch in children:
             children_list.append({'text': ch.taxon_name,
                                   'href': '/taxons/' + str(ch.pk),
+                                  # 'color': "#ff0000",
                                   'nodes': get_taxon_children(ch.pk)})
 
+        return children_list
+    else:
+        return []
+
+
+def get_taxon_children1(taxon_id):
+    children = Taxon.objects.filter(parent_id=taxon_id)
+
+    if children.count():
+        children_list = []
+        for ch in children:
+            nodes = get_taxon_children1(ch.pk)
+            exps = Experiment.objects.filter(taxon_id=ch.pk)
+
+            if nodes or exps:
+                nodes += [{'text': exp.experiment_name,
+                           'href': '/experiment/' + str(exp.pk),
+                           'color': '#00ff00'} for exp in exps]
+
+                children_list.append({'text': ch.taxon_name,
+                                      'href': '/taxons/' + str(ch.pk),
+                                      'color': '#ff0000' if ch.is_tissue else '#428bca',
+                                      'nodes': nodes})
         return children_list
     else:
         return []
@@ -183,7 +207,7 @@ def taxons_id(request, taxon_id):
         args['index_taxons'] = True
         experiments_dict = []
         args['popular_taxons'] = Taxon.objects.filter(view_in_popular=True)
-        args['taxon_tree'] = json.dumps(get_taxon_children(None))
+        args['taxon_tree'] = json.dumps(get_taxon_children1(None))
     else:
         args['children'] = Taxon.objects.filter(parent_id=taxon_id)
         experiments_dict = get_taxon_and_sub_taxon_experiments(taxon_id)
@@ -477,8 +501,13 @@ def experiments(request):
 
 
 def zipdir(path, ziph):
+
+    tmp_folder = os.path.dirname(path)
+    os.chdir(tmp_folder)
+    archive_folder = os.path.basename(path)
+
     # ziph is zipfile handle
-    for root, dirs, files in os.walk(path):
+    for root, dirs, files in os.walk(archive_folder):
         for file in files:
             ziph.write(os.path.join(root, file))
 
@@ -524,7 +553,7 @@ def experiment_download(request):
             try:
                 for pr in prob_ids:
                     prob = Prob.objects.get(pk=pr)
-                    torrents.append({'name': prob.prob_name, 'path': TORRENT_DIR + str(prob.prob_torrent_file)})
+                    torrents.append({'name': prob.prob_name, 'path': TORRENT_DIR + str(prob.prob_torrent_file_nmr)})
             except ObjectDoesNotExist:
                 return JsonResponse({'error': 'Invalid prob id'})
 
@@ -558,7 +587,7 @@ def experiment_download(request):
                                 os.mkdir(exp_folder)
 
                                 for pr in probs:
-                                    tp = TORRENT_DIR + str(pr.prob_torrent_file)
+                                    tp = TORRENT_DIR + str(pr.prob_torrent_file_nmr)
                                     shutil.copy(tp, exp_folder + pr.prob_name + '_' + os.path.basename(tp))
 
                     except ObjectDoesNotExist:
