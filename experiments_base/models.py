@@ -2,11 +2,15 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 
-from tomo.settings import SHARED_FILES_DIR, TORRENT_DIR, API_URL, API_AUTH
+from tomo.settings import SHARED_FILES_DIR, TORRENT_DIR, API_URL, API_AUTH, LOGGING
 
 import os
 import requests
 import json
+import logging
+
+logging.config.dictConfig(LOGGING)
+experiments_base_logger = logging.getLogger('django')
 
 
 def get_full_path(taxon):
@@ -226,7 +230,7 @@ def stop_torrent(torrent_paths):
         # maybe need checking answer
 
     except Exception as e:
-        print('Stopping torrent error: ' + str(e))
+        experiments_base_logger.error('Stopping torrent error: ' + str(e))
 
 
 def start_torrent(torrent_path):
@@ -244,14 +248,14 @@ def start_torrent(torrent_path):
             if not data['errors']:
                 return data['value'][0].replace('/var/metabolites/torrents/', '')
             else:
-                print('Creating torrent error: ' + data['errors'])
+                experiments_base_logger.error('Creating torrent error: ' + data['errors'])
                 return 'file_error'
         else:
-            print('Creating torrent error: ' + req.text)
+            experiments_base_logger.error('Creating torrent error: ' + req.text)
             return 'file_error'
 
     except Exception as e:
-        print('Creating torrent error: ' + str(e))
+        experiments_base_logger.error('Creating torrent error: ' + str(e))
         return 'file_error'
 
 
@@ -340,12 +344,12 @@ class Prob(models.Model):
             os.remove(TORRENT_DIR + '/' + str(self.prob_torrent_file_nmr))
             os.remove(TORRENT_DIR + '/' + os.path.splitext(str(self.prob_torrent_file_nmr))[0] + '.path')
         except Exception as e:
-            print('Prob torrent files stopping and deleting error: ' + str(e))
+            experiments_base_logger.error('Prob torrent files stopping and deleting error: ' + str(e))
 
         try:
             os.remove(str(self.prob_file_nmr))
         except Exception as e:
-            print('Prob files deleting error: ' + str(e))
+            experiments_base_logger.error('Prob files deleting error: ' + str(e))
 
         super(Prob, self).delete(*args, **kwargs)
 

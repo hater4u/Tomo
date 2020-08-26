@@ -507,3 +507,11 @@ function addCheckboxAndButton(element)
         item.type = 'checkbox';
     }
 }
+
+function taxonSearch(params, data) {
+
+}
+
+$(document).ready(function () {
+    $('.js-taxon-search').select2();
+});

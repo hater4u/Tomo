@@ -21,14 +21,22 @@
     <form action="{% url 'experiments' %}#table" method="post">
         {% csrf_token %}
         <div class="form-group">
-            <label for="experimentName">Experiment name</label>
+            <label for="experimentName">{{ interface_experiment_name }}</label>
             <input type="text" class="form-control" id="experimentName" name="experimentName" aria-describedby="experimentNameHelp" value="{{ filled_fields.experimentName }}">
             <small id="experimentNameHelp" class="form-text text-muted">{{ interface_experiments_page_hint_experiment_name }}</small>
         </div>
 
         <div class="form-group">
-            <label for="taxonSearchName">Taxon name</label>
-            <input type="text" class="form-control" id="taxonSearchName" name="taxonSearchName" aria-describedby="taxonSearchNameHelp" value="{{ filled_fields.taxonSearchName }}">
+            <label for="taxonSearchName">{{ interface_taxon_name }}</label>
+            <input type="select" class="select2 form-control" id="taxonSearchName" name="taxonSearchName" aria-describedby="taxonSearchNameHelp" value="{{ filled_fields.taxonSearchName }}">
+            <select class="js-taxon-search form-control" id="taxonSearchName">
+                <option>Taxon 1</option>
+                <option>Taxon 2</option>
+                <option>Taxon 3</option>
+            </select>
+{#            <span class="select2 select2-container select2-container--default select2-container--below select2-container--open">#}
+{#                <span class="selection"></span>#}
+{#            </span>#}
             <small id="taxonSearchNameHelp" class="form-text text-muted">{{ interface_experiments_page_hint_taxon_name }}</small>
         </div>
 
@@ -148,12 +156,12 @@
 
                     <div class="form-row">
                         <div class="col">
-                            <label for="environmentalFactors">Environmental factors</label>
+                            <label for="environmentalFactors">{{ interface_environmental_factors }}</label>
                             <input type="text" class="form-control" id="environmentalFactors" name="environmentalFactors" aria-describedby="environmentalFactorsHelp" value="{{ filled_fields.environmentalFactors }}">
                             <small id="environmentalFactorsHelp" class="form-text text-muted">{{ interface_experiments_page_hint_environmental_factors }}</small>
                         </div>
                         <div class="col">
-                            <label for="diseases">Diseases</label>
+                            <label for="diseases">{{ interface_diseases }}</label>
                             <input type="text" class="form-control" id="diseases" name="diseases" aria-describedby="diseasesHelp" value="{{ filled_fields.diseases }}">
                             <small id="diseasesHelp" class="form-text text-muted">{{ interface_experiments_page_hint_diseases }}</small>
                         </div>

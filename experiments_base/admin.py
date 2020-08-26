@@ -5,6 +5,12 @@ from .models import Taxon, Experiment, Prob, ProbMetabolite, Metabolite, Metabol
 from .models import EnvironmentalFactor, Disease, WithdrawCondition, WithdrawPlace, AdditionalProperty
 from .models import InterfaceName
 
+import logging
+from tomo.settings import LOGGING
+
+logging.config.dictConfig(LOGGING)
+experiments_base_logger = logging.getLogger('django')
+
 
 class TaxonAdmin(admin.ModelAdmin):
     list_display = ('taxon_name', 'taxon_parent_name', 'is_tissue', 'view_in_popular', 'taxon_folder')

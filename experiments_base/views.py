@@ -55,7 +55,6 @@ def logout(request):
 
 
 def check_auth_user(request, args):
-
     args['interface_taxons_name'] = InterfaceName.objects.get(search_name='taxons_name').value
     args['interface_experiments_name'] = InterfaceName.objects.get(search_name='experiments_name').value
     args['interface_find_by_metabolites_name'] = InterfaceName.objects.get(search_name='find_by_metabolites_name').value
@@ -96,6 +95,19 @@ def check_auth_user(request, args):
         search_name='metabolites_search_field').value
     args['interface_find_metabolites_page_hint'] = InterfaceName.objects.get(
         search_name='metabolites_search_hint').value
+
+    # All pages
+    args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
+    args['interface_environmental_factors'] = InterfaceName.objects.get(search_name='environmental_factors').value
+    args['interface_diseases'] = InterfaceName.objects.get(search_name='diseases').value
+
+    # Experiment and experiments
+    args['interface_taxon_name'] = InterfaceName.objects.get(search_name='taxon_name').value
+    # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
+    # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
+    # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
+    # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
+    # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
 
     if request.user.is_authenticated:
         args['nickname'] = request.user.get_username()
@@ -538,7 +550,6 @@ def archive_and_get_response(folder):
 
 
 def experiment_download(request):
-
     if request.POST:
         try:
             data = json.loads(request.POST['experiments'])
@@ -622,7 +633,7 @@ def find_by_metabolites(request):
             not_found_names = []
             for el in metabolite_names:
                 try:
-                    query = MetaboliteName.objects.get(metabolite_synonym=el)
+                    query = MetaboliteName.objects.get(metabolite_synonym__iexact=el)
                     found_names.add(query.metabolite_id)
                 except ObjectDoesNotExist:
                     not_found_names.append(el)

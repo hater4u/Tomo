@@ -30,8 +30,12 @@
             </thead>
             <tbody>
             <tr>
-                <th>Name</th>
+                <th>{{ interface_experiment_name }}</th>
                 <td>{{ experiment.experiment_name }}</td>
+            </tr>
+            <tr>
+                <th>{{ interface_taxon_name }}</th>
+                <td>{{ experiment.taxon_id.taxon_name }}</td>
             </tr>
             <tr>
                 <th>Way of life</th>
@@ -42,7 +46,7 @@
                 <td>{{ experiment.habitat|habitat }}</td>
             </tr>
             <tr>
-                <th>Environmental factors</th>
+                <th>{{ interface_environmental_factors }}</th>
                 <td>
                     {% for el in experiment.environmental_factors.all %}
                         {{ el.factor_name }}<br>
@@ -50,7 +54,7 @@
                 </td>
             </tr>
             <tr>
-                <th>Diseases</th>
+                <th>{{ interface_diseases }}</th>
                 <td>
                     {% for el in experiment.diseases.all %}
                         {{ el.disease_name }}<br>
