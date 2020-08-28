@@ -3,6 +3,7 @@ from django.contrib import auth
 from django.template.context_processors import csrf
 from django.http import HttpResponse, JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from tomo.settings import API_URL, SHARED_FILES_DIR, TORRENT_DIR, LOGGING
 from .models import Taxon, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName, InterfaceName
@@ -17,13 +18,13 @@ import random
 import string
 import shutil
 import collections
+import csv
 
 logging.config.dictConfig(LOGGING)
 experiments_base_logger = logging.getLogger('django')
 # experiments_base_logger_admin = logging.getLogger('django.request')
 
 
-# TODO: write normal index
 def index(request):
     return redirect('taxons')
 
@@ -134,8 +135,8 @@ def get_taxon_path(taxon_id):
     except ObjectDoesNotExist:
         experiments_base_logger.warning('hierarchy found error, maybe it is root')
         return []
-    except Exception:
-        experiments_base_logger.error('get_taxon_path unknown error')
+    except Exception as e:
+        experiments_base_logger.error('get_taxon_path unknown error: ' + str(e))
         return []
 
 
@@ -171,23 +172,7 @@ def get_taxon_children(taxon_id):
     if children.count():
         children_list = []
         for ch in children:
-            children_list.append({'text': ch.taxon_name,
-                                  'href': '/taxons/' + str(ch.pk),
-                                  # 'color': "#ff0000",
-                                  'nodes': get_taxon_children(ch.pk)})
-
-        return children_list
-    else:
-        return []
-
-
-def get_taxon_children1(taxon_id):
-    children = Taxon.objects.filter(parent_id=taxon_id)
-
-    if children.count():
-        children_list = []
-        for ch in children:
-            nodes = get_taxon_children1(ch.pk)
+            nodes = get_taxon_children(ch.pk)
             exps = Experiment.objects.filter(taxon_id=ch.pk)
 
             if nodes or exps:
@@ -219,7 +204,7 @@ def taxons_id(request, taxon_id):
         args['index_taxons'] = True
         experiments_dict = []
         args['popular_taxons'] = Taxon.objects.filter(view_in_popular=True)
-        args['taxon_tree'] = json.dumps(get_taxon_children1(None))
+        args['taxon_tree'] = json.dumps(get_taxon_children(None))
     else:
         args['children'] = Taxon.objects.filter(parent_id=taxon_id)
         experiments_dict = get_taxon_and_sub_taxon_experiments(taxon_id)
@@ -249,45 +234,25 @@ def taxon_search(request):
         return redirect('taxons')
 
 
-def search_file(request, experiment_id):
-    if request.user.is_authenticated:
-        if request.user.is_staff:
-            if request.method == 'POST':
+def get_ordered_dict_of_metabolites(probs):
+    prob_metabolites = ProbMetabolite.objects.filter(prob_id__in=probs)
 
-                try:
-                    path = request.POST.get('path', False)
-                except Exception as e:
-                    experiments_base_logger.error('Incorrect path: ' + str(e))
-                    return JsonResponse({'error': 'Incorrect path'})
+    all_metabolites = [pm.metabolite_id for pm in prob_metabolites]
+    all_metabolites = sorted(list(set(all_metabolites)), key=lambda x: x.metabolite_name)
+    probs_length = probs.count()
 
-                if path.find('.') != -1:
-                    return JsonResponse({'error': 'Path contains forbidden characters'})
+    ordered_dict_of_metabolites = collections.OrderedDict()
+    for m in all_metabolites:
+        ordered_dict_of_metabolites[m.pk] = {'name': m.metabolite_name,
+                                             'pub_chem_cid': m.pub_chem_cid,
+                                             'concentrations': {x: '-' for x in range(probs_length)}}
+    order_dict = {p_id: c for c, p_id in enumerate(sorted([x.pk for x in probs]))}
 
-                try:
-                    path = os.path.abspath(os.getcwd() + "/" + SHARED_FILES_DIR + '/' + path)
-                    files_and_dirs = os.listdir(path)
-                    dirs = []
-                    files = []
-                    for el in files_and_dirs:
-                        if os.path.isfile(path + '/' + el):
-                            files.append(el)
-                            continue
-                        if os.path.isdir(path + '/' + el):
-                            dirs.append(el)
-                            continue
+    for pm in prob_metabolites:
+        ordered_dict_of_metabolites[pm.metabolite_id.pk]['concentrations'][order_dict[pm.prob_id.pk]] = \
+            pm.concentration
 
-                    return JsonResponse({'files': files, 'dirs': dirs})
-
-                except FileNotFoundError as e:
-                    experiments_base_logger.error('File not found: ' + str(e))
-                    return JsonResponse({'error': 'File is not found'})
-
-            else:
-                return redirect('index')
-        else:
-            return render(request, 'reg/403.html')
-    else:
-        return redirect('login')
+    return ordered_dict_of_metabolites
 
 
 def experiment(request, experiment_id):
@@ -300,25 +265,7 @@ def experiment(request, experiment_id):
             return render(request, 'experiment.html', args)
 
         args['probs'] = probs
-
-        prob_metabolites = ProbMetabolite.objects.filter(prob_id__in=probs)
-
-        all_metabolites = [pm.metabolite_id for pm in prob_metabolites]
-        all_metabolites = sorted(list(set(all_metabolites)), key=lambda x: x.metabolite_name)
-        am_length = len(all_metabolites)
-
-        ordered_dict_of_metabolites = collections.OrderedDict()
-        for m in all_metabolites:
-            ordered_dict_of_metabolites[m.pk] = {'name': m.metabolite_name,
-                                                 'pub_chem_cid': m.pub_chem_cid,
-                                                 'concentrations': {x: '-' for x in range(am_length)}}
-        order_dict = {p_id: c for c, p_id in enumerate(sorted([x.pk for x in probs]))}
-
-        for pm in prob_metabolites:
-            ordered_dict_of_metabolites[pm.metabolite_id.pk]['concentrations'][order_dict[pm.prob_id.pk]] = \
-                pm.concentration
-
-        args['metabolites'] = ordered_dict_of_metabolites
+        args['metabolites'] = get_ordered_dict_of_metabolites(probs)
 
     except ObjectDoesNotExist as e:
         args['error'] = 'Experiment not found'
@@ -512,16 +459,16 @@ def experiments(request):
     return render(request, 'experiments.html', args)
 
 
-def zipdir(path, ziph):
+def zip_dir(path, zip_handle):
 
     tmp_folder = os.path.dirname(path)
     os.chdir(tmp_folder)
     archive_folder = os.path.basename(path)
 
-    # ziph is zipfile handle
+    # zip_handle is zipfile handle
     for root, dirs, files in os.walk(archive_folder):
         for file in files:
-            ziph.write(os.path.join(root, file))
+            zip_handle.write(os.path.join(root, file))
 
 
 def create_random_str(size):
@@ -531,9 +478,9 @@ def create_random_str(size):
 def archive_and_get_response(folder):
     path_to_archive = folder + '.zip'
 
-    zipf = zipfile.ZipFile(path_to_archive, 'w', zipfile.ZIP_DEFLATED)
-    zipdir(folder, zipf)
-    zipf.close()
+    zip_h = zipfile.ZipFile(path_to_archive, 'w', zipfile.ZIP_DEFLATED)
+    zip_dir(folder, zip_h)
+    zip_h.close()
 
     archive = open(path_to_archive, 'rb').read()
     response = HttpResponse(archive)
@@ -549,6 +496,68 @@ def archive_and_get_response(folder):
     return response
 
 
+def create_csv_experiment_file(exp_id, folder):
+
+    try:
+        exp = Experiment.objects.get(pk=exp_id)
+    except ObjectDoesNotExist:
+        experiments_base_logger.warning('Exporting csv error: invalid id')
+        return ''
+
+    ways_o_life = ['diurnal', 'nocturnal', 'twilight', 'other']
+    habitats = ['wild', 'laboratory', 'farm', 'other']
+    genders = ['male', 'female', 'other']
+
+    data = []
+    exp_header = ['Имя эксперимента', 'Имя таксона', 'Way of life(diurnal, nocturnal,\ntwilight, other)',
+                  'Habitat(wild, laboratory,\nfarm, other)', 'Withdraw place',
+                  'Withdraw date\nФормат "21/11/06 16:30"', 'Comments']
+    data.append(exp_header)
+
+    exp_data = [exp.experiment_name, exp.taxon_id.taxon_name, ways_o_life[exp.way_of_life], habitats[exp.habitat],
+                exp.withdraw_place,
+                timezone.localtime(exp.withdraw_date).strftime('%d/%m/%y %H:%M') if exp.withdraw_date else '',
+                exp.comments]
+    data.append(exp_data)
+    data.append([])
+
+    probs = Prob.objects.filter(experiment_id=exp.pk).order_by('pk')
+    prob_names = ['Имена проб']
+    prob_genders = ['Пол(male, female, other)']
+    prob_month_ages = ['Возраст(месяцы)']
+    prob_hours_post_mortem = ['Время после смерти(часы)']
+    prob_weights = ['Вес(кг)']
+    prob_lengths = ['Рост(см)']
+    prob_temperatures = ['Температура (°С)']
+    prob_comments = ['Комментарии']
+
+    for prob in probs:
+        prob_names.append(prob.prob_name)
+        prob_genders.append(genders[prob.gender])
+        prob_month_ages.append(prob.month_age)
+        prob_hours_post_mortem.append(prob.hours_post_mortem)
+        prob_weights.append(prob.weight)
+        prob_lengths.append(prob.length)
+        prob_temperatures.append(prob.temperature)
+        prob_comments.append(prob.comment)
+
+    data.extend([prob_names, prob_genders, prob_month_ages, prob_hours_post_mortem, prob_weights, prob_lengths,
+                 prob_temperatures, prob_comments, []])
+
+    data.append([' Имена метаболитов', *[prob.prob_name for prob in probs]])
+    ordered_dict_of_metabolites = get_ordered_dict_of_metabolites(probs)
+    for key, value in ordered_dict_of_metabolites.items():
+        data.append([value['name'], *[v if v is not None else 'undefined' for k, v in value['concentrations'].items()]])
+
+    path = folder + exp.experiment_name + '_' + create_random_str(4) + '.csv'
+    with open(path, "w", newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
+        for line in data:
+            writer.writerow(line)
+
+    return path
+
+
 def experiment_download(request):
     if request.POST:
         try:
@@ -558,15 +567,42 @@ def experiment_download(request):
             return JsonResponse({'error': 'Invalid field'})
 
         if data.get('probs', False):
-            prob_ids = [prob['id'] for prob in data['probs']]
+
+            try:
+                prob_ids_nmr = [prob['id'] for prob in data['probs']['NMR']]
+                prob_ids_ms = [prob['id'] for prob in data['probs']['MS']]
+                prob_ids_csv = [prob['id'] for prob in data['probs']['CSV']]
+            except KeyError as e:
+                experiments_base_logger.warning('Downloading experiment error: '
+                                                'Not found keys NMR, MS or CSV in json: ' + str(e))
+                return JsonResponse({'error': 'Not found keys NMR, MS or CSV in json'})
 
             torrents = []
             try:
-                for pr in prob_ids:
+                for pr in prob_ids_nmr:
                     prob = Prob.objects.get(pk=pr)
-                    torrents.append({'name': prob.prob_name, 'path': TORRENT_DIR + str(prob.prob_torrent_file_nmr)})
+                    if prob.prob_torrent_file_nmr and prob.prob_torrent_file_nmr != 'file_error':
+                        torrents.append({'name': prob.prob_name + '_nmr',
+                                         'path': TORRENT_DIR + str(prob.prob_torrent_file_nmr)})
             except ObjectDoesNotExist:
-                return JsonResponse({'error': 'Invalid prob id'})
+                return JsonResponse({'error': 'Invalid prob nmr id'})
+
+            try:
+                for pr in prob_ids_ms:
+                    prob = Prob.objects.get(pk=pr)
+                    if prob.prob_torrent_file_ms and prob.prob_torrent_file_ms != 'file_error':
+                        torrents.append({'name': prob.prob_name + '_ms',
+                                         'path': TORRENT_DIR + str(prob.prob_torrent_file_ms)})
+            except ObjectDoesNotExist:
+                return JsonResponse({'error': 'Invalid prob ms id'})
+
+            csv_folder = '/tmp/csv_' + create_random_str(16) + '/'
+            os.mkdir(csv_folder)
+            csv_files = []
+            for exp_id in prob_ids_csv:
+                csv_file = create_csv_experiment_file(exp_id, csv_folder)
+                if csv_file:
+                    csv_files.append(csv_file)
 
             try:
                 folder = '/tmp/probs_' + create_random_str(16) + '/'
@@ -575,31 +611,55 @@ def experiment_download(request):
                 for t in torrents:
                     shutil.copy(t['path'], folder + t['name'] + '_' + os.path.basename(t['path']))
 
+                for csv_file in csv_files:
+                    shutil.copy(csv_file, folder + os.path.basename(csv_file))
+
+                shutil.rmtree(csv_folder)
                 return archive_and_get_response(folder[:-1])
 
             except Exception as e:
+                shutil.rmtree(csv_folder)
                 experiments_base_logger.error('Probs downloading error:' + str(e))
                 return JsonResponse({'error': 'Cant create archive'})
         else:
             if data.get('experiments', False):
-                experiment_ids = [exp['id'] for exp in data['experiments']]
+                try:
+                    experiment_ids_nmr = [exp['id'] for exp in data['experiments']['NMR']]
+                    experiment_ids_ms = [exp['id'] for exp in data['experiments']['MS']]
+                    experiment_ids_csv = [exp['id'] for exp in data['experiments']['CSV']]
+                except KeyError as e:
+                    experiments_base_logger.warning('Downloading experiment error: '
+                                                    'Not found keys NMR, MS or CSV in json: ' + str(e))
+                    return JsonResponse({'error': 'Not found keys NMR, MS or CSV in json'})
 
                 try:
                     folder = '/tmp/experiments_' + create_random_str(16) + '/'
                     os.mkdir(folder)
 
                     try:
-                        for exp_id in experiment_ids:
+                        for exp_id in list(set(experiment_ids_nmr + experiment_ids_ms + experiment_ids_csv)):
                             exp = Experiment.objects.get(pk=exp_id)
                             probs = Prob.objects.filter(experiment_id=exp_id)
 
-                            if probs.count() > 0:
-                                exp_folder = folder + exp.experiment_name + '_' + create_random_str(4) + '/'
-                                os.mkdir(exp_folder)
+                            exp_folder = folder + exp.experiment_name + '_' + create_random_str(4) + '/'
+                            os.mkdir(exp_folder)
 
+                            if probs.count() > 0:
                                 for pr in probs:
-                                    tp = TORRENT_DIR + str(pr.prob_torrent_file_nmr)
-                                    shutil.copy(tp, exp_folder + pr.prob_name + '_' + os.path.basename(tp))
+                                    if exp_id in experiment_ids_nmr:
+                                        if pr.prob_torrent_file_nmr and pr.prob_torrent_file_nmr != 'file_error':
+                                            tp = TORRENT_DIR + str(pr.prob_torrent_file_nmr)
+                                            shutil.copy(tp, exp_folder + pr.prob_name + '_nmr_' + os.path.basename(tp))
+                                    if exp_id in experiment_ids_ms:
+                                        if pr.prob_torrent_file_ms and pr.prob_torrent_file_ms != 'file_error':
+                                            tp = TORRENT_DIR + str(pr.prob_torrent_file_ms)
+                                            shutil.copy(tp, exp_folder + pr.prob_name + '_ms_' + os.path.basename(tp))
+
+                            if exp_id in experiment_ids_csv:
+                                csv_file = create_csv_experiment_file(exp_id, exp_folder)
+                                if not csv_file:
+                                    experiments_base_logger.warning('Experiments downloading error: '
+                                                                    'csv file was not created')
 
                     except ObjectDoesNotExist:
                         shutil.rmtree(folder)

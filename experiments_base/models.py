@@ -374,7 +374,7 @@ class Experiment(models.Model):
 
     withdraw_place = models.ForeignKey('experiments_base.WithdrawPlace', verbose_name='Место забора',
                                        on_delete=models.DO_NOTHING, blank=True, null=True)
-    withdraw_date = models.DateTimeField(default=timezone.now, verbose_name='Дата забора', blank=True)
+    withdraw_date = models.DateTimeField(default=timezone.now, verbose_name='Дата забора', blank=True, null=True)
 
     # string ?
     comments = models.CharField(max_length=1024, verbose_name='Комментарии', blank=True)
