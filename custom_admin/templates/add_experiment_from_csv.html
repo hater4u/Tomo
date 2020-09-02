@@ -1,0 +1,143 @@
+{% extends 'admin/base_site.html' %}
+
+{% block title %} Добавление эксперимента из CSV{% endblock %}
+
+{% block content %}
+
+    <div class="fieldsets">
+        <fieldset class="module">
+            <h1>Добавить эксперимент из CSV файла</h1>
+            {% if error %}
+                <div class="errornote">{{ error }}</div>
+            {% endif %}
+            <p>Файл CSV</p>
+            <form action="{% url 'custom_admin:add_experiment_from_csv' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" name="csvFile" required>
+                <input type="submit" class="" value="Проверить таблицу">
+                {% if has_error is False %}<input type="submit" style="background: #417690" value="Загрузить таблицу" name="upload">{% endif %}
+            </form>
+        </fieldset>
+    </div>
+
+    {% if success %}
+        <ul class="messagelist">
+            <li class="success">{{ success }}</li>
+        </ul>
+    {% else %}
+    {% if exp %}
+        <div>
+            <table>
+                <tr>
+                    <th>Имя эксперимента</th>
+                    <th>Имя таксона</th>
+                    <th>Way of life(diurnal, nocturnal, twilight, other)</th>
+                    <th>Habitat(wild, laboratory, farm, other)</th>
+                    <th>Withdraw place</th>
+                    <th>Withdraw date Формат "21/11/06 16:30"</th>
+                    <th>Comments</th>
+                </tr>
+
+                <tr>
+                    <td>{% if exp.correct_name %}{{ exp.name }}{% else %}<ul class="errorlist">{{ exp.name_error }}({{ exp.name }})</ul>{% endif %}</td>
+                    <td>{% if exp.correct_taxon_name %}{{ exp.taxon_name }}{% else %}<ul class="errorlist">{{ exp.taxon_name_error|safe }}({{ exp.taxon_name }})</ul>{% endif %}</td>
+                    <td>{% if exp.correct_way_of_life %}{{ exp.way_of_life }}{% else %}<ul class="errorlist">{{ exp.way_of_life_error }}({{ exp.way_of_life }})</ul>{% endif %}</td>
+                    <td>{% if exp.correct_habitat %}{{ exp.habitat }}{% else %}<ul class="errorlist">{{ exp.habitat_error }}({{ exp.habitat }})</ul>{% endif %}</td>
+                    <td>{% if exp.correct_withdraw_place %}{{ exp.withdraw_place }}{% else %}<ul class="errorlist">{{ exp.withdraw_place_error|safe }}({{ exp.withdraw_place }})</ul>{% endif %}</td>
+                    <td>{% if exp.correct_withdraw_date %}{{ exp.withdraw_date }}{% else %}<ul class="errorlist">{{ exp.withdraw_date_error }}({{ exp.withdraw_date }})</ul>{% endif %}</td>
+                    <td>{{ exp.comments }}</td>
+                </tr>
+            </table>
+    {% endif %}
+
+            <br><br>
+
+    {% if probs %}
+            <table>
+                <tr>
+                    <th>Имена проб</th>
+                    {% for p in probs %}
+                        <td>{{ p.prob_name }}</td>
+                    {% endfor %}
+                </tr>
+
+                <tr>
+                    <th>Пол(male, female, other)</th>
+                    {% for p in probs %}
+                        <td>{% if p.correct_gender %}{{ p.gender }}{% else %}<ul class="errorlist">{{ p.gender_error }}({{ p.gender }})</ul>{% endif %}</td>
+                    {% endfor %}
+                </tr>
+
+                <tr>
+                    <th>Возраст(месяцы)</th>
+                    {% for p in probs %}
+                        <td>{% if p.correct_month_age %}{{ p.month_age }}{% else %}<ul class="errorlist">{{ p.month_age_error }}({{ p.month_age }})</ul>{% endif %}</td>
+                    {% endfor %}
+                </tr>
+
+                <tr>
+                    <th>Время после смерти(часы)</th>
+                    {% for p in probs %}
+                        <td>{% if p.correct_hours_post_mortem %}{{ p.hours_post_mortem }}{% else %}<ul class="errorlist">{{ p.hours_post_mortem_error }}({{ p.hours_post_mortem }})</ul>{% endif %}</td>
+                    {% endfor %}
+                </tr>
+
+                <tr>
+                    <th>Вес(кг)</th>
+                    {% for p in probs %}
+                        <td>{% if p.correct_weight %}{{ p.weight }}{% else %}<ul class="errorlist">{{ p.weight_error }}({{ p.weight }})</ul>{% endif %}</td>
+                    {% endfor %}
+                </tr>
+
+                <tr>
+                    <th>Рост(см)</th>
+                    {% for p in probs %}
+                        <td>{% if p.correct_length %}{{ p.length }}{% else %}<ul class="errorlist">{{ p.length_error }}({{ p.length }})</ul>{% endif %}</td>
+                    {% endfor %}
+                </tr>
+
+                <tr>
+                    <th>Температура (°С)</th>
+                    {% for p in probs %}
+                        <td>{% if p.correct_temperature %}{{ p.temperature }}{% else %}<ul class="errorlist"></ul>{{ p.temperature_error }}({{ p.temperature }})</ul>{% endif %}</td>
+                    {% endfor %}
+                </tr>
+
+                <tr>
+                    <th>Комментарии</th>
+                    {% for p in probs %}
+                        <td>{{ p.comment }}</td>
+                    {% endfor %}
+                </tr>
+            </table>
+    {% endif %}
+            <br><br>
+    {% if metabolites %}
+            <table>
+                <tr>
+                    <th>Имена метаболитов\Имена проб</th>
+                    {% for p in probs %}
+                        <td>{{ p.prob_name }}</td>
+                    {% endfor %}
+                </tr>
+
+                {% for m in metabolites %}
+                    <tr>
+                        <td>{% if m.correct %}{{ m.name }}{% else %}<ul class="errorlist">{{ m.error|safe }}({{ m.name }})</ul>{% endif %}</td>
+
+                        {% for c in m.concentrations %}
+                            <td>{% if c.error is False %}{{ c.value }}{% else %}<ul class="errorlist">{{ c.error }} ({{ c }})</ul>{% endif %}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+
+            </table>
+        </div>
+    {% endif %}
+
+    <p>
+        {{ warning }}
+    </p>
+    {% endif %}
+
+{% endblock %}

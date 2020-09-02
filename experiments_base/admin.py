@@ -68,6 +68,10 @@ class ProbMetaboliteAdminInline(nested_admin.NestedTabularInline):
 
 
 class ProbAdmin(nested_admin.NestedModelAdmin):
+
+    change_form_template = 'progressbar_upload/change_form.html'
+    add_form_template = 'progressbar_upload/change_form.html'
+
     list_display = ('prob_name', 'gender',
                     'month_age', 'hours_post_mortem',
                     'weight', 'length', 'temperature',
@@ -97,6 +101,10 @@ class ProbAdmin(nested_admin.NestedModelAdmin):
 
 
 class ProbAdminInline(nested_admin.NestedTabularInline):
+
+    change_form_template = 'progressbar_upload/change_form.html'
+    add_form_template = 'progressbar_upload/change_form.html'
+
     model = Prob
     extra = 0
     inlines = (ProbMetaboliteAdminInline, )
@@ -104,6 +112,10 @@ class ProbAdminInline(nested_admin.NestedTabularInline):
 
 
 class ExperimentAdmin(nested_admin.NestedModelAdmin):
+
+    change_form_template = 'progressbar_upload/change_form.html'
+    add_form_template = 'progressbar_upload/change_form.html'
+
     list_display = ('experiment_name', 'taxon_id', 'way_of_life', 'habitat',
                     'withdraw_place', 'withdraw_date', 'experiment_folder')
 

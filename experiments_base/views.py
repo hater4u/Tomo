@@ -55,6 +55,10 @@ def logout(request):
     return redirect('index')
 
 
+def page_403(request):
+    return render(request, 'page_403.html', {})
+
+
 def check_auth_user(request, args):
     args['interface_taxons_name'] = InterfaceName.objects.get(search_name='taxons_name').value
     args['interface_experiments_name'] = InterfaceName.objects.get(search_name='experiments_name').value

@@ -11,6 +11,7 @@ urlpatterns = [
     path('taxons/<slug:taxon_id>/', views.taxons_id, name='taxons_id'),
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
+    path('403/', views.page_403, name='page_403'),
     path('experiments/', views.experiments, name='experiments'),
     path('experiment/download/', views.experiment_download, name='experiment_download'),
     path('experiment/gettorrent/<slug:experiment_id>/<slug:torrent_index>/', views.get_torrent, name='get_torrent'),

@@ -19,7 +19,9 @@ from django.views.generic import RedirectView
 
 urlpatterns = [
     path('', include('experiments_base.urls')),
+    path('', include('custom_admin.urls')),
     path('admin/', admin.site.urls),
     re_path(r'^_nested_admin/', include('nested_admin.urls')),
+    path('progressbarupload/', include('progressbar_upload.urls')),
     path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico'))
 ]

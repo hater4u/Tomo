@@ -35,6 +35,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
 INSTALLED_APPS = [
     'django.contrib.admin',
+    'custom_admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -42,7 +43,16 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'experiments_base.apps.ExperimentBaseConfig',
     'nested_admin',
+    'progressbar_upload',
 ]
+
+FILE_UPLOAD_HANDLERS = [
+    "progressbar_upload.upload_handler.ProgressBarUploadHandler",
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
+]
+
+PROGRESSBARUPLOAD_INCLUDE_JQUERY = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -60,7 +70,9 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [ROOT_DIR.path('templates'),
-                 ROOT_DIR.path('experiments_base/templates'), ],
+                 ROOT_DIR.path('experiments_base/templates'),
+                 ROOT_DIR.path('progressbar_upload/templates'),
+                 ROOT_DIR.path('custom_admin/templates'), ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -104,6 +116,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+LOGIN_URL = '/login/'
 
 
 # Internationalization

@@ -1,0 +1,24 @@
+{% extends 'admin/index.html' %}
+
+{% comment %}{% block extrastyle %}
+    {{ block.super }}
+    {# --- custom styles --- #}
+{% endblock %}{% endcomment %}
+
+{% block content %}
+
+    <div class="app-tools module">
+        <table>
+            <caption>
+                <div class="section">Tools</div>
+            </caption>
+
+            <tr class="model-add-experiment-from-csv">
+                <th scope="row"><a href="{% url 'custom_admin:add_experiment_from_csv' %}">Добавить эксперимент из CSV</a></th>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+    </div>
+
+    {{ block.super }}
+{% endblock %}
