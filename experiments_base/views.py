@@ -224,16 +224,27 @@ def taxons(request):
 
 def taxon_search(request):
     if request.POST:
-        search_word = request.POST['taxonName']
-        try:
-            founded_taxons = Taxon.objects.filter(taxon_name__contains=search_word)
-            taxon_names = []
-            for el in founded_taxons:
-                taxon_names.append(el.taxon_name)
-            return JsonResponse({'value': taxon_names})
-        except Exception as e:
-            experiments_base_logger.error('Taxon search error:' + str(e))
-            return JsonResponse({'value': []})
+        if not request.POST['q'] is None:
+            search_word = request.POST['q']
+            try:
+                founded_taxons = Taxon.objects.filter(taxon_name__contains=search_word)
+                taxons_list = []
+                for el in founded_taxons:
+                    taxons_list.append({'id': el.id, 'name': el.taxon_name})
+                return JsonResponse({'results': taxons_list})
+            except Exception as e:
+                experiments_base_logger.error('Taxon search error:' + str(e))
+                return JsonResponse({'results': []})
+        else:
+            try:
+                all_taxons = Taxon.objects.all()
+                taxons_list = []
+                for el in all_taxons:
+                    taxons_list.append({'id': el.id, 'name': el.taxon_name})
+                return JsonResponse({'results': taxons_list})
+            except Exception as e:
+                experiments_base_logger.error('Taxon search error:' + str(e))
+                return JsonResponse({'results': []})
     else:
         return redirect('taxons')
 
@@ -334,7 +345,7 @@ def experiments(request):
 
         args['error'] = dict()
         if not request.POST['taxonSearchName'] == '':
-            search_dict['taxon_id__taxon_name'] = request.POST['taxonSearchName']
+            search_dict['taxon_id'] = request.POST['taxonSearchName']
 
         # Ways of life
         search_dict['way_of_life__in'] = []

@@ -28,15 +28,9 @@
 
         <div class="form-group">
             <label for="taxonSearchName">{{ interface_taxon_name }}</label>
-            <input type="select" class="select2 form-control" id="taxonSearchName" name="taxonSearchName" aria-describedby="taxonSearchNameHelp" value="{{ filled_fields.taxonSearchName }}">
-            <select class="js-taxon-search form-control" id="taxonSearchName">
-                <option>Taxon 1</option>
-                <option>Taxon 2</option>
-                <option>Taxon 3</option>
+{#            <input id="taxonSearchName" name="taxonSearchName" aria-describedby="taxonSearchNameHelp" value="{{ filled_fields.taxonSearchName }}">#}
+            <select class="js-taxon-search-basic form-control" id="taxonSearchName" name="taxonSearchName">
             </select>
-{#            <span class="select2 select2-container select2-container--default select2-container--below select2-container--open">#}
-{#                <span class="selection"></span>#}
-{#            </span>#}
             <small id="taxonSearchNameHelp" class="form-text text-muted">{{ interface_experiments_page_hint_taxon_name }}</small>
         </div>
 

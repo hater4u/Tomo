@@ -206,9 +206,63 @@ function addCheckboxAndButton(element)
 }
 
 function taxonSearch(params, data) {
+    
+    // params.term = document.getElementsByName('taxon')
+    // If there are no search terms, return all of the data
+    if ($.trim(params.term) === '') {
+      return data;
+    }
 
+    // Do not display the item if there is no 'text' property
+    if (typeof data.text === 'undefined') {
+      return null;
+    }
+
+    // `params.term` should be the term that is used for searching
+    // `data.text` is the text that is displayed for the data object
+    if (data.text.indexOf(params.term) > -1) {
+        let modifiedData = $.extend({}, data, true);
+        modifiedData.text += ' (matched)';
+
+      // You can return modified objects from here
+      // This includes matching the `children` how you want in nested data sets
+      return modifiedData;
+    }
+
+    // Return `null` if the term should not be displayed
+    return null;
 }
 
+// $(document).ready(function () {
+//     $('.js-taxon-search-basic').select2();
+// });
+
 $(document).ready(function () {
-    $('.js-taxon-search').select2();
+    $('.js-taxon-search-basic').select2({
+    // matcher: taxonSearch(),
+    // theme: 'bootstrap4',
+    ajax: {
+        url: 'http://localhost:8000/taxon/search/',
+        dataType: 'json',
+        type: 'POST',
+        delay: 250,
+        data: function (params) {
+            return {
+                q: params.term,
+                csrfmiddlewaretoken: Cookies.get('csrftoken')
+            };
+        },
+        processResults: function (data) {
+            return {
+                results: $.map(data.results, function (obj) {
+                    return {
+                        id: obj.id, text: obj.name
+                    };
+                })
+            };
+        },
+        cache: true,
+        // csrfmiddlewaretoken: Cookies.get('csrftoken')
+        }
+    })
 });
