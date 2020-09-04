@@ -240,16 +240,15 @@ function taxonSearch(params, data) {
 $(document).ready(function () {
     $('.js-taxon-search-basic').select2({
     // matcher: taxonSearch(),
-    // theme: 'bootstrap4',
     ajax: {
-        url: 'http://localhost:8000/taxon/search/',
-        dataType: 'json',
         type: 'POST',
-        delay: 250,
+        url: '/taxon/search/',
+        dataType: 'json',
+        // delay: 250,
         data: function (params) {
             return {
-                q: params.term,
-                csrfmiddlewaretoken: Cookies.get('csrftoken')
+                query: params.term,
+                csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val()
             };
         },
         processResults: function (data) {
@@ -262,7 +261,6 @@ $(document).ready(function () {
             };
         },
         cache: true,
-        // csrfmiddlewaretoken: Cookies.get('csrftoken')
         }
     })
 });
