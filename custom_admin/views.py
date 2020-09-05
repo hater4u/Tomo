@@ -8,6 +8,7 @@ import random
 import string
 import csv
 import os
+import chardet
 from datetime import datetime
 
 import logging
@@ -50,7 +51,11 @@ def parse_csv(file_path):
     csv_dict = dict()
 
     try:
-        with open(file_path, "r") as f_obj:
+        raw_data = open(file_path, 'rb').read()
+        result = chardet.detect(raw_data)
+        char_enc = result['encoding']
+
+        with open(file_path, "r", encoding=char_enc) as f_obj:
             reader = csv.reader(f_obj)
 
             prob_fields = {3: 'name', 4: 'gender', 5: 'month_age', 6: 'hours_post_mortem', 7: 'weight', 8: 'length',
@@ -357,7 +362,7 @@ def update_args_from_csv_info(args, csv_info, csv_dict):
                     m_dict['name'] = meta_name
                     m_dict['correct'] = m['correct_name']
                     if not m_dict['correct']:
-                        m_dict['error'] = m[meta_name + '_error']
+                        m_dict['error'] = m['name_error']
 
                     m_dict['concentrations'] = m['concentrations']
                     metabolites.append(m_dict)
