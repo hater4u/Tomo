@@ -342,7 +342,7 @@ def experiments(request):
                            'habitat': {'wildHabitat': 0, 'laboratoryHabitat': 1, 'farmHabitat': 2, 'otherHabitat': 3},
                            'gender': {'maleGender': 0, 'femaleGender': 1, 'otherGender': 2}}
         for field, values in checkbox_fields.items():
-            field_in = field + '__in'
+            field_in = field + '__in' if field != 'gender' else 'prob__' + field + '__in'
             search_dict[field_in] = []
             for key, value in values.items():
                 if request.POST.get(key + 'Checkbox', False):
