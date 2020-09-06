@@ -56,7 +56,7 @@ def parse_csv(file_path):
         char_enc = result['encoding']
 
         with open(file_path, "r", encoding=char_enc) as f_obj:
-            reader = csv.reader(f_obj)
+            reader = csv.reader(f_obj, delimiter=';')
 
             prob_fields = {3: 'name', 4: 'gender', 5: 'month_age', 6: 'hours_post_mortem', 7: 'weight', 8: 'length',
                            9: 'temperature', 10: 'comment'}
@@ -126,7 +126,7 @@ def check_db_field(value, model, search_field):
 
 def check_datetime_field(value):
     try:
-        datetime.strptime(value, "%d/%m/%y %H:%M")
+        datetime.strptime(value, "%d.%m.%y %H:%M")
         return ''
     except ValueError:
         return 'Invalid {}. Check template of datetime field.'
@@ -299,7 +299,7 @@ def check_csv_data(csv_dict):
         meta_dict['name'] = meta_name
 
         check_field(meta_dict, 'name', 'db', meta_dict, {'model': MetaboliteName,
-                                                                          'search_field': 'metabolite_synonym'})
+                                                         'search_field': 'metabolite_synonym'})
         if meta_dict.get(meta_name + '_error', False):
             meta_dict[meta_name + '_error'] = meta_dict[meta_name + '_error'].replace('metabolitename', 'metabolite')
 
@@ -399,7 +399,7 @@ def create_experiment_dict(exp):
         exp['withdraw_place'] = WithdrawPlace.objects.get(withdraw_place=exp['withdraw_place'])
 
         if exp['withdraw_date']:
-            exp['withdraw_date'] = datetime.strptime(exp['withdraw_date'], "%d/%m/%y %H:%M")
+            exp['withdraw_date'] = datetime.strptime(exp['withdraw_date'], "%d.%m.%y %H:%M")
         else:
             exp.pop('withdraw_date')
 
