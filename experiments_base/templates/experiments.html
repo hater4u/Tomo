@@ -45,7 +45,7 @@
         </div>
         {% endif %}
 
-        <label class="form-check-label">Way of life: </label>
+        <label class="form-check-label">{{ interface_way_of_life }}: </label>
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" id="diurnalWayCheckbox" name="diurnalWayCheckbox" value="DIURNAL" {% if filled_fields.diurnalWayCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="diurnalWayCheckbox">Diurnal</label>
@@ -66,7 +66,7 @@
         <br>
 
 
-        <label class="form-check-label">Habitat: </label>
+        <label class="form-check-label">{{ interface_habitat }}: </label>
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" id="wildHabitatCheckbox" name="wildHabitatCheckbox" value="WILD" {% if filled_fields.wildHabitatCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="wildHabitatCheckbox">Wild</label>
@@ -87,7 +87,7 @@
         <br>
 
 
-        <label class="form-check-label">Gender: </label>
+        <label class="form-check-label">{{ interface_gender }}: </label>
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" id="maleGenderCheckbox" name="maleGenderCheckbox" value="MALE" {% if filled_fields.maleGenderCheckbox %}checked{% endif %}>
             <label class="form-check-label" for="maleGenderCheckbox">Male</label>

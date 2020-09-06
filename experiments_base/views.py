@@ -106,13 +106,13 @@ def check_auth_user(request, args):
     args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
     args['interface_environmental_factors'] = InterfaceName.objects.get(search_name='environmental_factors').value
     args['interface_diseases'] = InterfaceName.objects.get(search_name='diseases').value
+    args['interface_way_of_life'] = InterfaceName.objects.get(search_name='way_of_life').value
+    args['interface_habitat'] = InterfaceName.objects.get(search_name='habitat').value
+    # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
 
     # Experiment and experiments
     args['interface_taxon_name'] = InterfaceName.objects.get(search_name='taxon_name').value
-    # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
-    # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
-    # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
-    # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
+    args['interface_gender'] = InterfaceName.objects.get(search_name='gender').value
     # args['interface_experiment_name'] = InterfaceName.objects.get(search_name='experiment_name').value
 
     if request.user.is_authenticated:

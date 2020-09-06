@@ -38,11 +38,11 @@
                 <td>{{ experiment.taxon_id.taxon_name }}</td>
             </tr>
             <tr>
-                <th>Way of life</th>
+                <th>{{ interface_way_of_life }}</th>
                 <td>{{ experiment.way_of_life|way_of_life }}</td>
             </tr>
             <tr>
-                <th>Habitat</th>
+                <th>{{ interface_habitat }}</th>
                 <td>{{ experiment.habitat|habitat }}</td>
             </tr>
             <tr>
@@ -146,7 +146,7 @@
                 <tbody>
 
                     <tr>
-                        <th scope="row">Gender</th>
+                        <th scope="row">{{ interface_gender }}</th>
                         {% for prob in probs %}
                             <td>{{ prob.gender|gender }}</td>
                         {% endfor %}
