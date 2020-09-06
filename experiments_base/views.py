@@ -478,8 +478,8 @@ def create_csv_experiment_file(exp_id, folder):
         data.append([value['name'], *[v if v is not None else 'undefined' for k, v in value['concentrations'].items()]])
 
     path = folder + exp.experiment_name + '_' + create_random_str(4) + '.csv'
-    with open(path, "w", newline='') as csv_file:
-        writer = csv.writer(csv_file, delimiter=',')
+    with open(path, "w", newline='', encoding='windows-1251') as csv_file:
+        writer = csv.writer(csv_file, delimiter=';')
         for line in data:
             writer.writerow(line)
 
