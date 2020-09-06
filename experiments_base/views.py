@@ -312,7 +312,7 @@ def get_torrent(request, experiment_id, torrent_index):
 
 def experiments_search(search_dict):
     try:
-        founded_experiments_qs = Experiment.objects.filter(**search_dict)
+        founded_experiments_qs = Experiment.objects.filter(**search_dict).distinct('pk')
 
         return founded_experiments_qs
     except Exception as e:
