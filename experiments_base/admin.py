@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.admin.utils import get_deleted_objects
 import nested_admin
 from .models import Taxon, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName
 from .models import EnvironmentalFactor, Disease, WithdrawCondition, WithdrawPlace, AdditionalProperty
@@ -12,12 +11,26 @@ logging.config.dictConfig(LOGGING)
 experiments_base_logger = logging.getLogger('django')
 
 
+@admin.register(Taxon)
 class TaxonAdmin(admin.ModelAdmin):
     list_display = ('taxon_name', 'taxon_parent_name', 'is_tissue', 'view_in_popular', 'taxon_folder')
     ordering = ('taxon_name',)
     exclude = ('taxon_folder',)
+    actions = ['delete_model']
 
-    def taxon_parent_name(self, obj):
+    def get_actions(self, request):
+        actions = super(TaxonAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def delete_model(self, request, obj):
+        for o in obj.all():
+            o.delete()
+
+    delete_model.short_description = 'Удалить выбранные таксоны'
+
+    @staticmethod
+    def taxon_parent_name(obj):
         if obj.parent_id is None:
             parent_name = 'ROOT'
         elif not obj.parent_id.taxon_name:
@@ -54,11 +67,13 @@ class TaxonAdmin(admin.ModelAdmin):
         return super(TaxonAdmin, self).delete_view(request, object_id, extra_context=extra_context)
 
 
+@admin.register(ProbMetabolite)
 class ProbMetaboliteAdmin(nested_admin.NestedModelAdmin):
     list_display = ('metabolite_name', 'concentration')
     ordering = ('metabolite_id',)
 
-    def metabolite_name(self, obj):
+    @staticmethod
+    def metabolite_name(obj):
         return '{}'.format(obj.metabolite_id.metabolite_name)
 
 
@@ -67,6 +82,7 @@ class ProbMetaboliteAdminInline(nested_admin.NestedTabularInline):
     extra = 0
 
 
+@admin.register(Prob)
 class ProbAdmin(nested_admin.NestedModelAdmin):
 
     change_form_template = 'progressbar_upload/change_form.html'
@@ -79,8 +95,21 @@ class ProbAdmin(nested_admin.NestedModelAdmin):
     ordering = ('prob_name',)
     exclude = ('prob_torrent_file_nmr', 'prob_torrent_file_ms', )
     inlines = (ProbMetaboliteAdminInline, )
+    actions = ['delete_model']
 
-    def experiment_name(self, obj):
+    def get_actions(self, request):
+        actions = super(ProbAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def delete_model(self, request, obj):
+        for o in obj.all():
+            o.delete()
+
+    delete_model.short_description = 'Удалить выбранные пробы'
+
+    @staticmethod
+    def experiment_name(obj):
         return '{}'.format('ROOT' if obj.experiment_id.experiment_name == '' else obj.experiment_id.experiment_name)
 
     def delete_view(self, request, object_id, extra_context=None):
@@ -111,20 +140,39 @@ class ProbAdminInline(nested_admin.NestedTabularInline):
     exclude = ('prob_torrent_file_nmr', 'prob_torrent_file_ms',)
 
 
+@admin.register(Experiment)
 class ExperimentAdmin(nested_admin.NestedModelAdmin):
 
     change_form_template = 'progressbar_upload/change_form.html'
     add_form_template = 'progressbar_upload/change_form.html'
 
-    list_display = ('experiment_name', 'taxon_id', 'way_of_life', 'habitat',
+    list_display = ('experiment_name', 'taxon_id', 'way_of_life', 'habitat', 'genders',
                     'withdraw_place', 'withdraw_date', 'experiment_folder')
 
     ordering = ('experiment_name',)
     exclude = ('experiment_folder',)
     inlines = (ProbAdminInline, )
+    actions = ['delete_model']
 
-    def taxon_id(self, obj):
+    def get_actions(self, request):
+        actions = super(ExperimentAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def delete_model(self, request, obj):
+        for o in obj.all():
+            o.delete()
+
+    delete_model.short_description = 'Удалить выбранные эксперименты'
+
+    @staticmethod
+    def taxon_id(obj):
         return '{}'.format('ROOT' if obj.taxon_id.taxon_name == '' else obj.taxon_id.taxon_name)
+
+    @staticmethod
+    def genders(obj):
+        gender_table = {0: 'male', 1: 'female', 2: 'other'}
+        return ', '.join([gender_table[p.gender] for p in Prob.objects.filter(experiment_id=obj.pk)])
 
     fieldsets = (
         (None, {'fields': ('experiment_name', 'taxon_id')}),
@@ -153,11 +201,24 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
         return super(ExperimentAdmin, self).delete_view(request, object_id, extra_context=extra_context)
 
 
+@admin.register(Metabolite)
 class MetaboliteAdmin(admin.ModelAdmin):
     delete_confirmation_template = 'admin/experiments_base/metabolite/delete_confirmation.html'
 
     list_display = ('metabolite_name', 'pub_chem_cid', 'pk',)
     ordering = ('metabolite_name',)
+    actions = ['delete_model']
+
+    def get_actions(self, request):
+        actions = super(MetaboliteAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def delete_model(self, request, obj):
+        for o in obj.all():
+            o.delete()
+
+    delete_model.short_description = 'Удалить выбранные метаболиты'
 
     def delete_view(self, request, object_id, extra_context=None):
         extra_context = extra_context or {}
@@ -172,57 +233,54 @@ class MetaboliteAdmin(admin.ModelAdmin):
         return super(MetaboliteAdmin, self).delete_view(request, object_id, extra_context=extra_context)
 
 
+@admin.register(MetaboliteName)
 class MetaboliteNameAdmin(admin.ModelAdmin):
     list_display = ('metabolite_synonym', 'metabolite_id',)
     ordering = ('metabolite_id',)
 
 
+@admin.register(EnvironmentalFactor)
 class EnvironmentalFactorAdmin(admin.ModelAdmin):
     list_display = ('factor_name',)
     ordering = ('factor_name',)
 
 
+@admin.register(Disease)
 class DiseaseAdmin(admin.ModelAdmin):
     list_display = ('disease_name',)
     ordering = ('disease_name',)
 
 
+@admin.register(WithdrawCondition)
 class WithdrawConditionAdmin(admin.ModelAdmin):
     list_display = ('withdraw_condition',)
     ordering = ('withdraw_condition',)
 
 
+@admin.register(WithdrawPlace)
 class WithdrawPlaceAdmin(admin.ModelAdmin):
     list_display = ('withdraw_place',)
     ordering = ('withdraw_place',)
 
 
+@admin.register(AdditionalProperty)
 class AdditionalPropertyAdmin(admin.ModelAdmin):
     list_display = ('key', 'value')
     ordering = ('key',)
 
 
+@admin.register(InterfaceName)
 class InterfaceNameAdmin(admin.ModelAdmin):
     list_display = ('name', 'value', 'search_name')
     ordering = ('name',)
+    actions = None
+
+    def has_delete_permission(self, request, obj=None):
+        # Disable delete
+        return False
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
             return ['search_name']
         else:
             return []
-
-
-# TODO maybe use decorator for this ?
-admin.site.register(Taxon, TaxonAdmin)
-admin.site.register(Experiment, ExperimentAdmin)
-admin.site.register(Prob, ProbAdmin)
-admin.site.register(ProbMetabolite, ProbMetaboliteAdmin)
-admin.site.register(Metabolite, MetaboliteAdmin)
-admin.site.register(MetaboliteName, MetaboliteNameAdmin)
-admin.site.register(EnvironmentalFactor, EnvironmentalFactorAdmin)
-admin.site.register(Disease, DiseaseAdmin)
-admin.site.register(WithdrawCondition, WithdrawConditionAdmin)
-admin.site.register(WithdrawPlace, WithdrawPlaceAdmin)
-admin.site.register(AdditionalProperty, AdditionalPropertyAdmin)
-admin.site.register(InterfaceName, InterfaceNameAdmin)
