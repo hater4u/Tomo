@@ -252,6 +252,7 @@ def get_ordered_dict_of_metabolites(probs):
     ordered_dict_of_metabolites = collections.OrderedDict()
     for m in all_metabolites:
         ordered_dict_of_metabolites[m.pk] = {'name': m.metabolite_name,
+                                             'pk': m.pk,
                                              'pub_chem_cid': m.pub_chem_cid,
                                              'concentrations': {x: '-' for x in range(probs_length)}}
     order_dict = {p_id: c for c, p_id in enumerate(sorted([x.pk for x in probs]))}
@@ -475,7 +476,7 @@ def create_csv_experiment_file(exp_id, folder):
     data.append([' Имена метаболитов', *[prob.prob_name for prob in probs]])
     ordered_dict_of_metabolites = get_ordered_dict_of_metabolites(probs)
     for key, value in ordered_dict_of_metabolites.items():
-        data.append([value['name'], *[v if v is not None else 'undefined' for k, v in value['concentrations'].items()]])
+        data.append([value['name'], *[v if v is not None else 'NA' for k, v in value['concentrations'].items()]])
 
     path = folder + exp.experiment_name + '_' + create_random_str(4) + '.csv'
     with open(path, "w", newline='', encoding='windows-1251') as csv_file:

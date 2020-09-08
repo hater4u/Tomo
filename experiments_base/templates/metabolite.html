@@ -5,12 +5,6 @@
 
 <main class="container">
     <br>
-{#    {% if user_auth %}#}
-{#    <div>#}
-{#        <a href="/admin/experiments_base/experiment/{{ experiment.pk }}/change/" class="btn btn-warning mb-2">Change experiment</a>#}
-{#        <a href="/admin/experiments_base/experiment/{{ experiment.pk }}/delete/" class="btn btn-danger mb-2">Delete experiment</a>#}
-{#    </div>#}
-{#    {% endif %}#}
 
     {% if error %}
     <h5 class="alert alert-danger">
@@ -33,15 +27,15 @@
             </tr>
             <tr>
                 <th>PubChemCID</th>
-                <td>{{ metabolite.pub_chem_cid }}</td>
+                <td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ metabolite.pub_chem_cid }}">{{ metabolite.pub_chem_cid }}</a></td>
             </tr>
             <tr>
-                <th>More information</th>
-                <td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ metabolite.pub_chem_cid }}">Link</a></td>
+                <th>Comment</th>
+                <td>{{ metabolite.comment }}</td>
             </tr>
             </tbody>
         </table>
-    </div>ff
+    </div>
 
 
     <div class="mt-4">

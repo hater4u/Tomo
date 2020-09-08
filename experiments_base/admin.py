@@ -27,7 +27,7 @@ class TaxonAdmin(admin.ModelAdmin):
         for o in obj.all():
             o.delete()
 
-    delete_model.short_description = 'Удалить выбранные таксоны'
+    delete_model.short_description = 'Delete selected taxons'
 
     @staticmethod
     def taxon_parent_name(obj):
@@ -106,7 +106,7 @@ class ProbAdmin(nested_admin.NestedModelAdmin):
         for o in obj.all():
             o.delete()
 
-    delete_model.short_description = 'Удалить выбранные пробы'
+    delete_model.short_description = 'Delete selected probs'
 
     @staticmethod
     def experiment_name(obj):
@@ -147,7 +147,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
     add_form_template = 'progressbar_upload/change_form.html'
 
     list_display = ('experiment_name', 'taxon_id', 'way_of_life', 'habitat', 'genders',
-                    'withdraw_place', 'withdraw_date', 'experiment_folder')
+                    'withdraw_place', 'created_at', 'withdraw_date', 'experiment_folder')
 
     ordering = ('experiment_name',)
     exclude = ('experiment_folder',)
@@ -163,7 +163,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
         for o in obj.all():
             o.delete()
 
-    delete_model.short_description = 'Удалить выбранные эксперименты'
+    delete_model.short_description = 'Delete selected experiments'
 
     @staticmethod
     def taxon_id(obj):
@@ -205,7 +205,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
 class MetaboliteAdmin(admin.ModelAdmin):
     delete_confirmation_template = 'admin/experiments_base/metabolite/delete_confirmation.html'
 
-    list_display = ('metabolite_name', 'pub_chem_cid', 'pk',)
+    list_display = ('metabolite_name', 'pub_chem_cid', 'comment', 'pk',)
     ordering = ('metabolite_name',)
     actions = ['delete_model']
 
@@ -218,7 +218,7 @@ class MetaboliteAdmin(admin.ModelAdmin):
         for o in obj.all():
             o.delete()
 
-    delete_model.short_description = 'Удалить выбранные метаболиты'
+    delete_model.short_description = 'Delete selected metabolites'
 
     def delete_view(self, request, object_id, extra_context=None):
         extra_context = extra_context or {}

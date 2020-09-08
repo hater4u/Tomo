@@ -28,7 +28,7 @@ def upload_csv(request):
     try:
         folder = "/tmp/"
         if request.FILES['csvFile'].name:
-            filename = request.FILES['csvFile'].name + create_random_str(8)
+            filename = create_random_str(8) + request.FILES['csvFile'].name
         else:
             return ''
 
@@ -67,11 +67,17 @@ def parse_csv(file_path):
                     csv_dict['exp'] = {'name': row[0], 'taxon_name': row[1], 'way_of_life': row[2], 'habitat': row[3],
                                        'withdraw_place': row[4], 'withdraw_date': row[5], 'comments': row[6]}
                 if count == 3:
-                    probs_length = 0
-                    while row[probs_length]:
-                        probs_length += 1
+                    if len(row) > 7:
+                        probs_length = len(row)
+                    else:
+                        probs_length = 0
+                        for el in row:
+                            if el == '':
+                                break
+                            probs_length += 1
 
                     probs_length -= 1
+
                     csv_dict['probs_length'] = probs_length
                     csv_dict['probs'] = [{} for p in range(probs_length)]
                     csv_dict['metabolites'] = {}
@@ -112,19 +118,30 @@ def check_checkbox_field(value, list_of_values):
 
 def check_db_field(value, model, search_field):
 
-    error = check_not_empty_field(value)
-    if error:
-        return error
+    if model != WithdrawPlace:
+        error = check_not_empty_field(value)
+        if error:
+            return error
+    else:
+        if value == '':
+            return ''
 
     try:
         model.objects.get(**{search_field: value})
         return ''
     except ObjectDoesNotExist:
-        return 'Value of field {} not found in database. Change it in table or ' \
-               '<a href="/admin/experiments_base/' + model.__qualname__.lower() + '/add">create</a>.'
+        if model == MetaboliteName:
+            ref = ', <a href="/admin/experiments_base/metabolite/add">create metabolite</a> or ' \
+                  '<a href="/admin/experiments_base/metabolitename/add">add metabolite synonym</a>'
+        else:
+            ref = ' or <a href="/admin/experiments_base/' + model.__qualname__.lower() + '/add">create</a>.'
+        return 'Value of field {} not found in database. Change it in table' + ref
 
 
 def check_datetime_field(value):
+    if value == '':
+        return ''
+
     try:
         datetime.strptime(value, "%d.%m.%y %H:%M")
         return ''
@@ -142,13 +159,16 @@ def is_number(value):
 
 def check_number_field(value, is_int):
 
-    if value == '' or value == 'undefined':
+    if value == '' or value == 'na':
         return ''
     else:
         value = value.replace(',', '.')
         if is_number(value):
-            value = int(value) if is_int else float(value)
-            if value > 0:
+            try:
+                value = int(value) if is_int else float(value)
+            except ValueError:
+                return 'Float number in integer field'
+            if value >= 0:
                 return ''
             else:
                 return 'Negative number'
@@ -433,7 +453,7 @@ def create_prob_dict(prob, exp):
             if prob[field] == '':
                 prob.pop(field)
             else:
-                if prob[field] == 'undefined':
+                if prob[field] == 'na':
                     prob[field] = None
                 else:
                     with_point = prob[field].replace(',', '.')
@@ -461,7 +481,7 @@ def create_prob_metabolites(csv_dict, prob_objs, args):
                 if c == '':
                     continue
                 else:
-                    if c == 'undefined':
+                    if c == 'na':
                         c = None
                     else:
                         c = float(c.replace(',', '.'))
@@ -521,18 +541,21 @@ def add_experiment_from_csv(request):
         if request.FILES.get('csvFile', False):
             file_path = upload_csv(request)
             if file_path:
-                csv_dict = parse_csv(file_path)
-                if csv_dict.get('errors', False):
-                    args['error'] = csv_dict['errors']
+                if os.path.splitext(file_path)[1].lower() == '.csv':
+                    csv_dict = parse_csv(file_path)
+                    if csv_dict.get('errors', False):
+                        args['error'] = csv_dict['errors']
+                    else:
+                        csv_info = check_csv_data(csv_dict)
+                        if request.POST.get('upload', False):
+                            if not csv_info['has_error']:
+                                error = create_experiment(csv_info, csv_dict, args)
+                                if error:
+                                    args['error'] = error
+                                return render(request, 'add_experiment_from_csv.html', args)
+                        update_args_from_csv_info(args, csv_info, csv_dict)
                 else:
-                    csv_info = check_csv_data(csv_dict)
-                    if request.POST.get('upload', False):
-                        if not csv_info['has_error']:
-                            error = create_experiment(csv_info, csv_dict, args)
-                            if error:
-                                args['error'] = error
-                            return render(request, 'add_experiment_from_csv.html', args)
-                    update_args_from_csv_info(args, csv_info, csv_dict)
+                    args['error'] = 'Invalid file extension'
             else:
                 args['error'] = 'File saving error'
         else:

@@ -66,6 +66,10 @@
                 <td>{{ experiment.withdraw_place.withdraw_place }}</td>
             </tr>
             <tr>
+                <th>Created at</th>
+                <td>{{ experiment.created_at }}</td>
+            </tr>
+            <tr>
                 <th>Withdraw date</th>
                 <td>{% if experiment.withdraw_date %}{{ experiment.withdraw_date }}{% endif %}</td>
             </tr>
@@ -169,21 +173,21 @@
                     <tr>
                         <th scope="row">Weight(kg)</th>
                         {% for prob in probs %}
-                            <td>{{ prob.weight }}</td>
+                            <td>{{ prob.weight|floatformat:2 }}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
                         <th scope="row">Length(cm)</th>
                         {% for prob in probs %}
-                            <td>{{ prob.length }}</td>
+                            <td>{{ prob.length|floatformat:2 }}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
                         <th scope="row">Temperature(°C)</th>
                         {% for prob in probs %}
-                            <td>{{ prob.temperature }}</td>
+                            <td>{{ prob.temperature|floatformat:2 }}</td>
                         {% endfor %}
                     </tr>
                     <tr>
@@ -213,10 +217,10 @@
 
                     {% for id, meta in metabolites.items %}
                     <tr>
-                        <th><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ meta.pub_chem_cid }}">{{ meta.name }}</a></th>
+                        <th><a href="{% url 'metabolite' meta.pk %}">{{ meta.name }}</a></th>
 
                         {% for id1, conc in meta.concentrations.items %}
-                            <td>{% if conc is not None  %}{{ conc }}{% else %}undefined{% endif %}</td>
+                            <td>{% if conc is not None  %}{{ conc|floatformat:2 }}{% else %}NA{% endif %}</td>
                         {% endfor %}
                     </tr>
                     {% endfor %}

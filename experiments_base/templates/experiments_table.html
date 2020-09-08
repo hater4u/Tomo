@@ -16,6 +16,7 @@
             <th>{{ interface_habitat }}</th>
             <th>{{ interface_environmental_factors }}</th>
             <th>{{ interface_diseases }}</th>
+            <th>Created at</th>
         </tr>
         </thead>
         <tbody>
@@ -46,6 +47,7 @@
                     {{ elem.disease_name }}<br>
                 {% endfor %}
             </td>
+            <td>{{ el.created_at }}</td>
         </tr>
         {% endfor %}
         </tbody>
