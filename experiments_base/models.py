@@ -31,13 +31,13 @@ class Taxon(models.Model):
         verbose_name = 'taxon'
         verbose_name_plural = 'taxons'
 
-    taxon_name = models.CharField(max_length=128, verbose_name='Имя таксона')
-    parent_id = models.ForeignKey('self', null=True, blank=True, verbose_name='Родительский таксон',
+    taxon_name = models.CharField(max_length=128, verbose_name='Taxon name')
+    parent_id = models.ForeignKey('self', null=True, blank=True, verbose_name='Taxon parent',
                                   on_delete=models.DO_NOTHING)
-    view_in_popular = models.BooleanField(default=False, verbose_name='Отображать в популярных таксонах')
-    is_tissue = models.BooleanField(default=False, verbose_name='Ткань')
+    view_in_popular = models.BooleanField(default=False, verbose_name='Display in popular taxons')
+    is_tissue = models.BooleanField(default=False, verbose_name='Tissue')
 
-    taxon_folder = models.CharField(default='old_taxon', max_length=128, verbose_name='Папка таксона')
+    taxon_folder = models.CharField(default='old_taxon', max_length=128, verbose_name='Taxon folder')
 
     def __str__(self):
         if self.parent_id is None:
@@ -103,7 +103,7 @@ class EnvironmentalFactor(models.Model):
         verbose_name = 'environmental factor'
         verbose_name_plural = 'environmental factors'
 
-    factor_name = models.CharField(max_length=256, verbose_name='Имя фактора среды')
+    factor_name = models.CharField(max_length=256, verbose_name='Environmental factor name')
 
     def __str__(self):
         return self.factor_name
@@ -115,7 +115,7 @@ class Disease(models.Model):
         verbose_name = 'disease'
         verbose_name_plural = 'diseases'
 
-    disease_name = models.CharField(max_length=256, verbose_name='Имя заболевания')
+    disease_name = models.CharField(max_length=256, verbose_name='Disease name')
 
     def __str__(self):
         return self.disease_name
@@ -127,7 +127,7 @@ class WithdrawCondition(models.Model):
         verbose_name = 'withdraw condition'
         verbose_name_plural = 'withdraw conditions'
 
-    withdraw_condition = models.CharField(max_length=256, verbose_name='Условие забора')
+    withdraw_condition = models.CharField(max_length=256, verbose_name='Withdraw condition')
 
     def __str__(self):
         return self.withdraw_condition
@@ -139,7 +139,7 @@ class WithdrawPlace(models.Model):
         verbose_name = 'withdraw place'
         verbose_name_plural = 'withdraw places'
 
-    withdraw_place = models.CharField(max_length=256, verbose_name='Место забора')
+    withdraw_place = models.CharField(max_length=256, verbose_name='Withdraw place')
 
     def __str__(self):
         return self.withdraw_place
@@ -151,8 +151,8 @@ class AdditionalProperty(models.Model):
         verbose_name = 'additional property'
         verbose_name_plural = 'additional properties'
 
-    key = models.CharField(max_length=128, verbose_name='Ключ')
-    value = models.CharField(max_length=128, verbose_name='Значение')
+    key = models.CharField(max_length=128, verbose_name='Key')
+    value = models.CharField(max_length=128, verbose_name='Value')
 
     def __str__(self):
         return '{}: {}'.format(self.key, self.value)
@@ -164,9 +164,9 @@ class Metabolite(models.Model):
         verbose_name = 'metabolite'
         verbose_name_plural = 'metabolites'
 
-    metabolite_name = models.CharField(max_length=128, verbose_name='Основное имя метаболита', unique=True)
+    metabolite_name = models.CharField(max_length=128, verbose_name='Metabolite name(main)', unique=True)
     pub_chem_cid = models.IntegerField(default=0, blank=True, verbose_name='PubChemCid')
-    comment = models.CharField(max_length=1024, verbose_name='Комментарий', blank=True)
+    comment = models.CharField(max_length=1024, verbose_name='Comment', blank=True)
 
     def __str__(self):
         return self.metabolite_name
@@ -198,9 +198,9 @@ class MetaboliteName(models.Model):
         verbose_name = 'metabolite name'
         verbose_name_plural = 'metabolite names'
 
-    metabolite_synonym = models.CharField(max_length=128, verbose_name='Синоним основному имени метаболита')
+    metabolite_synonym = models.CharField(max_length=128, verbose_name='Synonym for main metabolite name')
     metabolite_id = models.ForeignKey('experiments_base.Metabolite',
-                                      verbose_name='Метаболит, для которого добавляем синонимичное имя',
+                                      verbose_name='The metabolite for which we add a synonymous name',
                                       on_delete=models.DO_NOTHING)
 
     def __str__(self):
@@ -213,14 +213,14 @@ class ProbMetabolite(models.Model):
         verbose_name = 'prob metabolite'
         verbose_name_plural = 'prob metabolites'
 
-    prob_id = models.ForeignKey('experiments_base.Prob', verbose_name='Проба', on_delete=models.DO_NOTHING)
-    metabolite_id = models.ForeignKey('experiments_base.Metabolite', verbose_name='Метаболит',
+    prob_id = models.ForeignKey('experiments_base.Prob', verbose_name='Prob', on_delete=models.DO_NOTHING)
+    metabolite_id = models.ForeignKey('experiments_base.Metabolite', verbose_name='Metabolite',
                                       on_delete=models.DO_NOTHING)
     concentration = models.FloatField(default=0, validators=[MinValueValidator(0)],
-                                      verbose_name='Концентрация(нмоль/г)', null=True, blank=True)
+                                      verbose_name='Concentration(nmol/g)', null=True, blank=True)
 
     def __str__(self):
-        return '{}({} нмоль/г)'.format(self.metabolite_id.metabolite_name, self.concentration)
+        return '{}({} nmol/g)'.format(self.metabolite_id.metabolite_name, self.concentration)
 
 
 def stop_torrent(torrent_paths):
@@ -266,23 +266,23 @@ class Prob(models.Model):
         verbose_name = 'prob'
         verbose_name_plural = 'probs'
 
-    prob_name = models.CharField(max_length=128, verbose_name='Имя пробы')
-    experiment_id = models.ForeignKey('experiments_base.Experiment', verbose_name='Эксперимент',
+    prob_name = models.CharField(max_length=128, verbose_name='Prob name')
+    experiment_id = models.ForeignKey('experiments_base.Experiment', verbose_name='Experiment',
                                       on_delete=models.DO_NOTHING)
 
-    gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Пол', blank=True)
+    gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Gender', blank=True)
 
     month_age = models.IntegerField(default=0, validators=[MinValueValidator(0)],
-                                    verbose_name='Возраст(месяцы)', blank=True)
+                                    verbose_name='Age(months)', blank=True)
     hours_post_mortem = models.IntegerField(default=0, validators=[MinValueValidator(0)],
-                                            verbose_name='Время после смерти(часы)', blank=True)
+                                            verbose_name='Time post mortem(hours)', blank=True)
 
-    weight = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Вес(кг)', blank=True)
-    length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Рост/длина(см)', blank=True)
+    weight = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Weight(kg)', blank=True)
+    length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Height/length(cm)', blank=True)
     temperature = models.FloatField(default=0, validators=[MinValueValidator(0)],
-                                    verbose_name='Температура(градусы Цельсия)', blank=True)
+                                    verbose_name='Temperature(degrees Celsius)', blank=True)
 
-    comment = models.CharField(max_length=1024, verbose_name='Комментарий', blank=True)
+    comment = models.CharField(max_length=1024, verbose_name='Comment', blank=True)
 
     def get_upload_path(self, file_name):
         return str(SHARED_FILES_DIR) + '/' + \
@@ -361,28 +361,29 @@ class Experiment(models.Model):
         verbose_name = 'experiment'
         verbose_name_plural = 'experiments'
 
-    experiment_name = models.CharField(max_length=128, verbose_name='Имя эксперимента')
-    taxon_id = models.ForeignKey('experiments_base.Taxon', verbose_name='Таксон', on_delete=models.DO_NOTHING)
+    experiment_name = models.CharField(max_length=128, verbose_name='Experiment name')
+    taxon_id = models.ForeignKey('experiments_base.Taxon', verbose_name='Taxon', on_delete=models.DO_NOTHING)
 
     way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices,
-                                      verbose_name='Образ жизни', blank=True)
+                                      verbose_name='Way of life', blank=True)
     habitat = models.IntegerField(default=Habitat.OTHER, choices=Habitat.choices,
-                                  verbose_name='Ареал обитания', blank=True)
+                                  verbose_name='Habitat', blank=True)
 
-    environmental_factors = models.ManyToManyField(EnvironmentalFactor, verbose_name='Факторы среды', blank=True)
-    diseases = models.ManyToManyField(Disease, verbose_name='Заболевания', blank=True)
-    withdraw_conditions = models.ManyToManyField(WithdrawCondition, verbose_name='Условия забора', blank=True)
+    environmental_factors = models.ManyToManyField(EnvironmentalFactor, verbose_name='Environmental factors',
+                                                   blank=True)
+    diseases = models.ManyToManyField(Disease, verbose_name='Diseases', blank=True)
+    withdraw_conditions = models.ManyToManyField(WithdrawCondition, verbose_name='Withdraw conditions', blank=True)
 
-    withdraw_place = models.ForeignKey('experiments_base.WithdrawPlace', verbose_name='Место забора',
+    withdraw_place = models.ForeignKey('experiments_base.WithdrawPlace', verbose_name='Withdraw place',
                                        on_delete=models.DO_NOTHING, blank=True, null=True)
-    withdraw_date = models.DateTimeField(default=timezone.now, verbose_name='Дата забора', blank=True, null=True)
+    withdraw_date = models.DateTimeField(default=timezone.now, verbose_name='Withdraw date', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
 
     comments = models.CharField(max_length=1024, verbose_name='Comments', blank=True)
-    additional_properties = models.ManyToManyField(AdditionalProperty, verbose_name='Дополнительные свойства',
+    additional_properties = models.ManyToManyField(AdditionalProperty, verbose_name='Additional properties',
                                                    blank=True)
 
-    experiment_folder = models.CharField(default='old_experiment', max_length=128, verbose_name='Папка таксона')
+    experiment_folder = models.CharField(default='old_experiment', max_length=128, verbose_name='Experiment folder')
 
     def __str__(self):
         parent_name = 'ROOT' if self.taxon_id.taxon_name == '' else self.taxon_id.taxon_name
@@ -420,6 +421,7 @@ class InterfaceName(models.Model):
         verbose_name = 'interface name'
         verbose_name_plural = 'interface names'
 
-    name = models.CharField(max_length=128, verbose_name='Имя')
-    value = models.CharField(max_length=128, verbose_name='Значение')
-    search_name = models.CharField(max_length=64, verbose_name='Имя для поиска', unique=True)
+    name = models.CharField(max_length=128, verbose_name='Name')
+    value = models.CharField(max_length=128, verbose_name='Value')
+    search_name = models.CharField(max_length=64, verbose_name='Search name', unique=True)
+    search_name = models.CharField(max_length=64, verbose_name='Search name', unique=True)
