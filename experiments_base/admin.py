@@ -24,8 +24,11 @@ class TaxonAdmin(admin.ModelAdmin):
         return actions
 
     def delete_model(self, request, obj):
-        for o in obj.all():
-            o.delete()
+        if isinstance(obj, Taxon):
+            obj.delete()
+        else:
+            for o in obj.all():
+                o.delete()
 
     delete_model.short_description = 'Delete selected taxons'
 
@@ -103,8 +106,11 @@ class ProbAdmin(nested_admin.NestedModelAdmin):
         return actions
 
     def delete_model(self, request, obj):
-        for o in obj.all():
-            o.delete()
+        if isinstance(obj, Prob):
+            obj.delete()
+        else:
+            for o in obj.all():
+                o.delete()
 
     delete_model.short_description = 'Delete selected probs'
 
@@ -160,8 +166,11 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
         return actions
 
     def delete_model(self, request, obj):
-        for o in obj.all():
-            o.delete()
+        if isinstance(obj, Experiment):
+            obj.delete()
+        else:
+            for o in obj.all():
+                o.delete()
 
     delete_model.short_description = 'Delete selected experiments'
 
@@ -215,8 +224,11 @@ class MetaboliteAdmin(admin.ModelAdmin):
         return actions
 
     def delete_model(self, request, obj):
-        for o in obj.all():
-            o.delete()
+        if isinstance(obj, Metabolite):
+            obj.delete()
+        else:
+            for o in obj.all():
+                o.delete()
 
     delete_model.short_description = 'Delete selected metabolites'
 
