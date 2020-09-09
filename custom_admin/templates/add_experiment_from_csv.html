@@ -1,4 +1,5 @@
 {% extends 'admin/base_site.html' %}
+{% load static %}
 
 {% block title %} Adding experiment from CSV{% endblock %}
 
@@ -7,6 +8,16 @@
     <div class="fieldsets">
         <fieldset class="module">
             <h1>Add experiment from CSV file</h1>
+            <p>
+                <a href="{% static 'Exp_template.csv' %}">Download experiment template</a><br>
+                Use only csv file with semicolon(;).<br>
+                Fields experiment name, taxon name, prob names and metabolite names must be filled in.<br>
+                Fields way of life, habitat, withdraw place, withdraw date, comments, gender, age, time after death,
+                weight, length, temperature, comment can be empty.<br>
+                Fields concentrations of metabolites may be missing in prob(use empty field for it)
+                and may have an undefined value(use 'na' for it)<br>
+
+            </p>
             {% if error %}
                 <div class="errornote">{{ error }}</div>
             {% endif %}
