@@ -11,6 +11,20 @@ logging.config.dictConfig(LOGGING)
 experiments_base_logger = logging.getLogger('django')
 
 
+def set_extra_context_args(self, request, extra_context, model_class, model_args, field_name):
+
+    d_objects = model_class.objects.filter(**model_args)
+    deleted_objects, model_count, perms_needed, protected = self.get_deleted_objects(d_objects, request)
+
+    extra_context['deleted_' + field_name] = deleted_objects
+    if extra_context.get('model_count_new', False) is False:
+        extra_context['model_count_new'] = dict(model_count).items()
+    else:
+        extra_context['model_count_new'] = {**dict(extra_context['model_count_new']), **model_count}.items()
+    extra_context[field_name + '_perms_needed'] = perms_needed
+    extra_context[field_name + '_protected'] = protected
+
+
 @admin.register(Taxon)
 class TaxonAdmin(admin.ModelAdmin):
     list_display = ('taxon_name', 'taxon_parent_name', 'is_tissue', 'view_in_popular', 'taxon_folder')
@@ -46,26 +60,11 @@ class TaxonAdmin(admin.ModelAdmin):
     def delete_view(self, request, object_id, extra_context=None):
         extra_context = extra_context or {}
 
-        experiments = Experiment.objects.filter(taxon_id=object_id)
-        deleted_objects, model_count, perms_needed, protected = self.get_deleted_objects(experiments, request)
-        extra_context['deleted_experiments'] = deleted_objects
-        extra_context['model_count_new'] = dict(model_count).items()
-        extra_context['experiments_perms_needed'] = perms_needed
-        extra_context['experiments_protected'] = protected
-
-        probs = Prob.objects.filter(experiment_id__taxon_id=object_id)
-        deleted_objects, model_count, perms_needed, protected = self.get_deleted_objects(probs, request)
-        extra_context['deleted_probs'] = deleted_objects
-        extra_context['model_count_new'] = {**dict(extra_context['model_count_new']), **model_count}.items()
-        extra_context['probs_perms_needed'] = perms_needed
-        extra_context['probs_protected'] = protected
-
-        prob_metabolites = ProbMetabolite.objects.filter(prob_id__experiment_id__taxon_id=object_id)
-        deleted_objects, model_count, perms_needed, protected = self.get_deleted_objects(prob_metabolites, request)
-        extra_context['deleted_prob_metabolites'] = deleted_objects
-        extra_context['model_count_new'] = {**dict(extra_context['model_count_new']), **model_count}.items()
-        extra_context['prob_metabolites_perms_needed'] = perms_needed
-        extra_context['prob_metabolites_protected'] = protected
+        set_extra_context_args(self, request, extra_context, Taxon, {'parent_id': object_id}, 'sub_taxons')
+        set_extra_context_args(self, request, extra_context, Experiment, {'taxon_id': object_id}, 'experiments')
+        set_extra_context_args(self, request, extra_context, Prob, {'experiment_id__taxon_id': object_id}, 'probs')
+        set_extra_context_args(self, request, extra_context, ProbMetabolite,
+                               {'prob_id__experiment_id__taxon_id': object_id}, 'prob_metabolites')
 
         return super(TaxonAdmin, self).delete_view(request, object_id, extra_context=extra_context)
 
@@ -121,12 +120,7 @@ class ProbAdmin(nested_admin.NestedModelAdmin):
     def delete_view(self, request, object_id, extra_context=None):
         extra_context = extra_context or {}
 
-        prob_metabolites = ProbMetabolite.objects.filter(prob_id=object_id)
-        deleted_objects, model_count, perms_needed, protected = self.get_deleted_objects(prob_metabolites, request)
-        extra_context['deleted_prob_metabolites'] = deleted_objects
-        extra_context['model_count_new'] = dict(model_count).items()
-        extra_context['prob_metabolites_perms_needed'] = perms_needed
-        extra_context['prob_metabolites_protected'] = protected
+        set_extra_context_args(self, request, extra_context, ProbMetabolite, {'prob_id': object_id}, 'prob_metabolites')
 
         # prob = Prob.objects.get(pk=object_id)
         # extra_context['deleted_files'] = [str(prob.prob_file)] if prob.prob_file != '' else []
@@ -193,19 +187,10 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
     def delete_view(self, request, object_id, extra_context=None):
         extra_context = extra_context or {}
 
-        probs = Prob.objects.filter(experiment_id=object_id)
-        deleted_objects, model_count, perms_needed, protected = self.get_deleted_objects(probs, request)
-        extra_context['deleted_probs'] = deleted_objects
-        extra_context['model_count_new'] = dict(model_count).items()
-        extra_context['probs_perms_needed'] = perms_needed
-        extra_context['probs_protected'] = protected
-
-        prob_metabolites = ProbMetabolite.objects.filter(prob_id__experiment_id=object_id)
-        deleted_objects, model_count, perms_needed, protected = self.get_deleted_objects(prob_metabolites, request)
-        extra_context['deleted_prob_metabolites'] = deleted_objects
-        extra_context['model_count_new'] = {**dict(extra_context['model_count_new']), **model_count}.items()
-        extra_context['prob_metabolites_perms_needed'] = perms_needed
-        extra_context['prob_metabolites_protected'] = protected
+        set_extra_context_args(self, request, extra_context, Prob, {'experiment_id': object_id},
+                               'probs')
+        set_extra_context_args(self, request, extra_context, ProbMetabolite, {'prob_id__experiment_id': object_id},
+                               'prob_metabolites')
 
         return super(ExperimentAdmin, self).delete_view(request, object_id, extra_context=extra_context)
 
@@ -235,12 +220,8 @@ class MetaboliteAdmin(admin.ModelAdmin):
     def delete_view(self, request, object_id, extra_context=None):
         extra_context = extra_context or {}
 
-        metabolite_names = MetaboliteName.objects.filter(metabolite_id=object_id)
-        deleted_objects, model_count, perms_needed, protected = self.get_deleted_objects(metabolite_names, request)
-        extra_context['deleted_metabolite_names'] = deleted_objects
-        extra_context['model_count_new'] = dict(model_count).items()
-        extra_context['metabolite_names_perms_needed'] = perms_needed
-        extra_context['metabolite_names_protected'] = protected
+        set_extra_context_args(self, request, extra_context, MetaboliteName, {'metabolite_id': object_id},
+                               'metabolite_names')
 
         return super(MetaboliteAdmin, self).delete_view(request, object_id, extra_context=extra_context)
 

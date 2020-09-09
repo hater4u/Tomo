@@ -39,6 +39,8 @@
     {% include "admin/experiments_base/taxon/includes/object_delete_summary.html" %}
     <h2>{% trans "Objects" %}</h2>
     <ul>{{ deleted_objects|unordered_list }}</ul>
+    <h2>Sub taxons</h2>
+    <ul>{{ deleted_sub_taxons|unordered_list }}</ul>
     <h2>Experiments</h2>
     <ul>{{ deleted_experiments|unordered_list }}</ul>
     <h2>Probs</h2>

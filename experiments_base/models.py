@@ -74,6 +74,9 @@ class Taxon(models.Model):
         for e in experiments:
             e.delete()
 
+        taxons = Taxon.objects.filter(parent_id=self.pk)
+        for t in taxons:
+            t.delete()
         super(Taxon, self).delete(*args, **kwargs)
 
 
