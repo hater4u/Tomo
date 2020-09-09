@@ -264,3 +264,17 @@ $(document).ready(function () {
         }
     })
 });
+
+function AddMetName2SearchField(event) {
+    let metName = event.value;
+    let searchField = document.getElementById('metaboliteNames');
+    let searchWord = searchField.value;
+
+    if (searchWord){
+        searchField.value += ' AND ' + metName;
+        searchField.innerText += ' AND ' + metName;
+    } else {
+        searchField.value = metName;
+        searchField.innerText = metName;
+    }
+}
