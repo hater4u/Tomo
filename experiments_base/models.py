@@ -60,11 +60,9 @@ class Taxon(models.Model):
 
         else:
             old_self = Taxon.objects.get(pk=self.pk)
-            old_taxon_folder = old_self.taxon_folder
-            full_path_old = str(SHARED_FILES_DIR) + '/' + get_full_path(self)
+            full_path_old = str(SHARED_FILES_DIR) + '/' + get_full_path(old_self)
             self.taxon_folder = self.taxon_name + '_' + str(self.pk)
-            # replace with right side 1 occurrence in string - need for security(can be same names of taxons)
-            full_path_new = r_replace(full_path_old, old_taxon_folder, self.taxon_folder, 1)
+            full_path_new = str(SHARED_FILES_DIR) + '/' + get_full_path(self)
 
             os.rename(full_path_old, full_path_new)
             super(Taxon, self).save(*args, **kwargs)
@@ -281,7 +279,8 @@ class Prob(models.Model):
                                             verbose_name='Time post mortem(hours)', blank=True)
 
     weight = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Weight(kg)', blank=True)
-    length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Height/length(cm)', blank=True)
+    length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Height/length(cm)',
+                               blank=True)
     temperature = models.FloatField(default=0, validators=[MinValueValidator(0)],
                                     verbose_name='Temperature(degrees Celsius)', blank=True)
 
@@ -426,5 +425,4 @@ class InterfaceName(models.Model):
 
     name = models.CharField(max_length=128, verbose_name='Name')
     value = models.CharField(max_length=128, verbose_name='Value')
-    search_name = models.CharField(max_length=64, verbose_name='Search name', unique=True)
     search_name = models.CharField(max_length=64, verbose_name='Search name', unique=True)
