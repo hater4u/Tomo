@@ -60,7 +60,10 @@
             </div>
             <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                 {% for metabolite in metabolites %}
-                    <h6><a href="{% url 'metabolite' metabolite.pk %}">{{ forloop.counter }}. {{ metabolite.metabolite_name }}</a></h6>
+                    <div>
+                        {{ forloop.counter }}. <a id="metaboliteNameForSearchField" href="{% url 'metabolite' metabolite.pk %}">{{ metabolite.metabolite_name }}</a>
+                        <button class="btn btn-primary m-2" onclick="AddMetName2SearchField(this)" value="{{ metabolite.metabolite_name }}">Add to search field</button>
+                    </div>
                 {% endfor %}
             </div>
         </div>
