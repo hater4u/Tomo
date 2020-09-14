@@ -174,7 +174,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
 
     @staticmethod
     def genders(obj):
-        gender_table = {0: 'male', 1: 'female', 2: 'other'}
+        gender_table = {0: 'male', 1: 'female', 2: 'other', '': ''}
         return ', '.join([gender_table[p.gender] for p in Prob.objects.filter(experiment_id=obj.pk)])
 
     fieldsets = (
