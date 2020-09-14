@@ -271,7 +271,8 @@ class Prob(models.Model):
     experiment_id = models.ForeignKey('experiments_base.Experiment', verbose_name='Experiment',
                                       on_delete=models.DO_NOTHING)
 
-    gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Gender', blank=True)
+    gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Gender', blank=True,
+                                 null=True)
 
     month_age = models.IntegerField(default=0, validators=[MinValueValidator(0)],
                                     verbose_name='Age(months)', blank=True)
