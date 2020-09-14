@@ -6,6 +6,7 @@ django-environ==0.4.5
 django-nested-admin==3.3.2
 idna==2.10
 psycopg2-binary==2.8.5
+PubChemPy==1.0.4
 python-monkey-business==1.0.0
 pytz==2020.1
 requests==2.24.0

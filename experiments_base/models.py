@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
+# from pubchempy import NotFoundError,
 
 from tomo.settings import SHARED_FILES_DIR, TORRENT_DIR, API_URL, API_AUTH, LOGGING
 
@@ -8,6 +9,7 @@ import os
 import requests
 import json
 import logging
+import pubchempy
 
 logging.config.dictConfig(LOGGING)
 experiments_base_logger = logging.getLogger('django')
@@ -175,8 +177,17 @@ class Metabolite(models.Model):
     # It need for adding synonym for this metabolite with the same name
     def save(self, *args, **kwargs):
         if not self.pk:
-            super(Metabolite, self).save(*args, **kwargs)
-            MetaboliteName.objects.create(metabolite_synonym=self.metabolite_name, metabolite_id=self)
+            try:
+                metabolite_synonyms_from_pubchem = pubchempy.Compound.from_cid(self.pub_chem_cid).synonyms
+                if MetaboliteName.objects.filter(metabolite_synonym__in=metabolite_synonyms_from_pubchem).exists():
+                    experiments_base_logger.error('This synonym already exist for another metabolite')
+                else:
+                    super(Metabolite, self).save(*args, **kwargs)
+                    MetaboliteName.objects.create(metabolite_synonym=self.metabolite_name, metabolite_id=self)
+                    for synonym in metabolite_synonyms_from_pubchem:
+                        MetaboliteName.objects.create(metabolite_synonym=synonym, metabolite_id=self)
+            except Exception as e:
+                experiments_base_logger.error('Metabolite synonym found error: ' + str(e))
         else:
             old_self = Metabolite.objects.get(pk=self.pk)
             metabolite_name = MetaboliteName.objects.get(metabolite_synonym=old_self.metabolite_name)
