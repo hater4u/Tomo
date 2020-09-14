@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 # from pubchempy import NotFoundError,
 
@@ -161,6 +162,17 @@ class AdditionalProperty(models.Model):
         return '{}: {}'.format(self.key, self.value)
 
 
+def validate_metabolitename_synonyms(pub_chem_cid):
+
+    synonyms = pubchempy.Compound.from_cid(pub_chem_cid).synonyms
+
+    meta_names = MetaboliteName.objects.filter(metabolite_synonym__in=synonyms)
+    if meta_names.count() > 0:
+        mess = 'MetaboliteNames(' + ', '.join([m.metabolite_synonym for m in meta_names]) + ') are already exist ' + \
+               'for another metabolites.'
+        raise ValidationError({'__all__': [mess]})
+
+
 class Metabolite(models.Model):
     class Meta:
         db_table = 'metabolites'
@@ -168,7 +180,8 @@ class Metabolite(models.Model):
         verbose_name_plural = 'metabolites'
 
     metabolite_name = models.CharField(max_length=128, verbose_name='Metabolite name(main)', unique=True)
-    pub_chem_cid = models.IntegerField(default=0, blank=True, verbose_name='PubChemCid')
+    pub_chem_cid = models.IntegerField(default=0, blank=True, verbose_name='PubChemCid',
+                                       validators=[validate_metabolitename_synonyms])
     comment = models.CharField(max_length=1024, verbose_name='Comment', blank=True)
 
     def __str__(self):
@@ -177,17 +190,7 @@ class Metabolite(models.Model):
     # It need for adding synonym for this metabolite with the same name
     def save(self, *args, **kwargs):
         if not self.pk:
-            try:
-                metabolite_synonyms_from_pubchem = pubchempy.Compound.from_cid(self.pub_chem_cid).synonyms
-                if MetaboliteName.objects.filter(metabolite_synonym__in=metabolite_synonyms_from_pubchem).exists():
-                    experiments_base_logger.error('This synonym already exist for another metabolite')
-                else:
-                    super(Metabolite, self).save(*args, **kwargs)
-                    MetaboliteName.objects.create(metabolite_synonym=self.metabolite_name, metabolite_id=self)
-                    for synonym in metabolite_synonyms_from_pubchem:
-                        MetaboliteName.objects.create(metabolite_synonym=synonym, metabolite_id=self)
-            except Exception as e:
-                experiments_base_logger.error('Metabolite synonym found error: ' + str(e))
+            super(Metabolite, self).save(*args, **kwargs)
         else:
             old_self = Metabolite.objects.get(pk=self.pk)
             metabolite_name = MetaboliteName.objects.get(metabolite_synonym=old_self.metabolite_name)

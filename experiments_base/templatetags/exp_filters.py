@@ -17,5 +17,5 @@ def habitat(value):
 
 @register.filter()
 def gender(value):
-    g = {0: 'male', 1: 'female', 2: 'other'}
+    g = {0: 'male', 1: 'female', 2: 'other', '': ' ', None: ' '}
     return g[value]
