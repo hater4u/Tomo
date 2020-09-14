@@ -5,7 +5,19 @@ $(document).ready(function(){
     // Prevent multiple submits
     if ($.data(this, 'submitted')) return false;
     // Append X-Progress-ID uuid form action
-    this.action += (this.action.indexOf('?') == -1 ? '?' : '&') + 'X-Progress-ID=' + uuid;
+    // this.action += (this.action.indexOf('?') == -1 ? '?' : '&') + 'X-Progress-ID=' + uuid;
+
+    let xuuid = 'X-Progress-ID=' + uuid;
+    if(this.action.indexOf('?') == -1) this.action += '?' + xuuid;
+    else
+    {
+      if(this.action.indexOf('X-Progress-ID=') == -1) this.action += '&' + xuuid;
+      else
+      {
+        let reg1 = new RegExp('X-Progress-ID=[A-z0-9-]{36}');
+        this.action = this.action.replace(reg1, xuuid);
+      }
+    }
     // Update progress bar
     function update_progress_info() {
       $.getJSON(upload_progress_url, {'X-Progress-ID': uuid}, function(data, status){
