@@ -416,12 +416,15 @@ class Experiment(models.Model):
         else:
             old_self = Experiment.objects.get(pk=self.pk)
             old_experiment_folder = old_self.experiment_folder
-            full_path_old = str(SHARED_FILES_DIR) + '/' + get_full_path(self.taxon_id) + '/' + self.experiment_folder
+            full_path_old = str(SHARED_FILES_DIR) + '/' + get_full_path(old_self.taxon_id) + '/' + \
+                            old_self.experiment_folder
             self.experiment_folder = self.experiment_name + '_' + str(self.pk)
             # replace with right side 1 occurrence in string - need for security(can be same names of taxons)
-            full_path_new = r_replace(full_path_old, old_experiment_folder, self.experiment_folder, 1)
+            # full_path_new = r_replace(full_path_old, old_experiment_folder, self.experiment_folder, 1)
+            full_path_new = str(SHARED_FILES_DIR) + '/' + get_full_path(self.taxon_id) + '/' + self.experiment_folder
 
             os.rename(full_path_old, full_path_new)
+
             super(Experiment, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
