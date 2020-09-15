@@ -62,7 +62,7 @@
                 </td>
             </tr>
             <tr>
-                <th>Withdraw place</th>
+                <th>Sampling place</th>
                 <td>{{ experiment.withdraw_place.withdraw_place }}</td>
             </tr>
             <tr>
@@ -70,11 +70,11 @@
                 <td>{{ experiment.created_at }}</td>
             </tr>
             <tr>
-                <th>Withdraw date</th>
+                <th>Sampling date</th>
                 <td>{% if experiment.withdraw_date %}{{ experiment.withdraw_date }}{% endif %}</td>
             </tr>
             <tr>
-                <th>Withdraw conditions</th>
+                <th>Sampling conditions</th>
                 <td>
                     {% for el in experiment.withdraw_conditions.all %}
                         {{ el.withdraw_condition }}<br>
@@ -125,13 +125,13 @@
                 <thead>
                     <tr>
                         <th>
-                            Properties\Probs <br>
+                            Properties\Samples <br>
                             <input class="prob-check-csv" type="hidden" data-id="{{ experiment.pk }}" id="pccsv-{{ experiment.pk }}">
                             <label for="pccsv-{{ experiment.pk }}" class="prob-label" hidden>Export experiment to CSV</label>
                         </th>
                         {% for prob in probs %}
                             <th>
-                                Prob {{ forloop.counter }}({{ prob.prob_name }}) <br>
+                                Sample {{ forloop.counter }}({{ prob.prob_name }}) <br>
                                 {% if prob.prob_torrent_file_nmr and prob.prob_torrent_file_nmr != 'file_error' %}
                                     <input class="prob-check-nmr" type="hidden" data-id="{{ prob.pk }}" id="pcnmr-{{ prob.pk }}">
                                     <label for="pcnmr-{{ prob.pk }}" class="prob-label" hidden>NMR</label>
@@ -157,35 +157,35 @@
                     </tr>
 
                     <tr>
-                        <th scope="row">Age(month)</th>
+                        <th scope="row">Age, month</th>
                         {% for prob in probs %}
                             <td>{{ prob.month_age }}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
-                        <th scope="row">Hours post mortem</th>
+                        <th scope="row">Time post-mortem, h</th>
                         {% for prob in probs %}
                             <td>{{ prob.hours_post_mortem }}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
-                        <th scope="row">Weight(kg)</th>
+                        <th scope="row">Weight, kg</th>
                         {% for prob in probs %}
                             <td>{{ prob.weight|floatformat:2 }}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
-                        <th scope="row">Length(cm)</th>
+                        <th scope="row">Length, cm</th>
                         {% for prob in probs %}
                             <td>{{ prob.length|floatformat:2 }}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
-                        <th scope="row">Temperature(°C)</th>
+                        <th scope="row"> Ambient t, °C</th>
                         {% for prob in probs %}
                             <td>{{ prob.temperature|floatformat:2 }}</td>
                         {% endfor %}
@@ -206,9 +206,9 @@
             <table class="table table-striped table-hover table-responsive">
                 <thead>
                     <tr>
-                        <th>Metabolites\Probs</th>
+                        <th>Metabolites\Samples</th>
                         {% for prob in probs %}
-                            <th>Prob {{ forloop.counter }}({{ prob.prob_name }})</th>
+                            <th>Sample {{ forloop.counter }}({{ prob.prob_name }})</th>
                         {% endfor %}
                     </tr>
                 </thead>

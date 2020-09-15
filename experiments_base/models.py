@@ -128,10 +128,10 @@ class Disease(models.Model):
 class WithdrawCondition(models.Model):
     class Meta:
         db_table = 'withdraw_conditions'
-        verbose_name = 'withdraw condition'
-        verbose_name_plural = 'withdraw conditions'
+        verbose_name = 'sampling condition'
+        verbose_name_plural = 'sampling conditions'
 
-    withdraw_condition = models.CharField(max_length=256, verbose_name='Withdraw condition')
+    withdraw_condition = models.CharField(max_length=256, verbose_name='Sampling condition')
 
     def __str__(self):
         return self.withdraw_condition
@@ -140,10 +140,10 @@ class WithdrawCondition(models.Model):
 class WithdrawPlace(models.Model):
     class Meta:
         db_table = 'withdraw_places'
-        verbose_name = 'withdraw place'
-        verbose_name_plural = 'withdraw places'
+        verbose_name = 'sampling place'
+        verbose_name_plural = 'sampling places'
 
-    withdraw_place = models.CharField(max_length=256, verbose_name='Withdraw place')
+    withdraw_place = models.CharField(max_length=256, verbose_name='Sampling place')
 
     def __str__(self):
         return self.withdraw_place
@@ -179,8 +179,8 @@ class Metabolite(models.Model):
         verbose_name = 'metabolite'
         verbose_name_plural = 'metabolites'
 
-    metabolite_name = models.CharField(max_length=128, verbose_name='Metabolite name(main)', unique=True)
-    pub_chem_cid = models.IntegerField(default=0, blank=True, verbose_name='PubChemCid',
+    metabolite_name = models.CharField(max_length=128, verbose_name='AMDB metabolite name', unique=True)
+    pub_chem_cid = models.IntegerField(default=0, blank=True, verbose_name='PubChem ID',
                                        validators=[validate_metabolitename_synonyms])
     comment = models.CharField(max_length=1024, verbose_name='Comment', blank=True)
 
@@ -232,7 +232,7 @@ class ProbMetabolite(models.Model):
     metabolite_id = models.ForeignKey('experiments_base.Metabolite', verbose_name='Metabolite',
                                       on_delete=models.DO_NOTHING)
     concentration = models.FloatField(default=0, validators=[MinValueValidator(0)],
-                                      verbose_name='Concentration(nmol/g)', null=True, blank=True)
+                                      verbose_name='Concentration, nmol/g)', null=True, blank=True)
 
     def __str__(self):
         return '{}({} nmol/g)'.format(self.metabolite_id.metabolite_name, self.concentration)
@@ -278,10 +278,10 @@ def start_torrent(torrent_path):
 class Prob(models.Model):
     class Meta:
         db_table = 'probs'
-        verbose_name = 'prob'
-        verbose_name_plural = 'probs'
+        verbose_name = 'sample'
+        verbose_name_plural = 'samples'
 
-    prob_name = models.CharField(max_length=128, verbose_name='Prob name')
+    prob_name = models.CharField(max_length=128, verbose_name='Sample name')
     experiment_id = models.ForeignKey('experiments_base.Experiment', verbose_name='Experiment',
                                       on_delete=models.DO_NOTHING)
 
@@ -289,15 +289,15 @@ class Prob(models.Model):
                                  null=True)
 
     month_age = models.IntegerField(default=0, validators=[MinValueValidator(0)],
-                                    verbose_name='Age(months)', blank=True)
+                                    verbose_name='Age, Months', blank=True)
     hours_post_mortem = models.IntegerField(default=0, validators=[MinValueValidator(0)],
-                                            verbose_name='Time post mortem(hours)', blank=True)
+                                            verbose_name='Time post-mortem, h', blank=True)
 
-    weight = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Weight(kg)', blank=True)
-    length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Height/length(cm)',
+    weight = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Weight, kg', blank=True)
+    length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Length, cm',
                                blank=True)
     temperature = models.FloatField(default=0, validators=[MinValueValidator(0)],
-                                    verbose_name='Temperature(degrees Celsius)', blank=True)
+                                    verbose_name='Ambient t, °C', blank=True)
 
     comment = models.CharField(max_length=1024, verbose_name='Comment', blank=True)
 
@@ -306,10 +306,12 @@ class Prob(models.Model):
                get_full_path(self.experiment_id.taxon_id) + '/' + \
                self.experiment_id.experiment_folder + '/' + file_name
 
-    prob_file_nmr = models.FileField(upload_to=get_upload_path, default='', max_length=1024, blank=True)
+    prob_file_nmr = models.FileField(upload_to=get_upload_path, default='', max_length=1024,
+                                     verbose_name='Raw data NMR', blank=True)
     prob_torrent_file_nmr = models.FileField(default='', max_length=1024, blank=True)
 
-    prob_file_ms = models.FileField(upload_to=get_upload_path, default='', max_length=1024, blank=True)
+    prob_file_ms = models.FileField(upload_to=get_upload_path, default='', max_length=1024,
+                                    verbose_name='Raw data MS', blank=True)
     prob_torrent_file_ms = models.FileField(default='', max_length=1024, blank=True)
 
     def save(self, *args, **kwargs):
@@ -389,11 +391,11 @@ class Experiment(models.Model):
     environmental_factors = models.ManyToManyField(EnvironmentalFactor, verbose_name='Environmental factors',
                                                    blank=True)
     diseases = models.ManyToManyField(Disease, verbose_name='Diseases', blank=True)
-    withdraw_conditions = models.ManyToManyField(WithdrawCondition, verbose_name='Withdraw conditions', blank=True)
+    withdraw_conditions = models.ManyToManyField(WithdrawCondition, verbose_name='Sampling conditions', blank=True)
 
-    withdraw_place = models.ForeignKey('experiments_base.WithdrawPlace', verbose_name='Withdraw place',
+    withdraw_place = models.ForeignKey('experiments_base.WithdrawPlace', verbose_name='Sampling place',
                                        on_delete=models.DO_NOTHING, blank=True, null=True)
-    withdraw_date = models.DateTimeField(default=timezone.now, verbose_name='Withdraw date', blank=True, null=True)
+    withdraw_date = models.DateTimeField(default=timezone.now, verbose_name='Sampling date', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
 
     comments = models.CharField(max_length=1024, verbose_name='Comments', blank=True)
