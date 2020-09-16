@@ -111,7 +111,7 @@ class ProbAdmin(nested_admin.NestedModelAdmin):
             for o in obj.all():
                 o.delete()
 
-    delete_model.short_description = 'Delete selected probs'
+    delete_model.short_description = 'Delete selected samples'
 
     @staticmethod
     def experiment_name(obj):
@@ -195,13 +195,25 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
         return super(ExperimentAdmin, self).delete_view(request, object_id, extra_context=extra_context)
 
 
+@admin.register(MetaboliteName)
+class MetaboliteNameAdmin(nested_admin.NestedModelAdmin):
+    list_display = ('metabolite_synonym', 'metabolite_id',)
+    ordering = ('metabolite_id',)
+
+
+class MetaboliteNameAdminInline(nested_admin.NestedTabularInline):
+    model = MetaboliteName
+    extra = 0
+
+
 @admin.register(Metabolite)
-class MetaboliteAdmin(admin.ModelAdmin):
+class MetaboliteAdmin(nested_admin.NestedModelAdmin):
     delete_confirmation_template = 'admin/experiments_base/metabolite/delete_confirmation.html'
 
     list_display = ('metabolite_name', 'pub_chem_cid', 'comment', 'pk',)
     ordering = ('metabolite_name',)
     actions = ['delete_model']
+    inlines = (MetaboliteNameAdminInline, )
 
     def get_actions(self, request):
         actions = super(MetaboliteAdmin, self).get_actions(request)
@@ -224,12 +236,6 @@ class MetaboliteAdmin(admin.ModelAdmin):
                                'metabolite_names')
 
         return super(MetaboliteAdmin, self).delete_view(request, object_id, extra_context=extra_context)
-
-
-@admin.register(MetaboliteName)
-class MetaboliteNameAdmin(admin.ModelAdmin):
-    list_display = ('metabolite_synonym', 'metabolite_id',)
-    ordering = ('metabolite_id',)
 
 
 @admin.register(EnvironmentalFactor)

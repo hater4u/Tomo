@@ -225,8 +225,8 @@ class MetaboliteName(models.Model):
 class ProbMetabolite(models.Model):
     class Meta:
         db_table = 'prob_metabolites'
-        verbose_name = 'prob metabolite'
-        verbose_name_plural = 'prob metabolites'
+        verbose_name = 'sample metabolite'
+        verbose_name_plural = 'sample metabolites'
 
     prob_id = models.ForeignKey('experiments_base.Prob', verbose_name='Prob', on_delete=models.DO_NOTHING)
     metabolite_id = models.ForeignKey('experiments_base.Metabolite', verbose_name='Metabolite',
