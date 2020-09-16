@@ -1,6 +1,9 @@
 {% if authenticated %}
     <div class="row float-sm-left float-md-right">
         <span class="col mt-2 ml-3 text-center ">{{ nickname }}</span>
+        {% if user_auth %}
+        <a href="/admin/" class="btn btn-success col mb-2 mr-2 pr-5 text-nowrap">Control Panel</a>
+        {% endif %}
         <a href="{% url 'logout' %}" class="btn btn-primary col mb-2 mr-2 pr-3 text-nowrap">Log out</a>
     </div>
 

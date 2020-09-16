@@ -133,6 +133,28 @@ function getFunctionForUnselect(checkClassNMR, checkClassMS, checkClassCSV)
     }
 }
 
+function functionForCancel(checkClassNMR, checkClassMS, checkClassCSV, labelClass) {
+    let classNmr = checkClassNMR, classMs = checkClassMS, classCSV = checkClassCSV, labelCl = labelClass;
+    let trs = document.getElementsByClassName(classNmr);
+    for(let item of trs) {
+        item.hidden = true;
+    }
+
+    trs = document.getElementsByClassName(classMs);
+    for(let item of trs) {
+        item.hidden = true;
+    }
+
+    trs = document.getElementsByClassName(classCSV);
+    for(let item of trs) {
+        item.hidden = true;
+    }
+
+    trs = document.getElementsByClassName(labelCl);
+    for(let item of trs) {
+        item.hidden = true;
+    }
+}
 
 function addCheckboxAndButton(element)
 {
@@ -172,36 +194,59 @@ function addCheckboxAndButton(element)
 
     let unselectButton = document.createElement('button');
     unselectButton.classList.add('btn');
-    unselectButton.classList.add('btn-danger');
+    unselectButton.classList.add('btn-secondary');
     unselectButton.classList.add('m-2');
     unselectButton.classList.add('unselect-button');
     unselectButton.onclick = getFunctionForUnselect(checkClassNMR, checkClassMS, checkClassCSV);
     unselectButton.innerText = 'Unselect';
 
+    let cancelB = document.getElementsByClassName('cancel-button')[0];
+    if (cancelB) cancelB.remove();
+
+    let cancelButton = document.createElement('button');
+    cancelButton.classList.add('btn');
+    cancelButton.classList.add('btn-danger');
+    cancelButton.classList.add('m-2');
+    cancelButton.classList.add('cancel-button');
+    cancelButton.innerText = 'Cancel';
+
     document.getElementsByClassName('adding-button')[0].after(unselectButton);
-    document.getElementsByClassName('unselect-button')[0].after(downloadButton);
+    document.getElementsByClassName('unselect-button')[0].after(cancelButton);
+    document.getElementsByClassName('cancel-button')[0].after(downloadButton);
 
     let trs = document.getElementsByClassName(checkClassNMR);
     for(let item of trs) {
         item.type = 'checkbox';
         item.checked = 'true';
+        item.hidden = false;
     }
 
     trs = document.getElementsByClassName(checkClassMS);
     for(let item of trs) {
         item.type = 'checkbox';
         item.checked = 'true';
+        item.hidden = false;
     }
 
     trs = document.getElementsByClassName(checkClassCSV);
     for(let item of trs) {
         item.type = 'checkbox';
         item.checked = 'true';
+        item.hidden = false;
     }
 
     trs = document.getElementsByClassName(labelClass);
     for(let item of trs) {
         item.hidden = false;
+    }
+
+    cancelButton.onclick = function () {
+        let someFunc = getFunctionForUnselect(checkClassNMR, checkClassMS, checkClassCSV);
+        someFunc();
+        functionForCancel(checkClassNMR, checkClassMS, checkClassCSV, labelClass);
+        downloadButton.remove();
+        unselectButton.remove();
+        cancelButton.remove();
     }
 }
 
@@ -278,3 +323,7 @@ function AddMetName2SearchField(event) {
         searchField.innerText = metName;
     }
 }
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})

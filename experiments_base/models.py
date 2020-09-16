@@ -213,9 +213,9 @@ class MetaboliteName(models.Model):
         verbose_name = 'metabolite name'
         verbose_name_plural = 'metabolite names'
 
-    metabolite_synonym = models.CharField(max_length=128, verbose_name='Synonym for main metabolite name')
+    metabolite_synonym = models.CharField(max_length=128, verbose_name='Synonym for AMDB metabolite')
     metabolite_id = models.ForeignKey('experiments_base.Metabolite',
-                                      verbose_name='The metabolite for which we add a synonymous name',
+                                      verbose_name='Parent AMDB Metabolite',
                                       on_delete=models.DO_NOTHING)
 
     def __str__(self):

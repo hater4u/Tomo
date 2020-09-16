@@ -5,6 +5,11 @@
 
 <main class="container">
     <br>
+    {% if user_auth %}
+    <div>
+        <a href="/admin/experiments_base/metabolite/{{ metabolite.pk }}/change/" class="btn btn-warning mb-2">Change metabolite</a>
+    </div>
+    {% endif %}
 
     {% if error %}
     <h5 class="alert alert-danger">

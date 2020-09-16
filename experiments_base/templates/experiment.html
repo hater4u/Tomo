@@ -33,16 +33,27 @@
                 <th>{{ interface_experiment_name }}</th>
                 <td>{{ experiment.experiment_name }}</td>
             </tr>
+            {% if experiment.taxon_id.is_tissue %}
+            <tr>
+                <th>Tissue</th>
+                <td>{{ experiment.taxon_id.taxon_name }}</td>
+            </tr>
+            <tr>
+                <th>{{ interface_taxon_name }}</th>
+                <td>{{ experiment.taxon_id.parent_id.taxon_name }}</td>
+            </tr>
+            {% else %}
             <tr>
                 <th>{{ interface_taxon_name }}</th>
                 <td>{{ experiment.taxon_id.taxon_name }}</td>
             </tr>
+            {% endif %}
             <tr>
-                <th>{{ interface_way_of_life }}</th>
+                <th data-toggle="tooltip" title="Diurnal, Nocturnal, Twilight, Not specified">{{ interface_way_of_life }}</th>
                 <td>{{ experiment.way_of_life|way_of_life }}</td>
             </tr>
             <tr>
-                <th>{{ interface_habitat }}</th>
+                <th data-toggle="tooltip" title="Wild, Laboratory, Farm, Other, Not specified">{{ interface_habitat }}</th>
                 <td>{{ experiment.habitat|habitat }}</td>
             </tr>
             <tr>
@@ -131,7 +142,7 @@
                         </th>
                         {% for prob in probs %}
                             <th>
-                                Sample {{ forloop.counter }}({{ prob.prob_name }}) <br>
+                                {{ prob.prob_name }} <br>
                                 {% if prob.prob_torrent_file_nmr and prob.prob_torrent_file_nmr != 'file_error' %}
                                     <input class="prob-check-nmr" type="hidden" data-id="{{ prob.pk }}" id="pcnmr-{{ prob.pk }}">
                                     <label for="pcnmr-{{ prob.pk }}" class="prob-label" hidden>NMR</label>
@@ -150,7 +161,7 @@
                 <tbody>
 
                     <tr>
-                        <th scope="row">{{ interface_gender }}</th>
+                        <th data-toggle="tooltip" title="Male, Female, Not specified" scope="row">{{ interface_gender }}</th>
                         {% for prob in probs %}
                             <td>{{ prob.gender|gender }}</td>
                         {% endfor %}
