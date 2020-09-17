@@ -177,7 +177,7 @@
                     <tr>
                         <th scope="row">Time post-mortem, h</th>
                         {% for prob in probs %}
-                            <td>{{ prob.hours_post_mortem }}</td>
+                            <td>{{ prob.hours_post_mortem|floatformat:2 }}</td>
                         {% endfor %}
                     </tr>
 

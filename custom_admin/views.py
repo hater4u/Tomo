@@ -294,9 +294,9 @@ def check_csv_data(csv_dict):
     probs = []
     fields = {'gender': 'checkbox', 'month_age': 'number', 'hours_post_mortem': 'number', 'weight': 'number',
               'length': 'number', 'temperature': 'number'}
-    field_args = {'gender': {'list_of_values': ['', 'male', 'female', 'other']},
+    field_args = {'gender': {'list_of_values': ['', 'male', 'female', 'not specified']},
                   'month_age': {'is_int': True},
-                  'hours_post_mortem': {'is_int': True},
+                  'hours_post_mortem': {'is_int': False},
                   'weight': {'is_int': False},
                   'length': {'is_int': False},
                   'temperature': {'is_int': False}}
@@ -435,7 +435,7 @@ def create_experiment_dict(exp):
 
 
 def create_prob_dict(prob, exp):
-    gender = {'male': 0, 'female': 1, 'other': 2}
+    gender = {'male': 0, 'female': 1, 'not specified': 2}
 
     try:
         prob['prob_name'] = prob['name']
@@ -447,7 +447,7 @@ def create_prob_dict(prob, exp):
         else:
             prob.pop('gender')
 
-        is_int = {'month_age': True, 'hours_post_mortem': True,
+        is_int = {'month_age': True, 'hours_post_mortem': False,
                   'weight': False, 'length': False, 'temperature': False}
         for field, is_int in is_int.items():
             if prob[field] == '':

@@ -98,7 +98,7 @@ class Habitat(models.IntegerChoices):
 class Gender(models.IntegerChoices):
     MALE = 0, 'male'
     FEMALE = 1, 'female'
-    OTHER = 2, 'other'
+    OTHER = 2, 'not specified'
 
 
 class EnvironmentalFactor(models.Model):
@@ -173,6 +173,27 @@ def validate_metabolitename_synonyms(pub_chem_cid):
         raise ValidationError({'__all__': [mess]})
 
 
+def is_number(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
+def validate_pub_chem_cid(value):
+
+    if value >= 0:
+        if Metabolite.objects.filter(pub_chem_cid=value).exists():
+            mess = 'Metabolite with this PUBCHEM ID already exist.'
+        else:
+            return
+    else:
+        mess = 'Negative number.'
+
+    raise ValidationError(mess)
+
+
 class Metabolite(models.Model):
     class Meta:
         db_table = 'metabolites'
@@ -180,8 +201,10 @@ class Metabolite(models.Model):
         verbose_name_plural = 'metabolites'
 
     metabolite_name = models.CharField(max_length=128, verbose_name='AMDB metabolite name', unique=True)
-    pub_chem_cid = models.IntegerField(default=0, blank=True, verbose_name='PubChem ID',
-                                       validators=[validate_metabolitename_synonyms])
+    pub_chem_cid = models.IntegerField(blank=True, null=True, unique=True, verbose_name='PubChem ID',
+                                       validators=[validate_pub_chem_cid])
+    hmdb_id = models.CharField(max_length=128, verbose_name='HMDB ID', blank=True, null=True, unique=True)
+    iupac_name = models.CharField(max_length=128, verbose_name='IUPAC name', blank=True, null=True, unique=True)
     comment = models.CharField(max_length=1024, verbose_name='Comment', blank=True)
 
     def __str__(self):
@@ -191,11 +214,15 @@ class Metabolite(models.Model):
     def save(self, *args, **kwargs):
         if not self.pk:
             super(Metabolite, self).save(*args, **kwargs)
+            MetaboliteName.objects.create(metabolite_synonym=self.metabolite_name, metabolite_id=self)
         else:
             old_self = Metabolite.objects.get(pk=self.pk)
-            metabolite_name = MetaboliteName.objects.get(metabolite_synonym=old_self.metabolite_name)
-            metabolite_name.metabolite_synonym = self.metabolite_name
-            metabolite_name.save()
+            try:
+                metabolite_name = MetaboliteName.objects.get(metabolite_synonym=old_self.metabolite_name)
+                metabolite_name.metabolite_synonym = self.metabolite_name
+                metabolite_name.save()
+            except Exception as e:
+                experiments_base_logger.error('Saving metabolite: ' + str(e) + '\nField without MetaboliteName ?')
             super(Metabolite, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
@@ -290,8 +317,8 @@ class Prob(models.Model):
 
     month_age = models.IntegerField(default=0, validators=[MinValueValidator(0)],
                                     verbose_name='Age, Months', blank=True)
-    hours_post_mortem = models.IntegerField(default=0, validators=[MinValueValidator(0)],
-                                            verbose_name='Time post-mortem, h', blank=True)
+    hours_post_mortem = models.FloatField(default=0, validators=[MinValueValidator(0)],
+                                          verbose_name='Time post-mortem, h', blank=True)
 
     weight = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Weight, kg', blank=True)
     length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Length, cm',
