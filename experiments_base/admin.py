@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 import nested_admin
 from .models import Taxon, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName
 from .models import EnvironmentalFactor, Disease, WithdrawCondition, WithdrawPlace, AdditionalProperty
@@ -69,19 +69,20 @@ class TaxonAdmin(admin.ModelAdmin):
         return super(TaxonAdmin, self).delete_view(request, object_id, extra_context=extra_context)
 
 
-@admin.register(ProbMetabolite)
-class ProbMetaboliteAdmin(nested_admin.NestedModelAdmin):
-    list_display = ('metabolite_name', 'concentration')
-    ordering = ('metabolite_id',)
-
-    @staticmethod
-    def metabolite_name(obj):
-        return '{}'.format(obj.metabolite_id.metabolite_name)
+# @admin.register(ProbMetabolite)
+# class ProbMetaboliteAdmin(nested_admin.NestedModelAdmin):
+#     list_display = ('metabolite_name', 'concentration')
+#     ordering = ('metabolite_id',)
+#
+#     @staticmethod
+#     def metabolite_name(obj):
+#         return '{}'.format(obj.metabolite_id.metabolite_name)
 
 
 class ProbMetaboliteAdminInline(nested_admin.NestedTabularInline):
     model = ProbMetabolite
     extra = 0
+    list_display = ('metabolite_name', 'concentration')
 
 
 @admin.register(Prob)
@@ -146,7 +147,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
     change_form_template = 'progressbar_upload/change_form.html'
     add_form_template = 'progressbar_upload/change_form.html'
 
-    list_display = ('experiment_name', 'taxon_id', 'way_of_life', 'habitat', 'genders',
+    list_display = ('experiment_name', 'taxon_id', 'samples_number', 'way_of_life', 'habitat', 'genders',
                     'withdraw_place', 'created_at', 'withdraw_date', 'experiment_folder')
 
     ordering = ('experiment_name',)
@@ -175,7 +176,11 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
     @staticmethod
     def genders(obj):
         gender_table = {0: 'male', 1: 'female', 2: 'not specified', '': ' ', None: ' '}
-        return ', '.join([gender_table[p.gender] for p in Prob.objects.filter(experiment_id=obj.pk)])
+        return ', '.join(set([gender_table[p.gender] for p in Prob.objects.filter(experiment_id=obj.pk)]))
+
+    @staticmethod
+    def samples_number(obj):
+        return Prob.objects.filter(experiment_id=obj.pk).count()
 
     fieldsets = (
         (None, {'fields': ('experiment_name', 'taxon_id')}),
@@ -210,10 +215,14 @@ class MetaboliteNameAdminInline(nested_admin.NestedTabularInline):
 class MetaboliteAdmin(nested_admin.NestedModelAdmin):
     delete_confirmation_template = 'admin/experiments_base/metabolite/delete_confirmation.html'
 
-    list_display = ('metabolite_name', 'pub_chem_cid', 'comment', 'pk',)
+    list_display = ('metabolite_name', 'pub_chem_cid', 'samples_number', 'comment', 'pk',)
     ordering = ('metabolite_name',)
     actions = ['delete_model']
     inlines = (MetaboliteNameAdminInline, )
+
+    @staticmethod
+    def samples_number(obj):
+        return ProbMetabolite.objects.filter(metabolite_id=obj.pk).count()
 
     def get_actions(self, request):
         actions = super(MetaboliteAdmin, self).get_actions(request)
@@ -222,10 +231,36 @@ class MetaboliteAdmin(nested_admin.NestedModelAdmin):
 
     def delete_model(self, request, obj):
         if isinstance(obj, Metabolite):
-            obj.delete()
+            count = ProbMetabolite.objects.filter(metabolite_id=obj.pk).count()
+            if count > 0:
+                messages.set_level(request, messages.ERROR)
+                message = "You cant delete metabolite with samples references({}) on it".format(count)
+                self.message_user(request, message, level=messages.ERROR)
+            else:
+                obj.delete()
         else:
+            messages.set_level(request, messages.ERROR)
+            bad_metabolites = []
+
             for o in obj.all():
+
+                count = ProbMetabolite.objects.filter(metabolite_id=o.pk).count()
+                if count > 0:
+                    bad_metabolites.append(o.metabolite_name)
+                    continue
+
                 o.delete()
+
+            if bad_metabolites:
+                message = "Some metabolites({}) wasn't delete. " \
+                          "They have samples references.".format(', '.join(bad_metabolites))
+                self.message_user(request, message, level=messages.ERROR)
+
+    # def has_delete_permission(self, request, obj):
+    #     if ProbMetabolite.objects.filter(metabolite_id=obj.pk).count() > 0:
+    #         return False
+    #     else:
+    #         return True
 
     delete_model.short_description = 'Delete selected metabolites'
 

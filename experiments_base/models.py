@@ -184,10 +184,7 @@ def is_number(value):
 def validate_pub_chem_cid(value):
 
     if value >= 0:
-        if Metabolite.objects.filter(pub_chem_cid=value).exists():
-            mess = 'Metabolite with this PUBCHEM ID already exist.'
-        else:
-            return
+        return
     else:
         mess = 'Negative number.'
 
@@ -315,16 +312,19 @@ class Prob(models.Model):
     gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Gender', blank=True,
                                  null=True)
 
-    month_age = models.IntegerField(default=0, validators=[MinValueValidator(0)],
-                                    verbose_name='Age, Months', blank=True)
-    hours_post_mortem = models.FloatField(default=0, validators=[MinValueValidator(0)],
-                                          verbose_name='Time post-mortem, h', blank=True)
+    month_age = models.IntegerField(default=None, validators=[MinValueValidator(0)],
+                                    verbose_name='Age, Months', blank=True, null=True)
+    hours_post_mortem = models.FloatField(default=None, validators=[MinValueValidator(0)],
+                                          verbose_name='Time post-mortem, h', blank=True, null=True)
 
-    weight = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Weight, kg', blank=True)
-    length = models.FloatField(default=0, validators=[MinValueValidator(0)], verbose_name='Length, cm',
-                               blank=True)
-    temperature = models.FloatField(default=0, validators=[MinValueValidator(0)],
-                                    verbose_name='Ambient t, °C', blank=True)
+    weight = models.FloatField(default=None, validators=[MinValueValidator(0)], verbose_name='Species weight, kg',
+                               blank=True, null=True)
+    tissue_weight = models.FloatField(default=None, validators=[MinValueValidator(0)], verbose_name='Tissue weight, mg',
+                                      blank=True, null=True)
+    length = models.FloatField(default=None, validators=[MinValueValidator(0)], verbose_name='Length, cm',
+                               blank=True, null=True)
+    temperature = models.FloatField(default=None, validators=[MinValueValidator(0)],
+                                    verbose_name='Ambient t, °C', blank=True, null=True)
 
     comment = models.CharField(max_length=1024, verbose_name='Comment', blank=True)
 

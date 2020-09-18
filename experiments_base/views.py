@@ -435,7 +435,7 @@ def create_csv_experiment_file(exp_id, folder):
 
     ways_o_life = ['diurnal', 'nocturnal', 'twilight', 'other']
     habitats = ['wild', 'laboratory', 'farm', 'other']
-    genders = ['male', 'female', 'other']
+    genders = ['male', 'female', 'not specified']
 
     data = []
     exp_header = ['Имя эксперимента', 'Имя таксона', 'Way of life(diurnal, nocturnal,\ntwilight, other)',
