@@ -27,7 +27,7 @@ experiments_base_logger = logging.getLogger('django')
 
 
 def index(request):
-    return redirect('taxa')
+    return redirect('taxa/')
 
 
 def login(request):

@@ -133,6 +133,7 @@ USE_L10N = False
 
 USE_TZ = True
 DATETIME_FORMAT = 'd F o G:i'
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
