@@ -1,8 +1,8 @@
-Имя эксперимента;Имя таксона;Way of life(diurnal, nocturnal, twilight, other);Habitat(wild, laboratory, farm, other);Withdraw place;"Withdraw date Формат ""21.11.06 16:30""";Comments
+Имя эксперимента;Имя таксона;Way of life(diurnal, nocturnal, twilight, not specified);Habitat(wild, laboratory, farm, not specified);Withdraw place;"Withdraw date Формат ""21.11.06 16:30""";Comments
 exp1;Child1;diurnal;wild;Some place;21.11.06 16:30;experiment template
 ;;;;;;
 Имена проб;Имя пробы 1;Имя пробы 2;Имя пробы 3;;;
-Пол(male, female, other);male;female;other;;;
+Пол(male, female, not specified);male;female;not specified;;;
 Возраст(месяцы);1;2;3;;;
 Время после смерти(часы);2;3;4;;;
 Вес(кг);3,5;4,5;5,5;;;

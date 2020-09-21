@@ -6,9 +6,9 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('taxons/', views.taxons, name='taxons'),
+    path('taxa/', views.taxa, name='taxons'),
     path('taxon/search/', views.taxon_search, name='taxon_search'),
-    path('taxons/<slug:taxon_id>/', views.taxons_id, name='taxons_id'),
+    path('taxa/<slug:taxon_id>/', views.taxa_id, name='taxons_id'),
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
     path('403/', views.page_403, name='page_403'),

@@ -23,7 +23,7 @@ function createChildren() {
     //         '" class="badge badge-pill badge-primary"><h6>' +  children[i].name + '</h6></div>';
     // }
     for(let i = 0; i < children.length; i++) {
-        el.innerHTML += '<div onclick="addParentId(this)" class="badge badge-pill badge-primary"><h6>' +
+        el.innerHTML += '<div onclick="addParentId(this)" class="badge badge-pill badge-primary pt-2"><h6>' +
             children[i] + '</h6></div>';
     }
 
@@ -198,7 +198,7 @@ function addCheckboxAndButton(element)
     unselectButton.classList.add('m-2');
     unselectButton.classList.add('unselect-button');
     unselectButton.onclick = getFunctionForUnselect(checkClassNMR, checkClassMS, checkClassCSV);
-    unselectButton.innerText = 'Unselect';
+    unselectButton.innerText = 'Unselect all';
 
     let cancelB = document.getElementsByClassName('cancel-button')[0];
     if (cancelB) cancelB.remove();

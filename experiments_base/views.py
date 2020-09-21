@@ -42,7 +42,7 @@ def login(request):
 
         if user is not None:
             auth.login(request, user)
-            return redirect('taxons')
+            return redirect('index')
 
         else:
             args['login_error'] = 'User is not found'
@@ -167,7 +167,6 @@ def get_taxon_and_sub_taxon_experiments(taxon_id):
     all_experiments = []
     for el in all_sub_taxons:
         all_experiments += Experiment.objects.filter(taxon_id=el.pk)
-
     return all_experiments
 
 
@@ -186,7 +185,7 @@ def get_taxon_children(taxon_id):
                            'color': '#00ff00'} for exp in exps]
 
                 children_list.append({'text': ch.taxon_name,
-                                      'href': '/taxons/' + str(ch.pk),
+                                      'href': '/taxa/' + str(ch.pk),
                                       'color': '#ff0000' if ch.is_tissue else '#428bca',
                                       'nodes': nodes})
         return children_list
@@ -194,7 +193,7 @@ def get_taxon_children(taxon_id):
         return []
 
 
-def taxons_id(request, taxon_id):
+def taxa_id(request, taxon_id):
     args = dict()
     args.update(csrf(request))
     args = check_auth_user(request, args)
@@ -219,8 +218,8 @@ def taxons_id(request, taxon_id):
     return render(request, 'taxons.html', args)
 
 
-def taxons(request):
-    return taxons_id(request, '')
+def taxa(request):
+    return taxa_id(request, '')
 
 
 def taxon_search(request):
@@ -239,7 +238,7 @@ def taxon_search(request):
         else:
             return JsonResponse({'results': []})
     else:
-        return redirect('taxons')
+        return redirect('taxa')
 
 
 def get_ordered_dict_of_metabolites(probs):

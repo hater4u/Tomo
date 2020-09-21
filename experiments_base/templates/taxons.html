@@ -32,12 +32,12 @@
         {% if index_taxons %}
             {{ interface_taxons_page_popular_taxons }}:
             {% for el in popular_taxons %}
-                <a href="{% url 'taxons_id' el.pk %}" class="badge badge-pill badge-primary"><h6>{{ el.taxon_name }}</h6></a>
+                <a href="{% url 'taxons_id' el.pk %}" class="badge badge-pill badge-primary pt-2"><h6>{{ el.taxon_name }}</h6></a>
             {% endfor %}
         {% else %}
             {{ interface_taxons_page_children}}:
             {% for el in children %}
-                <a href="{% url 'taxons_id' el.pk %}" class="badge badge-pill badge-primary"><h6>{{ el.taxon_name }}</h6></a>
+                <a href="{% url 'taxons_id' el.pk %}" class="badge badge-pill badge-primary pt-2"><h6>{{ el.taxon_name }}</h6></a>
             {% endfor %}
         {% endif %}
     </div>

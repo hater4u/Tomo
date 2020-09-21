@@ -32,12 +32,12 @@ class Taxon(models.Model):
     class Meta:
         db_table = 'taxons'
         verbose_name = 'taxon'
-        verbose_name_plural = 'taxons'
+        verbose_name_plural = 'taxa'
 
     taxon_name = models.CharField(max_length=128, verbose_name='Taxon name')
     parent_id = models.ForeignKey('self', null=True, blank=True, verbose_name='Taxon parent',
                                   on_delete=models.DO_NOTHING)
-    view_in_popular = models.BooleanField(default=False, verbose_name='Display in popular taxons')
+    view_in_popular = models.BooleanField(default=False, verbose_name='Display in popular taxa')
     is_tissue = models.BooleanField(default=False, verbose_name='Tissue')
 
     taxon_folder = models.CharField(default='old_taxon', max_length=128, verbose_name='Taxon folder')
