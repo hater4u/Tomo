@@ -33,21 +33,14 @@
                 <th>{{ interface_experiment_name }}</th>
                 <td>{{ experiment.experiment_name }}</td>
             </tr>
-            {% if experiment.taxon_id.is_tissue %}
+            <tr>
+                <th>{{ interface_taxon_name }}</th>
+                <td>{{ experiment.taxon_id.taxon_name }}</td>
+            </tr>
             <tr>
                 <th>Tissue</th>
-                <td>{{ experiment.taxon_id.taxon_name }}</td>
+                <td>{{ experiment.tissue.name }}</td>
             </tr>
-            <tr>
-                <th>{{ interface_taxon_name }}</th>
-                <td>{{ experiment.taxon_id.parent_id.taxon_name }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <th>{{ interface_taxon_name }}</th>
-                <td>{{ experiment.taxon_id.taxon_name }}</td>
-            </tr>
-            {% endif %}
             <tr>
                 <th data-toggle="tooltip" title="Diurnal, Nocturnal, Twilight, Not specified">{{ interface_way_of_life }}</th>
                 <td>{{ experiment.way_of_life|way_of_life }}</td>

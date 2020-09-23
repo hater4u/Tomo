@@ -38,7 +38,6 @@ class Taxon(models.Model):
     parent_id = models.ForeignKey('self', null=True, blank=True, verbose_name='Taxon parent',
                                   on_delete=models.DO_NOTHING)
     view_in_popular = models.BooleanField(default=False, verbose_name='Display in popular taxa')
-    is_tissue = models.BooleanField(default=False, verbose_name='Tissue')
 
     taxon_folder = models.CharField(default='old_taxon', max_length=128, verbose_name='Taxon folder')
 
@@ -147,6 +146,18 @@ class WithdrawPlace(models.Model):
 
     def __str__(self):
         return self.withdraw_place
+
+
+class Tissue(models.Model):
+    class Meta:
+        db_table = 'tissues'
+        verbose_name = 'tissue'
+        verbose_name_plural = 'tissues'
+
+    name = models.CharField(max_length=256, verbose_name='Tissue')
+
+    def __str__(self):
+        return self.name
 
 
 class AdditionalProperty(models.Model):
@@ -409,6 +420,8 @@ class Experiment(models.Model):
 
     experiment_name = models.CharField(max_length=128, verbose_name='Experiment name')
     taxon_id = models.ForeignKey('experiments_base.Taxon', verbose_name='Taxon', on_delete=models.DO_NOTHING)
+    tissue = models.ForeignKey('experiments_base.Tissue', verbose_name='Tissue', on_delete=models.DO_NOTHING,
+                               blank=True, null=True)
 
     way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices,
                                       verbose_name='Way of life', blank=True)

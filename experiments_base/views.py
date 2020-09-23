@@ -186,7 +186,7 @@ def get_taxon_children(taxon_id):
 
                 children_list.append({'text': ch.taxon_name,
                                       'href': '/taxa/' + str(ch.pk),
-                                      'color': '#ff0000' if ch.is_tissue else '#428bca',
+                                      'color': '#428bca',
                                       'nodes': nodes})
         return children_list
     else:

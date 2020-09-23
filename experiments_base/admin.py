@@ -1,6 +1,7 @@
 from django.contrib import admin, messages
+from django.utils.html import mark_safe
 import nested_admin
-from .models import Taxon, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName
+from .models import Taxon, Tissue, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName
 from .models import EnvironmentalFactor, Disease, WithdrawCondition, WithdrawPlace, AdditionalProperty
 from .models import InterfaceName
 
@@ -27,7 +28,7 @@ def set_extra_context_args(self, request, extra_context, model_class, model_args
 
 @admin.register(Taxon)
 class TaxonAdmin(admin.ModelAdmin):
-    list_display = ('taxon_name', 'taxon_parent_name', 'is_tissue', 'view_in_popular', 'taxon_folder')
+    list_display = ('taxon_name', 'taxon_parent_name', 'view_in_popular', 'taxon_folder')
     ordering = ('taxon_name',)
     exclude = ('taxon_folder',)
     actions = ['delete_model']
@@ -147,7 +148,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
     change_form_template = 'progressbar_upload/change_form.html'
     add_form_template = 'progressbar_upload/change_form.html'
 
-    list_display = ('experiment_name', 'taxon_id', 'samples_number', 'way_of_life', 'habitat', 'genders',
+    list_display = ('experiment_name', 'taxon_id', 'tissue', 'samples_number', 'way_of_life', 'habitat', 'genders',
                     'withdraw_place', 'created_at', 'withdraw_date', 'experiment_folder')
 
     ordering = ('experiment_name',)
@@ -183,7 +184,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
         return Prob.objects.filter(experiment_id=obj.pk).count()
 
     fieldsets = (
-        (None, {'fields': ('experiment_name', 'taxon_id')}),
+        (None, {'fields': ('experiment_name', 'taxon_id', 'tissue')}),
         (None, {'fields': ('way_of_life', 'habitat',)}),
         (None, {'fields': ('withdraw_place', 'withdraw_date', 'comments')}),
         (None, {'fields': (('environmental_factors', 'diseases', 'withdraw_conditions'), 'additional_properties',)}),
@@ -295,6 +296,64 @@ class WithdrawConditionAdmin(admin.ModelAdmin):
 class WithdrawPlaceAdmin(admin.ModelAdmin):
     list_display = ('withdraw_place',)
     ordering = ('withdraw_place',)
+
+
+@admin.register(Tissue)
+class TissueAdmin(admin.ModelAdmin):
+    list_display = ('name', 'experiments_reference_number')
+    readonly_fields = ('experiments_reference_number', 'show_experiments')
+    ordering = ('name',)
+    actions = ['delete_model']
+
+    @staticmethod
+    def experiments_reference_number(obj):
+        return Experiment.objects.filter(tissue=obj.pk).count()
+
+    @staticmethod
+    def show_experiments(obj):
+        ref = '<a href="/admin/experiments_base/change/{}">{}</a>'
+        return mark_safe(', '.join([ref.format(e.pk, e.experiment_name) for e in Experiment.objects.filter(tissue=obj.pk)]))
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request)
+        return fields + self.__class__.readonly_fields
+
+    fieldsets = (
+        (None, {'fields': ('name',)}),
+        ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
+                )
+
+    def get_actions(self, request):
+        actions = super(TissueAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def delete_model(self, request, obj):
+        if isinstance(obj, Tissue):
+            count = Experiment.objects.filter(tissue=obj.pk).count()
+            if count > 0:
+                messages.set_level(request, messages.ERROR)
+                message = "You cant delete tissue with experiments references({}) on it".format(count)
+                self.message_user(request, message, level=messages.ERROR)
+            else:
+                obj.delete()
+        else:
+            messages.set_level(request, messages.ERROR)
+            bad_tissues = []
+
+            for o in obj.all():
+
+                count = Experiment.objects.filter(tissue=o.pk).count()
+                if count > 0:
+                    bad_tissues.append(o.name)
+                    continue
+
+                o.delete()
+
+            if bad_tissues:
+                message = "Some tissues({}) wasn't delete. " \
+                          "They have experiments references.".format(', '.join(bad_tissues))
+                self.message_user(request, message, level=messages.ERROR)
 
 
 @admin.register(AdditionalProperty)
