@@ -34,12 +34,22 @@
                 <td>{{ experiment.experiment_name }}</td>
             </tr>
             <tr>
+                <th>Experiment ID</th>
+                <td>{{ experiment.pk }}</td>
+            </tr>
+            <tr>
                 <th>{{ interface_taxon_name }}</th>
                 <td>{{ experiment.taxon_id.taxon_name }}</td>
             </tr>
+            {% if experiment.tissue %}
             <tr>
                 <th>Tissue</th>
                 <td>{{ experiment.tissue.name }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>N of samples</th>
+                <td>{{ probs|length }}</td>
             </tr>
             <tr>
                 <th data-toggle="tooltip" title="Diurnal, Nocturnal, Twilight, Not specified">{{ interface_way_of_life }}</th>
@@ -48,6 +58,10 @@
             <tr>
                 <th data-toggle="tooltip" title="Wild, Laboratory, Farm, Other, Not specified">{{ interface_habitat }}</th>
                 <td>{{ experiment.habitat|habitat }}</td>
+            </tr>
+            <tr>
+                <th data-toggle="tooltip" title="Male, Female, Not specified">Genders</th>
+                <td>{{ genders }}</td>
             </tr>
             <tr>
                 <th>{{ interface_environmental_factors }}</th>
@@ -66,16 +80,12 @@
                 </td>
             </tr>
             <tr>
-                <th>Sampling place</th>
-                <td>{{ experiment.withdraw_place.withdraw_place }}</td>
-            </tr>
-            <tr>
-                <th>Created at</th>
-                <td>{{ experiment.created_at }}</td>
-            </tr>
-            <tr>
                 <th>Sampling date</th>
                 <td>{% if experiment.withdraw_date %}{{ experiment.withdraw_date }}{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Sampling place</th>
+                <td>{{ experiment.withdraw_place.withdraw_place }}</td>
             </tr>
             <tr>
                 <th>Sampling conditions</th>
@@ -84,6 +94,10 @@
                         {{ el.withdraw_condition }}<br>
                     {% endfor %}
                 </td>
+            </tr>
+            <tr>
+                <th>Created at</th>
+                <td>{{ experiment.created_at }}</td>
             </tr>
             <tr>
                 <th>Comments</th>

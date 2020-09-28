@@ -12,10 +12,17 @@
         <tr>
             <th>#</th>
             <th>{{ interface_experiment_name }}</th>
+            <th>Exp. ID</th>
+            <th>Species</th>
+            <th>Tissue</th>
+            <th>N of samples</th>
             <th data-toggle="tooltip" title="Diurnal, Nocturnal, Twilight, Not specified">{{ interface_way_of_life }}</th>
             <th data-toggle="tooltip" title="Wild, Laboratory, Farm, Other, Not specified">{{ interface_habitat }}</th>
-            <th>{{ interface_environmental_factors }}</th>
+            <th data-toggle="tooltip" title="Male, Female, Not specified">Genders</th>
+{#            <th>{{ interface_environmental_factors }}</th>#}
             <th>{{ interface_diseases }}</th>
+            <th>Sampling date</th>
+            <th>Sampling place</th>
             <th>Created at</th>
         </tr>
         </thead>
@@ -24,29 +31,39 @@
         <tr>
             <th scope="row">
                 {{ forloop.counter }}
-
-                <input class="exp-check-nmr" type="hidden" data-id="{{ el.pk }}" id="ecnmr-{{ el.pk }}">
-                <label for="ecnmr-{{ el.pk }}" class="exp-label" hidden>NMR</label>
-
-                <input class="exp-check-ms" type="hidden" data-id="{{ el.pk }}" id="ecms-{{ el.pk }}">
-                <label for="ecms-{{ el.pk }}" class="exp-label" hidden>MS</label>
-
+                {% for type in samples_info|get_item:el.pk|get_item:'types' %}
+                    {% if type == 'nmr' %}
+                        <input class="exp-check-nmr" type="hidden" data-id="{{ el.pk }}" id="ecnmr-{{ el.pk }}">
+                        <label for="ecnmr-{{ el.pk }}" class="exp-label" hidden>NMR</label>
+                    {% endif %}
+                    {% if type == 'ms' %}
+                        <input class="exp-check-ms" type="hidden" data-id="{{ el.pk }}" id="ecms-{{ el.pk }}">
+                        <label for="ecms-{{ el.pk }}" class="exp-label" hidden>MS</label>
+                    {% endif %}
+                {% endfor %}
                 <input class="exp-check-csv" type="hidden" data-id="{{ el.pk }}" id="eccsv-{{ el.pk }}">
                 <label for="eccsv-{{ el.pk }}" class="exp-label" hidden>Export csv</label>
             </th>
             <td><a href="{% url 'experiment' el.pk %}">{{ el.experiment_name }}</a></td>
+            <td>{{ el.pk }}</td>
+            <td>{{ el.taxon_id.taxon_name }}</td>
+            <td>{{ el.tissue.name }}</td>
+            <td>{{ samples_info|get_item:el.pk|get_item:'length' }}</td>
             <td>{{ el.way_of_life|way_of_life}}</td>
             <td>{{ el.habitat|habitat }}</td>
-            <td>
-                {% for elem in el.environmental_factors.all %}
-                    {{ elem.factor_name }}<br>
-                {% endfor %}
-            </td>
+            <td>{{  samples_info|get_item:el.pk|get_item:'genders' }}</td>
+{#            <td>#}
+{#                {% for elem in el.environmental_factors.all %}#}
+{#                    {{ elem.factor_name }}<br>#}
+{#                {% endfor %}#}
+{#            </td>#}
             <td>
                 {% for elem in el.diseases.all %}
                     {{ elem.disease_name }}<br>
                 {% endfor %}
             </td>
+            <td>{{ el.withdraw_date }}</td>
+            <td>{{ el.withdraw_place }}</td>
             <td>{{ el.created_at }}</td>
         </tr>
         {% endfor %}

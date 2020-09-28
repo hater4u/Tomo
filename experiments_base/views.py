@@ -271,7 +271,8 @@ def experiment(request, experiment_id):
         probs = Prob.objects.filter(experiment_id=experiment_id).order_by('pk')
         if probs.count() == 0:
             return render(request, 'experiment.html', args)
-
+        genders = {0: 'male', 1: 'female', 2: 'not specified', '': ' ', None: ' '}
+        args['genders'] = ', '.join(set(sorted([genders[el.gender] for el in probs], reverse=True)))
         args['probs'] = probs
         args['metabolites'] = get_ordered_dict_of_metabolites(probs)
 
@@ -375,11 +376,27 @@ def experiments(request):
             search_dict['withdraw_date__lte'] = request.POST['withdrawDateTo'] + ' 00:00:00'
 
         args['error'] = dict()
+        args['samples_info'] = {}
+        genders = {0: 'male', 1: 'female', 2: 'not specified', '': ' ', None: ' '}
         try:
             if not args['error']:
                 args['experiments'] = experiments_search(search_dict)
+                for exp in args['experiments']:
+                    args['samples_info'][exp.pk] = dict()
+                    args['samples_info'][exp.pk]['types'] = []
+                    samples = Prob.objects.filter(experiment_id=exp.pk)
+                    args['samples_info'][exp.pk]['length'] = len(samples)
+                    for sample in samples:
+                        if sample.prob_torrent_file_nmr:
+                            args['samples_info'][exp.pk]['types'].append('nmr')
+                        if sample.prob_torrent_file_ms:
+                            args['samples_info'][exp.pk]['types'].append('ms')
+                    args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
+                    args['samples_info'][exp.pk]['genders'] = \
+                        ', '.join(set(sorted([genders[el.gender] for el in samples], reverse=True)))
             else:
                 args['experiments'] = {}
+                args['samples_info'] = {}
         except Exception as e:
             experiments_base_logger.error('Search error:' + str(e))
             args = {}

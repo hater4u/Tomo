@@ -35,6 +35,20 @@
                 <td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ metabolite.pub_chem_cid }}">{{ metabolite.pub_chem_cid }}</a></td>
             </tr>
             <tr>
+                <th>HMDB ID</th>
+                <td>
+                    {% if metabolite.hmdb_id %}
+                        <a href="https://hmdb.ca/metabolites/{{ metabolite.hmdb_id }}">{{ metabolite.hmdb_id }}</a>
+                    {% else %}
+                        {{ metabolite.hmdb_id }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>IUPAC name</th>
+                <td>{{ metabolite.iupac_name }}</td>
+            </tr>
+            <tr>
                 <th>Comment</th>
                 <td>{{ metabolite.comment }}</td>
             </tr>

@@ -19,3 +19,8 @@ def habitat(value):
 def gender(value):
     g = {0: 'male', 1: 'female', 2: 'not specified', '': ' ', None: ' '}
     return g[value]
+
+
+@register.filter()
+def get_item(dictionary, key):
+    return dictionary.get(key)
