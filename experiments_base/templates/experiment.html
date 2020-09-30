@@ -132,7 +132,7 @@
             <br>
             <br>
 
-            <button class="btn btn-warning m-2 adding-button" data-type="prob" onclick="addCheckboxAndButton(this)">Select all</button>
+            <button class="btn btn-warning m-2 adding-button" data-type="prob" onclick="addCheckboxAndButton(this)">Download experiment</button>
 
             <form action="/experiment/download/" method="post" class="id-form">
                 {% csrf_token %}
@@ -175,7 +175,7 @@
                     </tr>
 
                     <tr>
-                        <th scope="row">Age, month</th>
+                        <th scope="row">Age, months</th>
                         {% for prob in probs %}
                             <td>{{ prob.month_age }}</td>
                         {% endfor %}
@@ -189,9 +189,16 @@
                     </tr>
 
                     <tr>
-                        <th scope="row">Weight, kg</th>
+                        <th scope="row">Species Weight, kg</th>
                         {% for prob in probs %}
                             <td>{{ prob.weight|floatformat:2 }}</td>
+                        {% endfor %}
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Sample Weight, mg</th>
+                        {% for prob in probs %}
+                            <td>{{ prob.sample_weight|floatformat:2 }}</td>
                         {% endfor %}
                     </tr>
 

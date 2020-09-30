@@ -215,6 +215,26 @@ def taxa_id(request, taxon_id):
 
     args['experiments'] = experiments_dict
 
+    args['samples_info'] = {}
+    genders = {0: 'male', 1: 'female', 2: 'not specified', '': ' ', None: ' '}
+    try:
+        for exp in args['experiments']:
+            args['samples_info'][exp.pk] = dict()
+            args['samples_info'][exp.pk]['types'] = []
+            samples = Prob.objects.filter(experiment_id=exp.pk)
+            args['samples_info'][exp.pk]['length'] = len(samples)
+            for sample in samples:
+                if sample.prob_torrent_file_nmr:
+                    args['samples_info'][exp.pk]['types'].append('nmr')
+                if sample.prob_torrent_file_ms:
+                    args['samples_info'][exp.pk]['types'].append('ms')
+            args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
+            args['samples_info'][exp.pk]['genders'] = \
+                ', '.join(set(sorted([genders[el.gender] for el in samples], reverse=True)))
+    except Exception as e:
+        experiments_base_logger.error('Experiments and samples info error:' + str(e))
+        args = {}
+
     return render(request, 'taxons.html', args)
 
 
@@ -662,6 +682,22 @@ def find_by_metabolites(request):
                     args['error'] = 'Experiments with this conditions not found'
                 else:
                     args['experiments'] = exp_ids
+
+                args['samples_info'] = {}
+                genders = {0: 'male', 1: 'female', 2: 'not specified', '': ' ', None: ' '}
+                for exp in args['experiments']:
+                    args['samples_info'][exp.pk] = dict()
+                    args['samples_info'][exp.pk]['types'] = []
+                    samples = Prob.objects.filter(experiment_id=exp.pk)
+                    args['samples_info'][exp.pk]['length'] = len(samples)
+                    for sample in samples:
+                        if sample.prob_torrent_file_nmr:
+                            args['samples_info'][exp.pk]['types'].append('nmr')
+                        if sample.prob_torrent_file_ms:
+                            args['samples_info'][exp.pk]['types'].append('ms')
+                    args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
+                    args['samples_info'][exp.pk]['genders'] = \
+                        ', '.join(set(sorted([genders[el.gender] for el in samples], reverse=True)))
 
     return render(request, 'find_by_metabolites.html', args)
 

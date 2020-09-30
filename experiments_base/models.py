@@ -424,7 +424,7 @@ class Experiment(models.Model):
                                blank=True, null=True)
 
     way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices,
-                                      verbose_name='Way of life', blank=True, null=True)
+                                      verbose_name='Animal behavior', blank=True, null=True)
     habitat = models.IntegerField(default=Habitat.OTHER, choices=Habitat.choices,
                                   verbose_name='Habitat', blank=True, null=True)
 

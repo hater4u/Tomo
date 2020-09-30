@@ -180,7 +180,7 @@ function addCheckboxAndButton(element)
     }
     else
     {
-        downloadButton.innerText = 'Download probs';
+        downloadButton.innerText = 'Download samples';
         downloadButton.dataset.type = 'prob'
         checkClassNMR = 'prob-check-nmr';
         checkClassMS = 'prob-check-ms';
@@ -188,6 +188,16 @@ function addCheckboxAndButton(element)
         labelClass = 'prob-label';
     }
 
+    let selB = document.getElementsByClassName('select-button')[0];
+    if(selB) selB.remove();
+
+    let selectButton = document.createElement('button');
+    selectButton.classList.add('btn');
+    selectButton.classList.add('btn-primary');
+    selectButton.classList.add('m-2');
+    selectButton.classList.add('select-button');
+    selectButton.onclick = getFunctionForUnselect(checkClassNMR, checkClassMS, checkClassCSV);
+    selectButton.innerText = 'Select all';
 
     let unsB = document.getElementsByClassName('unselect-button')[0];
     if(unsB) unsB.remove();
@@ -210,34 +220,58 @@ function addCheckboxAndButton(element)
     cancelButton.classList.add('cancel-button');
     cancelButton.innerText = 'Cancel';
 
-    document.getElementsByClassName('adding-button')[0].after(unselectButton);
+    document.getElementsByClassName('adding-button')[0].after(selectButton);
+    document.getElementsByClassName('select-button')[0].after(unselectButton);
     document.getElementsByClassName('unselect-button')[0].after(cancelButton);
     document.getElementsByClassName('cancel-button')[0].after(downloadButton);
+
+    let addb = document.getElementsByClassName('adding-button')[0];
+    if(addb) addb.hidden = true;
 
     let trs = document.getElementsByClassName(checkClassNMR);
     for(let item of trs) {
         item.type = 'checkbox';
-        item.checked = 'true';
         item.hidden = false;
     }
 
     trs = document.getElementsByClassName(checkClassMS);
-    for(let item of trs) {
+    for (let item of trs) {
         item.type = 'checkbox';
-        item.checked = 'true';
         item.hidden = false;
     }
 
     trs = document.getElementsByClassName(checkClassCSV);
-    for(let item of trs) {
+    for (let item of trs) {
         item.type = 'checkbox';
-        item.checked = 'true';
         item.hidden = false;
     }
 
     trs = document.getElementsByClassName(labelClass);
     for(let item of trs) {
         item.hidden = false;
+    }
+
+    selectButton.onclick = function (){
+        let trs = document.getElementsByClassName(checkClassNMR);
+        for(let item of trs) {
+            item.type = 'checkbox';
+            item.checked = 'true';
+            item.hidden = false;
+        }
+
+        trs = document.getElementsByClassName(checkClassMS);
+        for (let item of trs) {
+            item.type = 'checkbox';
+            item.checked = 'true';
+            item.hidden = false;
+        }
+
+        trs = document.getElementsByClassName(checkClassCSV);
+        for (let item of trs) {
+            item.type = 'checkbox';
+            item.checked = 'true';
+            item.hidden = false;
+        }
     }
 
     cancelButton.onclick = function () {
@@ -247,6 +281,8 @@ function addCheckboxAndButton(element)
         downloadButton.remove();
         unselectButton.remove();
         cancelButton.remove();
+        selectButton.remove();
+        addb.hidden = false;
     }
 }
 
