@@ -5,13 +5,13 @@ register = template.Library()
 
 @register.filter()
 def way_of_life(value):
-    wl = {0: 'diurnal', 1: 'nocturnal', 2: 'twilight', 3: 'other'}
+    wl = {0: 'diurnal', 1: 'nocturnal', 2: 'twilight', 3: 'not specified', '': ' ', None: ' '}
     return wl[value]
 
 
 @register.filter()
 def habitat(value):
-    h = {0: 'wild', 1: 'laboratory', 2: 'farm', 3: 'other'}
+    h = {0: 'wild', 1: 'laboratory', 2: 'farm', 3: 'not specified', '': ' ', None: ' '}
     return h[value]
 
 

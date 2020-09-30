@@ -274,92 +274,143 @@ class MetaboliteAdmin(nested_admin.NestedModelAdmin):
         return super(MetaboliteAdmin, self).delete_view(request, object_id, extra_context=extra_context)
 
 
-@admin.register(EnvironmentalFactor)
-class EnvironmentalFactorAdmin(admin.ModelAdmin):
-    list_display = ('factor_name',)
-    ordering = ('factor_name',)
+class ExperimentsForeignKey(admin.ModelAdmin):
 
-
-@admin.register(Disease)
-class DiseaseAdmin(admin.ModelAdmin):
-    list_display = ('disease_name',)
-    ordering = ('disease_name',)
-
-
-@admin.register(WithdrawCondition)
-class WithdrawConditionAdmin(admin.ModelAdmin):
-    list_display = ('withdraw_condition',)
-    ordering = ('withdraw_condition',)
-
-
-@admin.register(WithdrawPlace)
-class WithdrawPlaceAdmin(admin.ModelAdmin):
-    list_display = ('withdraw_place',)
-    ordering = ('withdraw_place',)
-
-
-@admin.register(Tissue)
-class TissueAdmin(admin.ModelAdmin):
-    list_display = ('name', 'experiments_reference_number')
     readonly_fields = ('experiments_reference_number', 'show_experiments')
-    ordering = ('name',)
     actions = ['delete_model']
+    exp_fields = {}
 
-    @staticmethod
-    def experiments_reference_number(obj):
-        return Experiment.objects.filter(tissue=obj.pk).count()
+    def experiments_reference_number(self, obj):
+        if obj.pk:
+            filter_dict = dict()
+            filter_dict[self.exp_fields['pk']] = obj.pk
+            return Experiment.objects.filter(**filter_dict).count()
 
-    @staticmethod
-    def show_experiments(obj):
-        ref = '<a href="/admin/experiments_base/change/{}">{}</a>'
-        return mark_safe(', '.join([ref.format(e.pk, e.experiment_name) for e in Experiment.objects.filter(tissue=obj.pk)]))
+    def show_experiments(self, obj):
+        if obj.pk:
+            ref = '<a href="/admin/experiments_base/experiment/{}/change">{}</a>'
+            filter_dict = dict()
+            filter_dict[self.exp_fields['pk']] = obj.pk
+            return mark_safe(
+                ', '.join([ref.format(e.pk, e.experiment_name) for e in Experiment.objects.filter(**filter_dict)]))
 
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request)
         return fields + self.__class__.readonly_fields
+
+    def get_actions(self, request):
+        actions = super(ExperimentsForeignKey, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def delete_model(self, request, obj):
+        filter_dict = dict()
+
+        if isinstance(obj, self.model):
+            filter_dict[self.exp_fields['pk']] = obj.pk
+            count = Experiment.objects.filter(**filter_dict).count()
+            if count > 0:
+                messages.set_level(request, messages.ERROR)
+                message = "You cant delete " + str(self.model.__qualname__).lower() + \
+                          " with {} experiments references on it".format(count)
+                self.message_user(request, message, level=messages.ERROR)
+            else:
+                obj.delete()
+        else:
+            messages.set_level(request, messages.ERROR)
+            bad_objs = []
+
+            for o in obj.all():
+                filter_dict[self.exp_fields['pk']] = o.pk
+                count = Experiment.objects.filter(**filter_dict).count()
+                if count > 0:
+                    bad_objs.append(o.__dict__[self.exp_fields['name']])
+                    continue
+
+                o.delete()
+
+            if bad_objs:
+                message = "Some " + str(self.model.__qualname__).lower() + " objects({}) wasn't delete. " \
+                          "They have experiments references.".format(', '.join(bad_objs))
+                self.message_user(request, message, level=messages.ERROR)
+
+
+@admin.register(EnvironmentalFactor)
+class EnvironmentalFactorAdmin(ExperimentsForeignKey):
+    list_display = ('factor_name', 'experiments_reference_number')
+    ordering = ('factor_name',)
+
+    exp_fields = {'pk': 'environmental_factors', 'name': 'factor_name'}
+
+    fieldsets = (
+        (None, {'fields': ('factor_name',)}),
+        ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
+    )
+
+
+@admin.register(Disease)
+class DiseaseAdmin(ExperimentsForeignKey):
+    list_display = ('disease_name', 'experiments_reference_number')
+    ordering = ('disease_name',)
+
+    exp_fields = {'pk': 'diseases', 'name': 'disease_name'}
+
+    fieldsets = (
+        (None, {'fields': ('disease_name',)}),
+        ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
+    )
+
+
+@admin.register(WithdrawCondition)
+class WithdrawConditionAdmin(ExperimentsForeignKey):
+    list_display = ('withdraw_condition', 'experiments_reference_number')
+    ordering = ('withdraw_condition',)
+
+    exp_fields = {'pk': 'withdraw_conditions', 'name': 'withdraw_condition'}
+
+    fieldsets = (
+        (None, {'fields': ('withdraw_condition',)}),
+        ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
+    )
+
+
+@admin.register(WithdrawPlace)
+class WithdrawPlaceAdmin(ExperimentsForeignKey):
+    list_display = ('withdraw_place', 'experiments_reference_number')
+    ordering = ('withdraw_place',)
+
+    exp_fields = {'pk': 'withdraw_place', 'name': 'withdraw_place'}
+
+    fieldsets = (
+        (None, {'fields': ('withdraw_place',)}),
+        ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
+                )
+
+
+@admin.register(Tissue)
+class TissueAdmin(ExperimentsForeignKey):
+    list_display = ('name', 'experiments_reference_number')
+    ordering = ('name',)
+
+    exp_fields = {'pk': 'tissue', 'name': 'name'}
 
     fieldsets = (
         (None, {'fields': ('name',)}),
         ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
                 )
 
-    def get_actions(self, request):
-        actions = super(TissueAdmin, self).get_actions(request)
-        del actions['delete_selected']
-        return actions
-
-    def delete_model(self, request, obj):
-        if isinstance(obj, Tissue):
-            count = Experiment.objects.filter(tissue=obj.pk).count()
-            if count > 0:
-                messages.set_level(request, messages.ERROR)
-                message = "You cant delete tissue with experiments references({}) on it".format(count)
-                self.message_user(request, message, level=messages.ERROR)
-            else:
-                obj.delete()
-        else:
-            messages.set_level(request, messages.ERROR)
-            bad_tissues = []
-
-            for o in obj.all():
-
-                count = Experiment.objects.filter(tissue=o.pk).count()
-                if count > 0:
-                    bad_tissues.append(o.name)
-                    continue
-
-                o.delete()
-
-            if bad_tissues:
-                message = "Some tissues({}) wasn't delete. " \
-                          "They have experiments references.".format(', '.join(bad_tissues))
-                self.message_user(request, message, level=messages.ERROR)
-
 
 @admin.register(AdditionalProperty)
-class AdditionalPropertyAdmin(admin.ModelAdmin):
-    list_display = ('key', 'value')
+class AdditionalPropertyAdmin(ExperimentsForeignKey):
+    list_display = ('key', 'value', 'experiments_reference_number')
     ordering = ('key',)
+
+    exp_fields = {'pk': 'additional_properties', 'name': 'key'}
+
+    fieldsets = (
+        (None, {'fields': ('key', 'value', )}),
+        ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
+    )
 
 
 @admin.register(InterfaceName)

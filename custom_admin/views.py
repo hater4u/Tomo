@@ -14,7 +14,7 @@ from datetime import datetime
 import logging
 from tomo.settings import LOGGING
 
-from experiments_base.models import Taxon, Experiment, Prob, ProbMetabolite, MetaboliteName, WithdrawPlace
+from experiments_base.models import Taxon, Tissue, Experiment, Prob, ProbMetabolite, MetaboliteName, WithdrawPlace
 
 logging.config.dictConfig(LOGGING)
 custom_admin_logger = logging.getLogger('django')
@@ -64,10 +64,11 @@ def parse_csv(file_path):
                 if count in [0, 2, 11, 12]:
                     continue
                 if count == 1:
-                    csv_dict['exp'] = {'name': row[0], 'taxon_name': row[1], 'way_of_life': row[2], 'habitat': row[3],
-                                       'withdraw_place': row[4], 'withdraw_date': row[5], 'comments': row[6]}
+                    csv_dict['exp'] = {'name': row[0], 'tissue': row[1], 'taxon_name': row[2], 'way_of_life': row[3],
+                                       'habitat': row[4], 'withdraw_place': row[5], 'withdraw_date': row[6],
+                                       'comments': row[7]}
                 if count == 3:
-                    if len(row) > 7:
+                    if len(row) > 8:
                         probs_length = len(row)
                     else:
                         probs_length = 0
@@ -88,14 +89,14 @@ def parse_csv(file_path):
                             csv_dict['probs'][count_row][prob_fields[count]] = r
 
                 if count > 12:
-                    csv_dict['metabolites'][row[0]] = row[1:probs_length+1]
+                    csv_dict['metabolites'][row[0].strip()] = row[1:probs_length+1]
 
     except IOError as e:
         custom_admin_logger.error('Parsing file IOError: ' + str(e))
         csv_dict['errors'] = 'Error of writing file. Try again.'
     except ValueError as e:
         custom_admin_logger.error('Parsing file ValueError: ' + str(e) + '\nNot enough columns in table?')
-        csv_dict['errors'] = 'Error of parsing file. Quantity of columns < 7. Check your csv file.'
+        csv_dict['errors'] = 'Error of parsing file. Quantity of columns < 8. Check your csv file.'
 
     os.remove(file_path)
     return csv_dict
@@ -116,9 +117,9 @@ def check_checkbox_field(value, list_of_values):
         return 'Field {} has invalid value. Change it.'
 
 
-def check_db_field(value, model, search_field):
+def check_db_field(value, model, search_field, can_be_empty):
 
-    if model != WithdrawPlace:
+    if not can_be_empty:
         error = check_not_empty_field(value)
         if error:
             return error
@@ -143,7 +144,7 @@ def check_datetime_field(value):
         return ''
 
     try:
-        datetime.strptime(value, "%d.%m.%y %H:%M")
+        datetime.strptime(value, "%d.%m.%Y %H:%M")
         return ''
     except ValueError:
         return 'Invalid {}. Check template of datetime field.'
@@ -239,7 +240,7 @@ def check_metabolite_number_field(concentrations, info_dict):
 
 def has_errors(csv_info):
 
-    for field in ['name', 'taxon_name', 'way_of_life', 'habitat', 'withdraw_place', 'withdraw_date']:
+    for field in ['name', 'tissue', 'taxon_name', 'way_of_life', 'habitat', 'withdraw_place', 'withdraw_date']:
         if not csv_info['exp']['correct_' + field]:
             return True
 
@@ -275,13 +276,14 @@ def check_csv_data(csv_dict):
         return csv_info
 
     exp = dict()
-    fields = {'name': 'not_empty', 'taxon_name': 'db', 'way_of_life': 'checkbox', 'habitat': 'checkbox',
+    fields = {'name': 'not_empty', 'tissue': 'db', 'taxon_name': 'db', 'way_of_life': 'checkbox', 'habitat': 'checkbox',
               'withdraw_place': 'db', 'withdraw_date': 'datetime'}
     field_args = {'name': {},
-                  'taxon_name': {'model': Taxon, 'search_field': 'taxon_name'},
+                  'tissue': {'model': Tissue, 'search_field': 'name', 'can_be_empty': True},
+                  'taxon_name': {'model': Taxon, 'search_field': 'taxon_name', 'can_be_empty': False},
                   'way_of_life': {'list_of_values': ['', 'diurnal', 'nocturnal', 'twilight', 'other']},
                   'habitat': {'list_of_values': ['', 'wild', 'laboratory', 'farm', 'other']},
-                  'withdraw_place': {'model': WithdrawPlace, 'search_field': 'withdraw_place'},
+                  'withdraw_place': {'model': WithdrawPlace, 'search_field': 'withdraw_place', 'can_be_empty': True},
                   'withdraw_date': {}}
 
     for field_name, field_type in fields.items():
@@ -319,7 +321,8 @@ def check_csv_data(csv_dict):
         meta_dict['name'] = meta_name
 
         check_field(meta_dict, 'name', 'db', meta_dict, {'model': MetaboliteName,
-                                                         'search_field': 'metabolite_synonym'})
+                                                         'search_field': 'metabolite_synonym__iexact',
+                                                         'can_be_empty': False})
         if meta_dict.get(meta_name + '_error', False):
             meta_dict[meta_name + '_error'] = meta_dict[meta_name + '_error'].replace('metabolitename', 'metabolite')
 
@@ -351,7 +354,7 @@ def update_args_from_csv_info(args, csv_info, csv_dict):
         de = csv_dict['exp']
 
         exp = dict()
-        for field_name in ['name', 'taxon_name', 'way_of_life', 'habitat', 'withdraw_place', 'withdraw_date']:
+        for field_name in ['name', 'tissue', 'taxon_name', 'way_of_life', 'habitat', 'withdraw_place', 'withdraw_date']:
             write_field_in_template_dict(field_name, exp, e, de)
 
         exp['comments'] = de['comments']
@@ -416,10 +419,11 @@ def create_experiment_dict(exp):
         else:
             exp.pop('habitat')
 
+        exp['tissue'] = Tissue.objects.get(name=exp['tissue'])
         exp['withdraw_place'] = WithdrawPlace.objects.get(withdraw_place=exp['withdraw_place'])
 
         if exp['withdraw_date']:
-            exp['withdraw_date'] = datetime.strptime(exp['withdraw_date'], "%d.%m.%y %H:%M")
+            exp['withdraw_date'] = datetime.strptime(exp['withdraw_date'], "%d.%m.%Y %H:%M")
         else:
             exp.pop('withdraw_date')
 
@@ -475,7 +479,7 @@ def create_prob_metabolites(csv_dict, prob_objs, args):
 
     for meta_name, concentrations in metabolites.items():
         try:
-            m = MetaboliteName.objects.get(metabolite_synonym=meta_name).metabolite_id
+            m = MetaboliteName.objects.get(metabolite_synonym__iexact=meta_name).metabolite_id
 
             for counter, c in enumerate(concentrations):
                 if c == '':

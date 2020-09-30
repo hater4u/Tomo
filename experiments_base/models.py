@@ -330,7 +330,7 @@ class Prob(models.Model):
 
     weight = models.FloatField(default=None, validators=[MinValueValidator(0)], verbose_name='Species weight, kg',
                                blank=True, null=True)
-    tissue_weight = models.FloatField(default=None, validators=[MinValueValidator(0)], verbose_name='Tissue weight, mg',
+    sample_weight = models.FloatField(default=None, validators=[MinValueValidator(0)], verbose_name='Sample weight, mg',
                                       blank=True, null=True)
     length = models.FloatField(default=None, validators=[MinValueValidator(0)], verbose_name='Length, cm',
                                blank=True, null=True)
@@ -424,9 +424,9 @@ class Experiment(models.Model):
                                blank=True, null=True)
 
     way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices,
-                                      verbose_name='Way of life', blank=True)
+                                      verbose_name='Way of life', blank=True, null=True)
     habitat = models.IntegerField(default=Habitat.OTHER, choices=Habitat.choices,
-                                  verbose_name='Habitat', blank=True)
+                                  verbose_name='Habitat', blank=True, null=True)
 
     environmental_factors = models.ManyToManyField(EnvironmentalFactor, verbose_name='Environmental factors',
                                                    blank=True)
