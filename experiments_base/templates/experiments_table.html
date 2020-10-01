@@ -7,7 +7,7 @@
         {% csrf_token %}
         <input type="hidden" value="" class="experiments-id-input" name="experiments">
     </form>
-    <table class="table table-striped table-hover table-responsive">
+    <table class="table table-striped table-hover table-responsive text-nowrap">
         <thead class="thead-default">
         <tr>
             <th>#</th>
@@ -35,10 +35,12 @@
                     {% if type == 'nmr' %}
                         <input class="exp-check-nmr" type="hidden" data-id="{{ el.pk }}" id="ecnmr-{{ el.pk }}">
                         <label for="ecnmr-{{ el.pk }}" class="exp-label" hidden>NMR</label>
+                        <br>
                     {% endif %}
                     {% if type == 'ms' %}
                         <input class="exp-check-ms" type="hidden" data-id="{{ el.pk }}" id="ecms-{{ el.pk }}">
                         <label for="ecms-{{ el.pk }}" class="exp-label" hidden>MS</label>
+                        <br>
                     {% endif %}
                 {% endfor %}
                 <input class="exp-check-csv" type="hidden" data-id="{{ el.pk }}" id="eccsv-{{ el.pk }}">

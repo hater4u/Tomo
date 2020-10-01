@@ -19,6 +19,7 @@
 
     <div class="table-">
         <table class="table table-striped table-hover table-responsive">
+            <caption class="text-nowrap">Metabolite abundance, nmol per gram of wet tissue</caption>
             <thead class="thead-default">
             <tr>
                 <th>Property</th>
@@ -43,14 +44,17 @@
                 <td>
                     {% if metabolite.hmdb_id %}
                         <a href="https://hmdb.ca/metabolites/{{ metabolite.hmdb_id }}">{{ metabolite.hmdb_id }}</a>
-                    {% else %}
                         {{ metabolite.hmdb_id }}
                     {% endif %}
                 </td>
             </tr>
             <tr>
                 <th>IUPAC name</th>
-                <td>{{ metabolite.iupac_name }}</td>
+                <td>
+                    {% if metabolite.iupac_name %}
+                        {{ metabolite.iupac_name }}
+                    {% endif %}
+                </td>
             </tr>
             <tr>
                 <th>Comment</th>
