@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
 from django.utils.html import mark_safe
+from django import forms
 import nested_admin
 from .models import Taxon, Tissue, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName
 from .models import EnvironmentalFactor, Disease, WithdrawCondition, WithdrawPlace, AdditionalProperty
@@ -142,9 +143,19 @@ class ProbAdminInline(nested_admin.NestedTabularInline):
     exclude = ('prob_torrent_file_nmr', 'prob_torrent_file_ms',)
 
 
+class ExperimentAdminForm(forms.ModelForm):
+    class Meta:
+        model = Experiment
+        fields = ['experiment_name', 'taxon_id', 'tissue', 'way_of_life', 'habitat', 'withdraw_place', 'withdraw_date',
+                  'comments', 'environmental_factors', 'diseases', 'withdraw_conditions', 'additional_properties', ]
+        widgets = {
+            'comments': forms.Textarea(attrs={'cols': 120, 'rows': 5}),
+        }
+
+
 @admin.register(Experiment)
 class ExperimentAdmin(nested_admin.NestedModelAdmin):
-
+    form = ExperimentAdminForm
     change_form_template = 'progressbar_upload/change_form.html'
     add_form_template = 'progressbar_upload/change_form.html'
 
@@ -216,7 +227,7 @@ class MetaboliteNameAdminInline(nested_admin.NestedTabularInline):
 class MetaboliteAdmin(nested_admin.NestedModelAdmin):
     delete_confirmation_template = 'admin/experiments_base/metabolite/delete_confirmation.html'
 
-    list_display = ('metabolite_name', 'pub_chem_cid', 'samples_number', 'comment', 'pk',)
+    list_display = ('metabolite_name', 'pub_chem_cid', 'hmdb_id', 'iupac_name', 'samples_number', 'comment', 'pk',)
     ordering = ('metabolite_name',)
     actions = ['delete_model']
     inlines = (MetaboliteNameAdminInline, )
