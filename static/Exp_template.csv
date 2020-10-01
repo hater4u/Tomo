@@ -1,16 +1,17 @@
-Имя эксперимента;Имя ткани;Имя таксона;Way of life(diurnal, nocturnal, twilight, not specified);Habitat(wild, laboratory, farm, not specified);Sampling place;"Sampling date Формат ""21.11.2006 16:30""";Comments
-exp1;Lens;Child1;diurnal;wild;Some place;21.11.2006 16:30;experiment template
+Experiment name;Tissue;Species;Animal behavior(diurnal, nocturnal, twilight, not specified);Habitat(wild, laboratory, farm, not specified);Sampling place;"Sampling date Format ""21.11.2006 16:30""";Comments
+exp1;Lens;child1;diurnal;wild;Some place;21.11.2006 16:30;experiment template
 ;;;;;;;
-Имена проб;Имя пробы 1;Имя пробы 2;Имя пробы 3;;;;
-Пол(male, female, not specified);male;female;not specified;;;;
-Возраст(месяцы);1;2;3;;;;
-Время после смерти(часы);2;3;4;;;;
-Вес(кг);3,5;4,5;5,5;;;;
-Рост(см);25,5;26,5;27,5;;;;
-Температура (°С);36,6;37,6;38,6;;;;
-Комментарии;Комментарий 1;Комментарий 2;Комментарий 3;;;;
+Sample names;Name 1;Name 2;Name 3;;;;
+Gender(male, female, not specified);male;female;not specified;;;;
+Age, months;1;2;3;;;;
+Time post-mortem, h;2;3;4;;;;
+Species weight, kg;3,5;4,5;5,5;;;;
+Sample weight, kg;4,5;5,5;6,5;;;;
+Length, cm;25,5;26,5;27,5;;;;
+Ambient t, °C;36,6;37,6;38,6;;;;
+Comment;Comment 1;Comment 2;Comment 3;;;;
 ;;;;;;;
- Имена метаболитов;Концентрации пробы 1;Концентрации пробы 2;Концентрации пробы 3;;;;
+Metabolites;Name 1;Name 2;Name 3;;;;
 meta;;30,38961039;35,61497326;;;;
 meta1;na;136,7532468;96,25668449;;;;
 meta2;536;517,7922078;481,2834225;;;;

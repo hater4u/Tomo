@@ -85,6 +85,7 @@ class ProbMetaboliteAdminInline(nested_admin.NestedTabularInline):
     model = ProbMetabolite
     extra = 0
     list_display = ('metabolite_name', 'concentration')
+    classes = ['collapse']
 
 
 @admin.register(Prob)

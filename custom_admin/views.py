@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
 from django.template.context_processors import csrf
 from django.core.files.base import ContentFile
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 import random
 import string
@@ -58,10 +58,10 @@ def parse_csv(file_path):
         with open(file_path, "r", encoding=char_enc) as f_obj:
             reader = csv.reader(f_obj, delimiter=';')
 
-            prob_fields = {3: 'name', 4: 'gender', 5: 'month_age', 6: 'hours_post_mortem', 7: 'weight', 8: 'length',
-                           9: 'temperature', 10: 'comment'}
+            prob_fields = {3: 'name', 4: 'gender', 5: 'month_age', 6: 'hours_post_mortem', 7: 'weight',
+                           8: 'sample_weight', 9: 'length', 10: 'temperature', 11: 'comment'}
             for count, row in enumerate(reader):
-                if count in [0, 2, 11, 12]:
+                if count in [0, 2, 12, 13]:
                     continue
                 if count == 1:
                     csv_dict['exp'] = {'name': row[0], 'tissue': row[1], 'taxon_name': row[2], 'way_of_life': row[3],
@@ -83,12 +83,12 @@ def parse_csv(file_path):
                     csv_dict['probs'] = [{} for p in range(probs_length)]
                     csv_dict['metabolites'] = {}
 
-                if 2 < count < 11:
+                if 2 < count < 12:
                     for count_row, r in enumerate(row[1:]):
                         if count_row < probs_length:
                             csv_dict['probs'][count_row][prob_fields[count]] = r
 
-                if count > 12:
+                if count > 13:
                     csv_dict['metabolites'][row[0].strip()] = row[1:probs_length+1]
 
     except IOError as e:
@@ -137,6 +137,11 @@ def check_db_field(value, model, search_field, can_be_empty):
         else:
             ref = ' or <a href="/admin/experiments_base/' + model.__qualname__.lower() + '/add">create</a>.'
         return 'Value of field {} not found in database. Change it in table' + ref
+    except MultipleObjectsReturned:
+        ref = '<a href="/admin/experiments_base/' + model.__qualname__.lower() + '/{}/change">{}</a>'
+        same_names = ', '.join([ref.format(el.pk, el.__dict__[search_field.split('__')[0]]) for el in
+                                model.objects.filter(**{search_field: value})])
+        return 'Database has some ' + model.__qualname__.lower() + ' objects with same names: ' + same_names
 
 
 def check_datetime_field(value):
@@ -247,7 +252,8 @@ def has_errors(csv_info):
     if csv_info['probs_length_exist'] and csv_info['probs_exist']:
 
         for prob in csv_info['probs']:
-            for field in ['gender', 'month_age', 'hours_post_mortem', 'weight', 'length', 'temperature']:
+            for field in ['gender', 'month_age', 'hours_post_mortem', 'weight', 'sample_weight', 'length',
+                          'temperature']:
                 if not prob['correct_' + field]:
                     return True
 
@@ -279,11 +285,11 @@ def check_csv_data(csv_dict):
     fields = {'name': 'not_empty', 'tissue': 'db', 'taxon_name': 'db', 'way_of_life': 'checkbox', 'habitat': 'checkbox',
               'withdraw_place': 'db', 'withdraw_date': 'datetime'}
     field_args = {'name': {},
-                  'tissue': {'model': Tissue, 'search_field': 'name', 'can_be_empty': True},
+                  'tissue': {'model': Tissue, 'search_field': 'name__iexact', 'can_be_empty': True},
                   'taxon_name': {'model': Taxon, 'search_field': 'taxon_name', 'can_be_empty': False},
                   'way_of_life': {'list_of_values': ['', 'diurnal', 'nocturnal', 'twilight', 'other']},
                   'habitat': {'list_of_values': ['', 'wild', 'laboratory', 'farm', 'other']},
-                  'withdraw_place': {'model': WithdrawPlace, 'search_field': 'withdraw_place', 'can_be_empty': True},
+                  'withdraw_place': {'model': WithdrawPlace, 'search_field': 'withdraw_place__iexact', 'can_be_empty': True},
                   'withdraw_date': {}}
 
     for field_name, field_type in fields.items():
@@ -295,11 +301,12 @@ def check_csv_data(csv_dict):
         return csv_info
     probs = []
     fields = {'gender': 'checkbox', 'month_age': 'number', 'hours_post_mortem': 'number', 'weight': 'number',
-              'length': 'number', 'temperature': 'number'}
+              'sample_weight': 'number', 'length': 'number', 'temperature': 'number'}
     field_args = {'gender': {'list_of_values': ['', 'male', 'female', 'not specified']},
                   'month_age': {'is_int': True},
                   'hours_post_mortem': {'is_int': False},
                   'weight': {'is_int': False},
+                  'sample_weight': {'is_int': False},
                   'length': {'is_int': False},
                   'temperature': {'is_int': False}}
 
@@ -367,7 +374,8 @@ def update_args_from_csv_info(args, csv_info, csv_dict):
             for c, prob in enumerate(csv_info['probs']):
                 p_dict = dict()
                 p_dict['prob_name'] = dp[c]['name']
-                for field_name in ['gender', 'month_age', 'hours_post_mortem', 'weight', 'length', 'temperature']:
+                for field_name in ['gender', 'month_age', 'hours_post_mortem', 'weight', 'sample_weight', 'length',
+                                   'temperature']:
                     write_field_in_template_dict(field_name, p_dict, prob, dp[c])
                 p_dict['comment'] = dp[c]['comment']
                 probs.append(p_dict)
@@ -419,8 +427,8 @@ def create_experiment_dict(exp):
         else:
             exp.pop('habitat')
 
-        exp['tissue'] = Tissue.objects.get(name=exp['tissue'])
-        exp['withdraw_place'] = WithdrawPlace.objects.get(withdraw_place=exp['withdraw_place'])
+        exp['tissue'] = Tissue.objects.get(name__iexact=exp['tissue'])
+        exp['withdraw_place'] = WithdrawPlace.objects.get(withdraw_place__iexact=exp['withdraw_place'])
 
         if exp['withdraw_date']:
             exp['withdraw_date'] = datetime.strptime(exp['withdraw_date'], "%d.%m.%Y %H:%M")
@@ -452,7 +460,7 @@ def create_prob_dict(prob, exp):
             prob.pop('gender')
 
         is_int = {'month_age': True, 'hours_post_mortem': False,
-                  'weight': False, 'length': False, 'temperature': False}
+                  'weight': False, 'sample_weight': False, 'length': False, 'temperature': False}
         for field, is_int in is_int.items():
             if prob[field] == '':
                 prob.pop(field)

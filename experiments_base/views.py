@@ -182,7 +182,7 @@ def get_taxon_children(taxon_id):
             if nodes or exps:
                 nodes += [{'text': exp.experiment_name,
                            'href': '/experiment/' + str(exp.pk),
-                           'color': '#00ff00'} for exp in exps]
+                           'color': '#28A745'} for exp in exps]
 
                 children_list.append({'text': ch.taxon_name,
                                       'href': '/taxa/' + str(ch.pk),
