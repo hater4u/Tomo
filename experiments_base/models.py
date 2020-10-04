@@ -87,6 +87,18 @@ class WayOfLife(models.IntegerChoices):
     OTHER = 3, 'other'
 
 
+class AnimalBehavior(models.Model):
+    class Meta:
+        db_table = 'animal_behaviors'
+        verbose_name = 'animal behavior'
+        verbose_name_plural = 'animal behaviors'
+
+    animal_behavior = models.CharField(max_length=256, verbose_name='Animal behavior')
+
+    def __str__(self):
+        return self.animal_behavior
+
+
 class Habitat(models.IntegerChoices):
     WILD = 0, 'wild'
     LABORATORY = 1, 'laboratory'
@@ -94,10 +106,34 @@ class Habitat(models.IntegerChoices):
     OTHER = 3, 'other'
 
 
+class HabitatNew(models.Model):
+    class Meta:
+        db_table = 'habitats'
+        verbose_name = 'habitat'
+        verbose_name_plural = 'habitats'
+
+    habitat = models.CharField(max_length=256, verbose_name='Habitat')
+
+    def __str__(self):
+        return self.habitat
+
+
 class Gender(models.IntegerChoices):
     MALE = 0, 'male'
     FEMALE = 1, 'female'
     OTHER = 2, 'not specified'
+
+
+class GenderNew(models.Model):
+    class Meta:
+        db_table = 'genders'
+        verbose_name = 'gender'
+        verbose_name_plural = 'genders'
+
+    gender = models.CharField(max_length=256, verbose_name='Gender')
+
+    def __str__(self):
+        return self.gender
 
 
 class EnvironmentalFactor(models.Model):
@@ -322,6 +358,8 @@ class Prob(models.Model):
 
     gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Gender', blank=True,
                                  null=True)
+    gender_new = models.ForeignKey('experiments_base.GenderNew', verbose_name='Gender new',
+                                   on_delete=models.DO_NOTHING, blank=True, null=True)
 
     month_age = models.IntegerField(default=None, validators=[MinValueValidator(0)],
                                     verbose_name='Age, Months', blank=True, null=True)
@@ -425,8 +463,13 @@ class Experiment(models.Model):
 
     way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices,
                                       verbose_name='Animal behavior', blank=True, null=True)
+    animal_behavior = models.ForeignKey('experiments_base.AnimalBehavior', verbose_name='Animal behavior new',
+                                        on_delete=models.DO_NOTHING, blank=True, null=True)
+
     habitat = models.IntegerField(default=Habitat.OTHER, choices=Habitat.choices,
                                   verbose_name='Habitat', blank=True, null=True)
+    habitat_new = models.ForeignKey('experiments_base.HabitatNew', verbose_name='Habitat new',
+                                    on_delete=models.DO_NOTHING, blank=True, null=True)
 
     environmental_factors = models.ManyToManyField(EnvironmentalFactor, verbose_name='Environmental factors',
                                                    blank=True)

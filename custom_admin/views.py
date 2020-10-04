@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import JsonResponse
 from django.contrib.auth.decorators import user_passes_test
 from django.template.context_processors import csrf
 from django.core.files.base import ContentFile
@@ -573,3 +574,38 @@ def add_experiment_from_csv(request):
         else:
             args['error'] = 'File error: void file field ?'
     return render(request, 'add_experiment_from_csv.html', args)
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='/admin/login/')
+def add_experiment_from_csv1(request):
+    args = dict()
+    args.update(csrf(request))
+
+    if request.POST:
+        error = ''
+        if request.FILES.get('csvFile', False):
+            file_path = upload_csv(request)
+            if file_path:
+                if os.path.splitext(file_path)[1].lower() == '.csv':
+                    csv_dict = parse_csv(file_path)
+                    if csv_dict.get('errors', False):
+                        error = csv_dict['errors']
+                    else:
+                        csv_info = check_csv_data(csv_dict)
+                        if request.POST.get('upload', False):
+                            if not csv_info['has_error']:
+                                error = create_experiment(csv_info, csv_dict, args)
+                                if error:
+                                    args['error'] = error
+                                return render(request, 'add_experiment_from_csv1.html', args)
+                        update_args_from_csv_info(args, csv_info, csv_dict)
+                        return JsonResponse({})
+                else:
+                    error = 'Invalid file extension'
+            else:
+                error = 'File saving error'
+        else:
+            error = 'File error: void file field ?'
+        return JsonResponse({'error': error})
+    else:
+        return render(request, 'add_experiment_from_csv1.html', args)

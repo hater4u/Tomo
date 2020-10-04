@@ -4,6 +4,7 @@ from django import forms
 import nested_admin
 from .models import Taxon, Tissue, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName
 from .models import EnvironmentalFactor, Disease, WithdrawCondition, WithdrawPlace, AdditionalProperty
+from .models import AnimalBehavior, HabitatNew, GenderNew
 from .models import InterfaceName
 
 import logging
@@ -160,7 +161,8 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
     change_form_template = 'progressbar_upload/change_form.html'
     add_form_template = 'progressbar_upload/change_form.html'
 
-    list_display = ('experiment_name', 'taxon_id', 'tissue', 'samples_number', 'way_of_life', 'habitat', 'genders',
+    list_display = ('experiment_name', 'taxon_id', 'tissue', 'samples_number', 'way_of_life', 'animal_behavior',
+                    'habitat', 'habitat_new', 'genders',
                     'withdraw_place', 'created_at', 'withdraw_date', 'experiment_folder')
 
     ordering = ('experiment_name',)
@@ -197,7 +199,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
 
     fieldsets = (
         (None, {'fields': ('experiment_name', 'taxon_id', 'tissue')}),
-        (None, {'fields': ('way_of_life', 'habitat',)}),
+        (None, {'fields': ('way_of_life', 'animal_behavior', 'habitat', 'habitat_new')}),
         (None, {'fields': ('withdraw_place', 'withdraw_date', 'comments')}),
         (None, {'fields': (('environmental_factors', 'diseases', 'withdraw_conditions'), 'additional_properties',)}),
                  )
@@ -423,6 +425,43 @@ class AdditionalPropertyAdmin(ExperimentsForeignKey):
         (None, {'fields': ('key', 'value', )}),
         ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
     )
+
+
+@admin.register(AnimalBehavior)
+class AnimalBehaviorAdmin(ExperimentsForeignKey):
+    list_display = ('animal_behavior', 'experiments_reference_number')
+    ordering = ('pk',)
+
+    exp_fields = {'pk': 'animal_behavior', 'name': 'animal_behavior'}
+
+    fieldsets = (
+        (None, {'fields': ('animal_behavior',)}),
+        ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
+                )
+
+
+@admin.register(HabitatNew)
+class HabitatNewAdmin(ExperimentsForeignKey):
+    list_display = ('habitat', 'experiments_reference_number')
+    ordering = ('pk',)
+
+    exp_fields = {'pk': 'habitat', 'name': 'habitat'}
+
+    fieldsets = (
+        (None, {'fields': ('habitat',)}),
+        ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
+                )
+
+
+@admin.register(GenderNew)
+class HabitatNewAdmin(admin.ModelAdmin):
+    list_display = ('gender',)
+    ordering = ('pk',)
+
+    # fieldsets = (
+    #     (None, {'fields': ('gender',)}),
+    #     ('Experiments references', {'fields': ('experiments_reference_number', 'show_experiments',)}),
+    #             )
 
 
 @admin.register(InterfaceName)

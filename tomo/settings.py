@@ -141,6 +141,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     str(ROOT_DIR.path('static')),
+    str(ROOT_DIR.path('custom_admin/static')),
 ]
 
 API_URL = 'http://' + env.str('API_HOST') + ':8080/api'
