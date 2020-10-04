@@ -80,13 +80,6 @@ class Taxon(models.Model):
         super(Taxon, self).delete(*args, **kwargs)
 
 
-class WayOfLife(models.IntegerChoices):
-    DIURNAL = 0, 'diurnal'
-    NOCTURNAL = 1, 'nocturnal'
-    TWILIGHT = 2, 'twilight'
-    OTHER = 3, 'other'
-
-
 class AnimalBehavior(models.Model):
     class Meta:
         db_table = 'animal_behaviors'
@@ -98,12 +91,9 @@ class AnimalBehavior(models.Model):
     def __str__(self):
         return self.animal_behavior
 
-
-class Habitat(models.IntegerChoices):
-    WILD = 0, 'wild'
-    LABORATORY = 1, 'laboratory'
-    FARM = 2, 'farm'
-    OTHER = 3, 'other'
+    @staticmethod
+    def default():
+        return 5
 
 
 class HabitatNew(models.Model):
@@ -117,11 +107,9 @@ class HabitatNew(models.Model):
     def __str__(self):
         return self.habitat
 
-
-class Gender(models.IntegerChoices):
-    MALE = 0, 'male'
-    FEMALE = 1, 'female'
-    OTHER = 2, 'not specified'
+    @staticmethod
+    def default():
+        return 5
 
 
 class GenderNew(models.Model):
@@ -134,6 +122,10 @@ class GenderNew(models.Model):
 
     def __str__(self):
         return self.gender
+
+    @staticmethod
+    def default():
+        return 4
 
 
 class EnvironmentalFactor(models.Model):
@@ -356,10 +348,8 @@ class Prob(models.Model):
     experiment_id = models.ForeignKey('experiments_base.Experiment', verbose_name='Experiment',
                                       on_delete=models.DO_NOTHING)
 
-    gender = models.IntegerField(default=Gender.OTHER, choices=Gender.choices, verbose_name='Gender', blank=True,
-                                 null=True)
-    gender_new = models.ForeignKey('experiments_base.GenderNew', verbose_name='Gender new',
-                                   on_delete=models.DO_NOTHING, blank=True, null=True)
+    gender_new = models.ForeignKey('experiments_base.GenderNew', default=GenderNew.default(), verbose_name='Gender',
+                                   on_delete=models.DO_NOTHING)
 
     month_age = models.IntegerField(default=None, validators=[MinValueValidator(0)],
                                     verbose_name='Age, Months', blank=True, null=True)
@@ -461,15 +451,11 @@ class Experiment(models.Model):
     tissue = models.ForeignKey('experiments_base.Tissue', verbose_name='Tissue', on_delete=models.DO_NOTHING,
                                blank=True, null=True)
 
-    way_of_life = models.IntegerField(default=WayOfLife.OTHER, choices=WayOfLife.choices,
-                                      verbose_name='Animal behavior', blank=True, null=True)
-    animal_behavior = models.ForeignKey('experiments_base.AnimalBehavior', verbose_name='Animal behavior new',
-                                        on_delete=models.DO_NOTHING, blank=True, null=True)
+    animal_behavior = models.ForeignKey('experiments_base.AnimalBehavior', default=AnimalBehavior.default(),
+                                        verbose_name='Animal behavior', on_delete=models.DO_NOTHING)
 
-    habitat = models.IntegerField(default=Habitat.OTHER, choices=Habitat.choices,
-                                  verbose_name='Habitat', blank=True, null=True)
-    habitat_new = models.ForeignKey('experiments_base.HabitatNew', verbose_name='Habitat new',
-                                    on_delete=models.DO_NOTHING, blank=True, null=True)
+    habitat_new = models.ForeignKey('experiments_base.HabitatNew', default=HabitatNew.default(), verbose_name='Habitat',
+                                    on_delete=models.DO_NOTHING)
 
     environmental_factors = models.ManyToManyField(EnvironmentalFactor, verbose_name='Environmental factors',
                                                    blank=True)
