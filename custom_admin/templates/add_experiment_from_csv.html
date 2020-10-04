@@ -45,8 +45,8 @@
                     <th>Experiment name</th>
                     <th>Tissue</th>
                     <th>Species</th>
-                    <th>Animal behavior(diurnal, nocturnal, twilight, not specified)</th>
-                    <th>Habitat(wild, laboratory, farm, not specified)</th>
+                    <th>Animal behavior({{ animal_behaviors|join:", " }})</th>
+                    <th>Habitat({{ habitats|join:", " }})</th>
                     <th>Sampling place</th>
                     <th>Sampling date Format "21.11.2006 16:30"</th>
                     <th>Comments</th>
@@ -56,7 +56,7 @@
                     <td>{% if exp.correct_name %}{{ exp.name }}{% else %}<ul class="errorlist">{{ exp.name_error }}({{ exp.name }})</ul>{% endif %}</td>
                     <td>{% if exp.correct_tissue %}{{ exp.tissue }}{% else %}<ul class="errorlist">{{ exp.tissue_error|safe }}({{ exp.tissue }})</ul>{% endif %}</td>
                     <td>{% if exp.correct_taxon_name %}{{ exp.taxon_name }}{% else %}<ul class="errorlist">{{ exp.taxon_name_error|safe }}({{ exp.taxon_name }})</ul>{% endif %}</td>
-                    <td>{% if exp.correct_way_of_life %}{{ exp.way_of_life }}{% else %}<ul class="errorlist">{{ exp.way_of_life_error }}({{ exp.way_of_life }})</ul>{% endif %}</td>
+                    <td>{% if exp.correct_animal_behavior %}{{ exp.animal_behavior }}{% else %}<ul class="errorlist">{{ exp.animal_behavior_error }}({{ exp.animal_behavior }})</ul>{% endif %}</td>
                     <td>{% if exp.correct_habitat %}{{ exp.habitat }}{% else %}<ul class="errorlist">{{ exp.habitat_error }}({{ exp.habitat }})</ul>{% endif %}</td>
                     <td>{% if exp.correct_withdraw_place %}{{ exp.withdraw_place }}{% else %}<ul class="errorlist">{{ exp.withdraw_place_error|safe }}({{ exp.withdraw_place }})</ul>{% endif %}</td>
                     <td>{% if exp.correct_withdraw_date %}{{ exp.withdraw_date }}{% else %}<ul class="errorlist">{{ exp.withdraw_date_error }}({{ exp.withdraw_date }})</ul>{% endif %}</td>
@@ -77,7 +77,7 @@
                 </tr>
 
                 <tr>
-                    <th>Gender(male, female, not specified)</th>
+                    <th>Gender({{ genders|join:", " }})</th>
                     {% for p in probs %}
                         <td>{% if p.correct_gender %}{{ p.gender }}{% else %}<ul class="errorlist">{{ p.gender_error }}({{ p.gender }})</ul>{% endif %}</td>
                     {% endfor %}

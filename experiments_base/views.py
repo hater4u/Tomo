@@ -28,27 +28,15 @@ experiments_base_logger = logging.getLogger('django')
 
 
 def get_genders_list():
-    genders_objs = GenderNew.objects.all()
-    genders = []
-    for el in genders_objs:
-        genders.append(el.gender)
-    return genders
+    return [el.gender for el in GenderNew.objects.all()]
 
 
 def get_habitat_list():
-    habitat_objs = HabitatNew.objects.all()
-    habitat = []
-    for el in habitat_objs:
-        habitat.append(el.habitat)
-    return habitat
+    return [el.habitat for el in HabitatNew.objects.all()]
 
 
 def get_animal_behavior_list():
-    an_beh_objs = AnimalBehavior.objects.all()
-    an_beh = []
-    for el in an_beh_objs:
-        an_beh.append(el.animal_behavior)
-    return an_beh
+    return [el.animal_behavior for el in AnimalBehavior.objects.all()]
 
 
 def index(request):
@@ -245,6 +233,7 @@ def taxa_id(request, taxon_id):
         for exp in args['experiments']:
             args['samples_info'][exp.pk] = dict()
             args['samples_info'][exp.pk]['types'] = []
+
             samples = Prob.objects.filter(experiment_id=exp.pk)
             args['samples_info'][exp.pk]['length'] = len(samples)
             for sample in samples:
@@ -253,8 +242,7 @@ def taxa_id(request, taxon_id):
                 if sample.prob_torrent_file_ms:
                     args['samples_info'][exp.pk]['types'].append('ms')
             args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
-            args['samples_info'][exp.pk]['genders'] = \
-                ', '.join(set(sorted([el.gender_new.gender for el in samples])))
+            args['samples_info'][exp.pk]['genders'] = ', '.join(set(sorted([el.gender_new.gender for el in samples])))
     except Exception as e:
         experiments_base_logger.error('Experiments and samples info error:' + str(e))
         args = {}
@@ -368,9 +356,11 @@ def experiments(request):
     args = dict()
     args = check_auth_user(request, args)
     args.update(csrf(request))
+
     args['animal_behavior'] = get_animal_behavior_list()
     args['habitat'] = get_habitat_list()
     args['genders'] = get_genders_list()
+
     if request.POST:
         search_dict = dict()
 
@@ -430,6 +420,7 @@ def experiments(request):
                 for exp in args['experiments']:
                     args['samples_info'][exp.pk] = dict()
                     args['samples_info'][exp.pk]['types'] = []
+
                     samples = Prob.objects.filter(experiment_id=exp.pk)
                     args['samples_info'][exp.pk]['length'] = len(samples)
                     for sample in samples:
@@ -494,36 +485,39 @@ def create_csv_experiment_file(exp_id, folder):
         experiments_base_logger.warning('Exporting csv error: invalid id')
         return ''
 
-    ways_o_life = get_animal_behavior_list()
-    habitats = get_habitat_list()
-    genders = get_genders_list()
+    # ways_o_life = get_animal_behavior_list()
+    # habitats = get_habitat_list()
+    # genders = get_genders_list()
 
     data = []
+    # TODO translate to english
     exp_header = ['Имя эксперимента', 'Имя таксона', 'Way of life(diurnal, nocturnal,\ntwilight, other)',
                   'Habitat(wild, laboratory,\nfarm, other)', 'Withdraw place',
                   'Withdraw date\nФормат "21/11/06 16:30"', 'Comments']
     data.append(exp_header)
 
-    exp_data = [exp.experiment_name, exp.taxon_id.taxon_name, ways_o_life[exp.animal_behavior.animal_behavior],
-                habitats[exp.habitat_new.habitat], exp.withdraw_place,
+    exp_data = [exp.experiment_name, exp.taxon_id.taxon_name, exp.animal_behavior.animal_behavior,
+                exp.habitat_new.habitat, exp.withdraw_place,
                 timezone.localtime(exp.withdraw_date).strftime('%d/%m/%y %H:%M') if exp.withdraw_date else '',
                 exp.comments]
     data.append(exp_data)
     data.append([])
 
+    # TODO translate to english
     probs = Prob.objects.filter(experiment_id=exp.pk).order_by('pk')
     prob_names = ['Имена проб']
     prob_genders = ['Пол(male, female, other)']
     prob_month_ages = ['Возраст(месяцы)']
     prob_hours_post_mortem = ['Время после смерти(часы)']
     prob_weights = ['Вес(кг)']
+    # TODO add sample weight
     prob_lengths = ['Рост(см)']
     prob_temperatures = ['Температура (°С)']
     prob_comments = ['Комментарии']
 
     for prob in probs:
         prob_names.append(prob.prob_name)
-        prob_genders.append(genders[prob.gender])
+        prob_genders.append(prob.gender_new.gender)
         prob_month_ages.append(prob.month_age)
         prob_hours_post_mortem.append(prob.hours_post_mortem)
         prob_weights.append(prob.weight)
@@ -711,6 +705,7 @@ def find_by_metabolites(request):
                     for exp in args['experiments']:
                         args['samples_info'][exp.pk] = dict()
                         args['samples_info'][exp.pk]['types'] = []
+
                         samples = Prob.objects.filter(experiment_id=exp.pk)
                         args['samples_info'][exp.pk]['length'] = len(samples)
                         for sample in samples:

@@ -16,6 +16,8 @@ import logging
 from tomo.settings import LOGGING
 
 from experiments_base.models import Taxon, Tissue, Experiment, Prob, ProbMetabolite, MetaboliteName, WithdrawPlace
+from experiments_base.models import AnimalBehavior, HabitatNew, GenderNew
+from experiments_base.views import get_animal_behavior_list, get_habitat_list, get_genders_list
 
 logging.config.dictConfig(LOGGING)
 custom_admin_logger = logging.getLogger('django')
@@ -65,9 +67,9 @@ def parse_csv(file_path):
                 if count in [0, 2, 12, 13]:
                     continue
                 if count == 1:
-                    csv_dict['exp'] = {'name': row[0], 'tissue': row[1], 'taxon_name': row[2], 'way_of_life': row[3],
-                                       'habitat': row[4], 'withdraw_place': row[5], 'withdraw_date': row[6],
-                                       'comments': row[7]}
+                    csv_dict['exp'] = {'name': row[0], 'tissue': row[1], 'taxon_name': row[2],
+                                       'animal_behavior': row[3], 'habitat': row[4], 'withdraw_place': row[5],
+                                       'withdraw_date': row[6], 'comments': row[7]}
                 if count == 3:
                     if len(row) > 8:
                         probs_length = len(row)
@@ -132,6 +134,10 @@ def check_db_field(value, model, search_field, can_be_empty):
         model.objects.get(**{search_field: value})
         return ''
     except ObjectDoesNotExist:
+        if model in [AnimalBehavior, HabitatNew, GenderNew]:
+            model_values = model.objects.all()
+            return 'You can use only these values: ' + ', '.join(model_values)
+
         if model == MetaboliteName:
             ref = ', <a href="/admin/experiments_base/metabolite/add">create metabolite</a> or ' \
                   '<a href="/admin/experiments_base/metabolitename/add">add metabolite synonym</a>'
@@ -246,7 +252,7 @@ def check_metabolite_number_field(concentrations, info_dict):
 
 def has_errors(csv_info):
 
-    for field in ['name', 'tissue', 'taxon_name', 'way_of_life', 'habitat', 'withdraw_place', 'withdraw_date']:
+    for field in ['name', 'tissue', 'taxon_name', 'animal_behavior', 'habitat', 'withdraw_place', 'withdraw_date']:
         if not csv_info['exp']['correct_' + field]:
             return True
 
@@ -283,14 +289,16 @@ def check_csv_data(csv_dict):
         return csv_info
 
     exp = dict()
-    fields = {'name': 'not_empty', 'tissue': 'db', 'taxon_name': 'db', 'way_of_life': 'checkbox', 'habitat': 'checkbox',
+    fields = {'name': 'not_empty', 'tissue': 'db', 'taxon_name': 'db', 'animal_behavior': 'db', 'habitat': 'db',
               'withdraw_place': 'db', 'withdraw_date': 'datetime'}
     field_args = {'name': {},
                   'tissue': {'model': Tissue, 'search_field': 'name__iexact', 'can_be_empty': True},
                   'taxon_name': {'model': Taxon, 'search_field': 'taxon_name', 'can_be_empty': False},
-                  'way_of_life': {'list_of_values': ['', 'diurnal', 'nocturnal', 'twilight', 'other']},
-                  'habitat': {'list_of_values': ['', 'wild', 'laboratory', 'farm', 'other']},
-                  'withdraw_place': {'model': WithdrawPlace, 'search_field': 'withdraw_place__iexact', 'can_be_empty': True},
+                  'animal_behavior': {'model': AnimalBehavior, 'search_field': 'animal_behavior__iexact',
+                                      'can_be_empty': True},
+                  'habitat': {'model': HabitatNew, 'search_field': 'habitat__iexact', 'can_be_empty': True},
+                  'withdraw_place': {'model': WithdrawPlace, 'search_field': 'withdraw_place__iexact',
+                                     'can_be_empty': True},
                   'withdraw_date': {}}
 
     for field_name, field_type in fields.items():
@@ -301,9 +309,9 @@ def check_csv_data(csv_dict):
     if not csv_info['probs_length_exist'] or not csv_info['probs_exist']:
         return csv_info
     probs = []
-    fields = {'gender': 'checkbox', 'month_age': 'number', 'hours_post_mortem': 'number', 'weight': 'number',
+    fields = {'gender': 'db', 'month_age': 'number', 'hours_post_mortem': 'number', 'weight': 'number',
               'sample_weight': 'number', 'length': 'number', 'temperature': 'number'}
-    field_args = {'gender': {'list_of_values': ['', 'male', 'female', 'not specified']},
+    field_args = {'gender': {'model': GenderNew, 'search_field': 'gender__iexact', 'can_be_empty': True},
                   'month_age': {'is_int': True},
                   'hours_post_mortem': {'is_int': False},
                   'weight': {'is_int': False},
@@ -362,7 +370,8 @@ def update_args_from_csv_info(args, csv_info, csv_dict):
         de = csv_dict['exp']
 
         exp = dict()
-        for field_name in ['name', 'tissue', 'taxon_name', 'way_of_life', 'habitat', 'withdraw_place', 'withdraw_date']:
+        for field_name in ['name', 'tissue', 'taxon_name', 'animal_behavior', 'habitat', 'withdraw_place',
+                           'withdraw_date']:
             write_field_in_template_dict(field_name, exp, e, de)
 
         exp['comments'] = de['comments']
@@ -410,26 +419,27 @@ def update_args_from_csv_info(args, csv_info, csv_dict):
 
 
 def create_experiment_dict(exp):
-    way_of_life = {'diurnal': 0, 'nocturnal': 1, 'twilight': 2, 'other': 3}
-    habitat = {'wild': 0, 'laboratory': 1, 'farm': 2, 'other': 3}
 
     try:
         exp['experiment_name'] = exp['name']
         exp.pop('name')
-        exp['taxon_id'] = Taxon.objects.get(taxon_name=exp['taxon_name'])
+
+        exp['taxon_id'] = exp['taxon_name']
         exp.pop('taxon_name')
-        if exp['way_of_life']:
-            exp['way_of_life'] = way_of_life[exp['way_of_life']]
-        else:
-            exp.pop('way_of_life')
+        exp['habitat_new'] = exp['habitat']
+        exp.pop('habitat')
 
-        if exp['habitat']:
-            exp['habitat'] = habitat[exp['habitat']]
-        else:
-            exp.pop('habitat')
-
-        exp['tissue'] = Tissue.objects.get(name__iexact=exp['tissue'])
-        exp['withdraw_place'] = WithdrawPlace.objects.get(withdraw_place__iexact=exp['withdraw_place'])
+        model_dict = {'taxon_id': {'model': Taxon, 'search_field': 'taxon_name'},
+                      'animal_behavior': {'model': AnimalBehavior, 'search_field': 'animal_behavior__iexact'},
+                      'habitat_new': {'model': HabitatNew, 'search_field': 'habitat__iexact'},
+                      'tissue': {'model': Tissue, 'search_field': 'name__iexact'},
+                      'withdraw_place': {'model': WithdrawPlace, 'search_field': 'withdraw_place__iexact'}}
+        for k, v in model_dict.items():
+            if k in exp:
+                if exp[k] == '':
+                    exp.pop(k)
+                    continue
+                exp[k] = v['model'].objects.get(**{v['search_field']: exp[k]})
 
         if exp['withdraw_date']:
             exp['withdraw_date'] = datetime.strptime(exp['withdraw_date'], "%d.%m.%Y %H:%M")
@@ -448,16 +458,15 @@ def create_experiment_dict(exp):
 
 
 def create_prob_dict(prob, exp):
-    gender = {'male': 0, 'female': 1, 'not specified': 2}
 
     try:
         prob['prob_name'] = prob['name']
         prob.pop('name')
         prob['experiment_id'] = exp
 
-        if prob['gender']:
-            prob['gender'] = gender[prob['gender']]
-        else:
+        if 'gender' in prob:
+            if prob['gender'] != '':
+                prob['gender_new'] = GenderNew.objects.get(gender__iexact=prob['gender'])
             prob.pop('gender')
 
         is_int = {'month_age': True, 'hours_post_mortem': False,
@@ -549,6 +558,10 @@ def create_experiment(csv_info, csv_dict, args):
 def add_experiment_from_csv(request):
     args = dict()
     args.update(csrf(request))
+
+    args['animal_behaviors'] = get_animal_behavior_list()
+    args['habitats'] = get_habitat_list()
+    args['genders'] = get_genders_list()
 
     if request.POST:
         if request.FILES.get('csvFile', False):

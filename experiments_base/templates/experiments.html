@@ -47,7 +47,7 @@
 
         <label class="form-check-label">{{ interface_way_of_life }}: </label>
         {% for el in animal_behavior %}
-            <div class="form-check form-check-inline">
+        <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" id="{{ el|cut:" " }}WayCheckbox" name="{{ el|cut:" " }}WayCheckbox" value="{{ el }}" {% if el|cut:" "|concat:"WayCheckbox" in filled_fields %}checked{% endif %}>
             <label class="form-check-label" for="{{ el|cut:" " }}WayCheckbox">{{ el }}</label>
         </div>
