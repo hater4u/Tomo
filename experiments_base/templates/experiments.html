@@ -46,60 +46,34 @@
         {% endif %}
 
         <label class="form-check-label">{{ interface_way_of_life }}: </label>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="diurnalWayCheckbox" name="diurnalWayCheckbox" value="DIURNAL" {% if filled_fields.diurnalWayCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="diurnalWayCheckbox">Diurnal</label>
+        {% for el in animal_behavior %}
+            <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="{{ el|cut:" " }}WayCheckbox" name="{{ el|cut:" " }}WayCheckbox" value="{{ el }}" {% if el|cut:" "|concat:"WayCheckbox" in filled_fields %}checked{% endif %}>
+            <label class="form-check-label" for="{{ el|cut:" " }}WayCheckbox">{{ el }}</label>
         </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="nocturnalWayCheckbox" name="nocturnalWayCheckbox" value="NOCTURNAL" {% if filled_fields.nocturnalWayCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="nocturnalWayCheckbox">Nocturnal</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="twilightWayCheckbox" name="twilightWayCheckbox" value="TWILIGHT" {% if filled_fields.twilightWayCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="twilightWayCheckbox">Twilight</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="otherWayCheckbox" name="otherWayCheckbox" value="OTHER" {% if filled_fields.otherWayCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="otherWayCheckbox">Other</label>
-        </div>
+        {% endfor %}
         <br>
         <br>
 
 
         <label class="form-check-label">{{ interface_habitat }}: </label>
+        {% for el in habitat %}
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="wildHabitatCheckbox" name="wildHabitatCheckbox" value="WILD" {% if filled_fields.wildHabitatCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="wildHabitatCheckbox">Wild</label>
+            <input class="form-check-input" type="checkbox" id="{{ el|cut:" " }}HabitatCheckbox" name="{{ el|cut:" " }}HabitatCheckbox" value="{{ el }}" {% if el|cut:" "|concat:"HabitatCheckbox" in filled_fields %}checked{% endif %}>
+            <label class="form-check-label" for="{{ el|cut:" " }}HabitatCheckbox">{{ el }}</label>
         </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="laboratoryHabitatCheckbox" name="laboratoryHabitatCheckbox" value="LABORATORY" {% if filled_fields.laboratoryHabitatCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="laboratoryHabitatCheckbox">Laboratory</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="farmHabitatCheckbox" name="farmHabitatCheckbox" value="FARM" {% if filled_fields.farmHabitatCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="farmHabitatCheckbox">Farm</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="otherHabitatCheckbox" name="otherHabitatCheckbox" value="OTHER" {% if filled_fields.otherHabitatCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="otherHabitatCheckbox">Other</label>
-        </div>
+        {% endfor %}
         <br>
         <br>
 
 
         <label class="form-check-label">{{ interface_gender }}: </label>
+        {% for el in genders %}
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="maleGenderCheckbox" name="maleGenderCheckbox" value="MALE" {% if filled_fields.maleGenderCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="maleGenderCheckbox">Male</label>
+            <input class="form-check-input" type="checkbox" id="{{ el|cut:" " }}GenderCheckbox" name="{{ el|cut:" " }}GenderCheckbox" value="{{ el }}" {% if el|cut:" "|concat:"GenderCheckbox" in filled_fields %}checked{% endif %}>
+            <label class="form-check-label" for="{{ el|cut:" " }}GenderCheckbox">{{ el }}</label>
         </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="femaleGenderCheckbox" name="femaleGenderCheckbox" value="FEMALE" {% if filled_fields.femaleGenderCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="femaleGenderCheckbox">Female</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="otherGenderCheckbox" name="otherGenderCheckbox" value="NOT SPECIFIED" {% if filled_fields.otherGenderCheckbox %}checked{% endif %}>
-            <label class="form-check-label" for="otherGenderCheckbox">Other</label>
-        </div>
+        {% endfor %}
         <br>
         <br>
 

@@ -54,11 +54,11 @@
             </tr>
             <tr>
                 <th data-toggle="tooltip" title="Diurnal, Nocturnal, Twilight, Not specified">{{ interface_way_of_life }}</th>
-                <td>{{ experiment.way_of_life|way_of_life }}</td>
+                <td>{{ experiment.animal_behavior.animal_behavior}}</td>
             </tr>
             <tr>
                 <th data-toggle="tooltip" title="Wild, Laboratory, Farm, Other, Not specified">{{ interface_habitat }}</th>
-                <td>{{ experiment.habitat|habitat }}</td>
+                <td>{{ experiment.habitat_new.habitat }}</td>
             </tr>
             <tr>
                 <th data-toggle="tooltip" title="Male, Female, Not specified">Genders</th>
@@ -173,7 +173,7 @@
                     <tr>
                         <th data-toggle="tooltip" title="Male, Female, Not specified" scope="row">{{ interface_gender }}</th>
                         {% for prob in probs %}
-                            <td>{{ prob.gender|gender }}</td>
+                            <td>{{ prob.gender_new.gender }}</td>
                         {% endfor %}
                     </tr>
 

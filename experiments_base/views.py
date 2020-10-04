@@ -7,7 +7,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
 from tomo.settings import API_URL, SHARED_FILES_DIR, TORRENT_DIR, LOGGING
-from .models import Taxon, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName, InterfaceName
+from .models import Taxon, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName, InterfaceName, \
+    GenderNew, HabitatNew, AnimalBehavior
 
 import requests
 import os
@@ -24,6 +25,30 @@ import csv
 logging.config.dictConfig(LOGGING)
 experiments_base_logger = logging.getLogger('django')
 # experiments_base_logger_admin = logging.getLogger('django.request')
+
+
+def get_genders_list():
+    genders_objs = GenderNew.objects.all()
+    genders = []
+    for el in genders_objs:
+        genders.append(el.gender)
+    return genders
+
+
+def get_habitat_list():
+    habitat_objs = HabitatNew.objects.all()
+    habitat = []
+    for el in habitat_objs:
+        habitat.append(el.habitat)
+    return habitat
+
+
+def get_animal_behavior_list():
+    an_beh_objs = AnimalBehavior.objects.all()
+    an_beh = []
+    for el in an_beh_objs:
+        an_beh.append(el.animal_behavior)
+    return an_beh
 
 
 def index(request):
@@ -216,7 +241,6 @@ def taxa_id(request, taxon_id):
     args['experiments'] = experiments_dict
 
     args['samples_info'] = {}
-    genders = {0: 'male', 1: 'female', 2: 'not specified', '': ' ', None: ' '}
     try:
         for exp in args['experiments']:
             args['samples_info'][exp.pk] = dict()
@@ -230,7 +254,7 @@ def taxa_id(request, taxon_id):
                     args['samples_info'][exp.pk]['types'].append('ms')
             args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
             args['samples_info'][exp.pk]['genders'] = \
-                ', '.join(set(sorted([genders[el.gender] for el in samples], reverse=True)))
+                ', '.join(set(sorted([el.gender_new.gender for el in samples])))
     except Exception as e:
         experiments_base_logger.error('Experiments and samples info error:' + str(e))
         args = {}
@@ -291,8 +315,7 @@ def experiment(request, experiment_id):
         probs = Prob.objects.filter(experiment_id=experiment_id).order_by('pk')
         if probs.count() == 0:
             return render(request, 'experiment.html', args)
-        genders = {0: 'male', 1: 'female', 2: 'not specified', '': ' ', None: ' '}
-        args['genders'] = ', '.join(set(sorted([genders[el.gender] for el in probs], reverse=True)))
+        args['genders'] = ', '.join(set(sorted([el.gender_new.gender for el in probs])))
         args['probs'] = probs
         args['metabolites'] = get_ordered_dict_of_metabolites(probs)
 
@@ -345,6 +368,9 @@ def experiments(request):
     args = dict()
     args = check_auth_user(request, args)
     args.update(csrf(request))
+    args['animal_behavior'] = get_animal_behavior_list()
+    args['habitat'] = get_habitat_list()
+    args['genders'] = get_genders_list()
     if request.POST:
         search_dict = dict()
 
@@ -359,15 +385,16 @@ def experiments(request):
             if request.POST.get(field, False):
                 search_dict[filter_name] = request.POST[field]
 
-        checkbox_fields = {'way_of_life': {'diurnalWay': 0, 'nocturnalWay': 1, 'twilightWay': 2, 'otherWay': 3},
-                           'habitat': {'wildHabitat': 0, 'laboratoryHabitat': 1, 'farmHabitat': 2, 'otherHabitat': 3},
-                           'gender': {'maleGender': 0, 'femaleGender': 1, 'otherGender': 2}}
+        checkbox_fields = {'animal_behavior__animal_behavior': {'Way': get_animal_behavior_list()},
+                           'habitat_new__habitat': {'Habitat': get_habitat_list()},
+                           'gender_new__gender': {'Gender': get_genders_list()}}
         for field, values in checkbox_fields.items():
-            field_in = field + '__in' if field != 'gender' else 'prob__' + field + '__in'
+            field_in = field + '__in' if field != 'gender_new__gender' else 'prob__' + field + '__in'
             search_dict[field_in] = []
             for key, value in values.items():
-                if request.POST.get(key + 'Checkbox', False):
-                    search_dict[field_in].append(value)
+                for el in value:
+                    if request.POST.get(el.replace(' ', '') + key + 'Checkbox', False):
+                        search_dict[field_in].append(el)
 
             if not search_dict[field_in]:
                 search_dict.pop(field_in)
@@ -397,7 +424,6 @@ def experiments(request):
 
         args['error'] = dict()
         args['samples_info'] = {}
-        genders = {0: 'male', 1: 'female', 2: 'not specified', '': ' ', None: ' '}
         try:
             if not args['error']:
                 args['experiments'] = experiments_search(search_dict)
@@ -413,14 +439,13 @@ def experiments(request):
                             args['samples_info'][exp.pk]['types'].append('ms')
                     args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
                     args['samples_info'][exp.pk]['genders'] = \
-                        ', '.join(set(sorted([genders[el.gender] for el in samples], reverse=True)))
+                        ', '.join(set(sorted([el.gender_new.gender for el in samples])))
             else:
                 args['experiments'] = {}
                 args['samples_info'] = {}
         except Exception as e:
             experiments_base_logger.error('Search error:' + str(e))
             args = {}
-
     return render(request, 'experiments.html', args)
 
 
@@ -469,9 +494,9 @@ def create_csv_experiment_file(exp_id, folder):
         experiments_base_logger.warning('Exporting csv error: invalid id')
         return ''
 
-    ways_o_life = ['diurnal', 'nocturnal', 'twilight', 'other']
-    habitats = ['wild', 'laboratory', 'farm', 'other']
-    genders = ['male', 'female', 'not specified']
+    ways_o_life = get_animal_behavior_list()
+    habitats = get_habitat_list()
+    genders = get_genders_list()
 
     data = []
     exp_header = ['Имя эксперимента', 'Имя таксона', 'Way of life(diurnal, nocturnal,\ntwilight, other)',
@@ -479,8 +504,8 @@ def create_csv_experiment_file(exp_id, folder):
                   'Withdraw date\nФормат "21/11/06 16:30"', 'Comments']
     data.append(exp_header)
 
-    exp_data = [exp.experiment_name, exp.taxon_id.taxon_name, ways_o_life[exp.way_of_life], habitats[exp.habitat],
-                exp.withdraw_place,
+    exp_data = [exp.experiment_name, exp.taxon_id.taxon_name, ways_o_life[exp.animal_behavior.animal_behavior],
+                habitats[exp.habitat_new.habitat], exp.withdraw_place,
                 timezone.localtime(exp.withdraw_date).strftime('%d/%m/%y %H:%M') if exp.withdraw_date else '',
                 exp.comments]
     data.append(exp_data)
@@ -682,22 +707,20 @@ def find_by_metabolites(request):
                     args['error'] = 'Experiments with this conditions not found'
                 else:
                     args['experiments'] = exp_ids
-
-                args['samples_info'] = {}
-                genders = {0: 'male', 1: 'female', 2: 'not specified', '': ' ', None: ' '}
-                for exp in args['experiments']:
-                    args['samples_info'][exp.pk] = dict()
-                    args['samples_info'][exp.pk]['types'] = []
-                    samples = Prob.objects.filter(experiment_id=exp.pk)
-                    args['samples_info'][exp.pk]['length'] = len(samples)
-                    for sample in samples:
-                        if sample.prob_torrent_file_nmr:
-                            args['samples_info'][exp.pk]['types'].append('nmr')
-                        if sample.prob_torrent_file_ms:
-                            args['samples_info'][exp.pk]['types'].append('ms')
-                    args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
-                    args['samples_info'][exp.pk]['genders'] = \
-                        ', '.join(set(sorted([genders[el.gender] for el in samples], reverse=True)))
+                    args['samples_info'] = {}
+                    for exp in args['experiments']:
+                        args['samples_info'][exp.pk] = dict()
+                        args['samples_info'][exp.pk]['types'] = []
+                        samples = Prob.objects.filter(experiment_id=exp.pk)
+                        args['samples_info'][exp.pk]['length'] = len(samples)
+                        for sample in samples:
+                            if sample.prob_torrent_file_nmr:
+                                args['samples_info'][exp.pk]['types'].append('nmr')
+                            if sample.prob_torrent_file_ms:
+                                args['samples_info'][exp.pk]['types'].append('ms')
+                        args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
+                        args['samples_info'][exp.pk]['genders'] = \
+                            ', '.join(set(sorted([el.gender_new.gender for el in samples])))
 
     return render(request, 'find_by_metabolites.html', args)
 

@@ -51,9 +51,9 @@
             <td>{{ el.taxon_id.taxon_name }}</td>
             <td>{{ el.tissue.name }}</td>
             <td>{{ samples_info|get_item:el.pk|get_item:'length' }}</td>
-            <td>{{ el.way_of_life|way_of_life}}</td>
-            <td>{{ el.habitat|habitat }}</td>
-            <td>{{  samples_info|get_item:el.pk|get_item:'genders' }}</td>
+            <td>{{ el.animal_behavior}}</td>
+            <td>{{ el.habitat }}</td>
+            <td>{{ samples_info|get_item:el.pk|get_item:'genders' }}</td>
 {#            <td>#}
 {#                {% for elem in el.environmental_factors.all %}#}
 {#                    {{ elem.factor_name }}<br>#}
