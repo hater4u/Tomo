@@ -19,7 +19,7 @@
 
     <div class="table-">
         <table class="table table-striped table-hover table-responsive">
-            <caption class="text-nowrap">Metabolite abundance, nmol per gram of wet tissue</caption>
+            <caption class="text-nowrap">Metabolite description</caption>
             <thead class="thead-default">
             <tr>
                 <th>Property</th>
@@ -37,14 +37,17 @@
             </tr>
             <tr>
                 <th>PubChem ID</th>
-                <td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ metabolite.pub_chem_cid }}">{{ metabolite.pub_chem_cid }}</a></td>
+                <td>
+                    {% if metabolite.pub_chem_cid and metabolite.pub_chem_cid != 0 %}
+                        <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ metabolite.pub_chem_cid }}">{{ metabolite.pub_chem_cid }}</a>
+                    {% endif %}
+                </td>
             </tr>
             <tr>
                 <th>HMDB ID</th>
                 <td>
                     {% if metabolite.hmdb_id %}
                         <a href="https://hmdb.ca/metabolites/{{ metabolite.hmdb_id }}">{{ metabolite.hmdb_id }}</a>
-                        {{ metabolite.hmdb_id }}
                     {% endif %}
                 </td>
             </tr>

@@ -229,7 +229,8 @@ class MetaboliteNameAdminInline(nested_admin.NestedTabularInline):
 class MetaboliteAdmin(nested_admin.NestedModelAdmin):
     delete_confirmation_template = 'admin/experiments_base/metabolite/delete_confirmation.html'
 
-    list_display = ('metabolite_name', 'pub_chem_cid', 'hmdb_id', 'iupac_name', 'samples_number', 'comment', 'pk',)
+    list_display = ('metabolite_name', 'pub_chem_cid', 'hmdb_id', 'iupac_name', 'samples_number', 'comment',
+                    'amdb_metabolite_id',)
     ordering = ('metabolite_name',)
     actions = ['delete_model']
     inlines = (MetaboliteNameAdminInline, )
@@ -237,6 +238,10 @@ class MetaboliteAdmin(nested_admin.NestedModelAdmin):
     @staticmethod
     def samples_number(obj):
         return ProbMetabolite.objects.filter(metabolite_id=obj.pk).count()
+
+    @staticmethod
+    def amdb_metabolite_id(obj):
+        return obj.pk
 
     def get_actions(self, request):
         actions = super(MetaboliteAdmin, self).get_actions(request)

@@ -183,16 +183,16 @@ def get_taxon_and_sub_taxon_experiments(taxon_id):
     return all_experiments
 
 
-def get_taxon_children(taxon_id):
+def get_taxon_children(taxon_id, tree_with_empty_children):
     children = Taxon.objects.filter(parent_id=taxon_id)
 
     if children.count():
         children_list = []
         for ch in children:
-            nodes = get_taxon_children(ch.pk)
+            nodes = get_taxon_children(ch.pk, tree_with_empty_children)
             exps = Experiment.objects.filter(taxon_id=ch.pk)
 
-            if nodes or exps:
+            if tree_with_empty_children or nodes or exps:
                 nodes += [{'text': exp.experiment_name,
                            'href': '/experiment/' + str(exp.pk),
                            'color': '#28A745'} for exp in exps]
@@ -221,7 +221,8 @@ def taxa_id(request, taxon_id):
         args['index_taxons'] = True
         experiments_dict = []
         args['popular_taxons'] = Taxon.objects.filter(view_in_popular=True)
-        args['taxon_tree'] = json.dumps(get_taxon_children(None))
+        args['taxon_tree'] = json.dumps(get_taxon_children(None, False))
+        args['full_taxon_tree'] = json.dumps(get_taxon_children(None, True))
     else:
         args['children'] = Taxon.objects.filter(parent_id=taxon_id)
         experiments_dict = get_taxon_and_sub_taxon_experiments(taxon_id)
@@ -490,10 +491,9 @@ def create_csv_experiment_file(exp_id, folder):
     # genders = get_genders_list()
 
     data = []
-    # TODO translate to english
-    exp_header = ['Имя эксперимента', 'Имя таксона', 'Way of life(diurnal, nocturnal,\ntwilight, other)',
+    exp_header = ['Experiment name', 'Specie name', 'Way of life(diurnal, nocturnal,\ntwilight, other)',
                   'Habitat(wild, laboratory,\nfarm, other)', 'Withdraw place',
-                  'Withdraw date\nФормат "21/11/06 16:30"', 'Comments']
+                  'Withdraw date\nDate format "21/11/06 16:30"', 'Comments']
     data.append(exp_header)
 
     exp_data = [exp.experiment_name, exp.taxon_id.taxon_name, exp.animal_behavior.animal_behavior,
@@ -503,17 +503,16 @@ def create_csv_experiment_file(exp_id, folder):
     data.append(exp_data)
     data.append([])
 
-    # TODO translate to english
     probs = Prob.objects.filter(experiment_id=exp.pk).order_by('pk')
-    prob_names = ['Имена проб']
-    prob_genders = ['Пол(male, female, other)']
-    prob_month_ages = ['Возраст(месяцы)']
-    prob_hours_post_mortem = ['Время после смерти(часы)']
-    prob_weights = ['Вес(кг)']
+    prob_names = ['Sample names']
+    prob_genders = ['Gender(male, female, other)']
+    prob_month_ages = ['Age(months)']
+    prob_hours_post_mortem = ['Time post-mortem(hours)']
+    prob_weights = ['Weight(kg)']
     # TODO add sample weight
-    prob_lengths = ['Рост(см)']
-    prob_temperatures = ['Температура (°С)']
-    prob_comments = ['Комментарии']
+    prob_lengths = ['Height(cm)']
+    prob_temperatures = ['Temperature (°C)']
+    prob_comments = ['Comments']
 
     for prob in probs:
         prob_names.append(prob.prob_name)

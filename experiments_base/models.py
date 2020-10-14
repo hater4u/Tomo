@@ -2,7 +2,6 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-# from pubchempy import NotFoundError,
 
 from tomo.settings import SHARED_FILES_DIR, TORRENT_DIR, API_URL, API_AUTH, LOGGING
 

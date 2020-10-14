@@ -360,6 +360,32 @@ function AddMetName2SearchField(event) {
     }
 }
 
+function showFullTree(event) {
+    let tree = document.getElementById('tree');
+    let fullTree = document.getElementById('full-tree');
+
+    tree.hidden = true;
+    fullTree.hidden = false;
+
+    let showNormalTreeBtn = document.getElementsByClassName('show-tree')[0];
+    if(showNormalTreeBtn) showNormalTreeBtn.remove();
+
+    showNormalTreeBtn = document.createElement('button');
+    showNormalTreeBtn.classList.add('btn');
+    showNormalTreeBtn.classList.add('btn-success');
+    showNormalTreeBtn.classList.add('mr-2');
+    showNormalTreeBtn.classList.add('show-tree');
+    showNormalTreeBtn.classList.add('float-right');
+    showNormalTreeBtn.innerText = 'Show normal tree';
+    showNormalTreeBtn.onclick = function () {
+        tree.hidden = false;
+        fullTree.hidden = true;
+        showNormalTreeBtn.remove();
+    }
+
+    document.getElementsByClassName('show-full-tree')[0].after(showNormalTreeBtn);
+}
+
 $(function () {
   $('[data-toggle="tooltip"]').tooltip()
 })

@@ -180,42 +180,42 @@
                     <tr>
                         <th scope="row">Age, months</th>
                         {% for prob in probs %}
-                            <td>{{ prob.month_age }}</td>
+                            <td>{% if prob.month_age %}{{ prob.month_age }}{% else %}Not specified{% endif %}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
                         <th scope="row">Time post-mortem, h</th>
                         {% for prob in probs %}
-                            <td>{{ prob.hours_post_mortem|floatformat:2 }}</td>
+                            <td>{% if prob.hours_post_mortem %}{{ prob.hours_post_mortem|floatformat:2 }}{% else %}Not specified{% endif %}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
                         <th scope="row">Species Weight, kg</th>
                         {% for prob in probs %}
-                            <td>{{ prob.weight|floatformat:2 }}</td>
+                            <td>{% if prob.weight %}{{ prob.weight|floatformat:2 }}{% else %}Not specified{% endif %}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
                         <th scope="row">Sample Weight, mg</th>
                         {% for prob in probs %}
-                            <td>{{ prob.sample_weight|floatformat:2 }}</td>
+                            <td>{% if prob.sample_weight %}{{ prob.sample_weight|floatformat:2 }}{% else %}Not specified{% endif %}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
                         <th scope="row">Length, cm</th>
                         {% for prob in probs %}
-                            <td>{{ prob.length|floatformat:2 }}</td>
+                            <td>{% if prob.length %}{{ prob.length|floatformat:2 }}{% else %}Not specified{% endif %}</td>
                         {% endfor %}
                     </tr>
 
                     <tr>
                         <th scope="row"> Ambient t, °C</th>
                         {% for prob in probs %}
-                            <td>{{ prob.temperature|floatformat:2 }}</td>
+                            <td>{% if prob.temperature %}{{ prob.temperature|floatformat:2 }}{% else %}Not specified{% endif %}</td>
                         {% endfor %}
                     </tr>
                     <tr>
@@ -232,6 +232,7 @@
 
             {% if metabolites %}
             <table class="table table-striped table-hover table-responsive">
+                <caption>Metabolite abundance, nmol per gram of wet tissue</caption>
                 <thead>
                     <tr>
                         <th>Metabolites\Samples</th>
