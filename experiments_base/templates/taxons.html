@@ -12,7 +12,8 @@
         <a href="/admin/experiments_base/taxon/add/" class="btn btn-success">Add taxon</a>
         <a href="/admin/experiments_base/taxon/{{ taxon_id }}/change/" class="btn btn-warning {% if index_taxons %}disabled{% endif %}">Change taxon</a>
         <a href="/admin/experiments_base/taxon/{{ taxon_id }}/delete/" class="btn btn-danger {% if index_taxons %}disabled{% endif %}">Delete taxon</a>
-        <button id="expandButton" class="btn btn-primary float-right show-full-tree" onclick="showFullTree(this)">Show full tree</button>
+        <button id="showFullTreeButton" class="btn btn-primary float-right" onclick="showFullTree(this)">Show full tree</button>
+        <button id="showNormalTreeButton" class="btn btn-success mr-2 float-right" onclick="showNormalTree(this)" hidden>Show normal tree</button>
     </div>
     <br>
     {% endif %}

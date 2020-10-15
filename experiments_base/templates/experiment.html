@@ -53,15 +53,15 @@
                 <td>{{ probs|length }}</td>
             </tr>
             <tr>
-                <th data-toggle="tooltip" title="Diurnal, Nocturnal, Twilight, Not specified">{{ interface_way_of_life }}</th>
+                <th data-toggle="tooltip" title="{{ animal_behavior_tooltip }}">{{ interface_way_of_life }}</th>
                 <td>{{ experiment.animal_behavior.animal_behavior}}</td>
             </tr>
             <tr>
-                <th data-toggle="tooltip" title="Wild, Laboratory, Farm, Other, Not specified">{{ interface_habitat }}</th>
+                <th data-toggle="tooltip" title="{{ habitat_tooltip }}">{{ interface_habitat }}</th>
                 <td>{{ experiment.habitat_new.habitat }}</td>
             </tr>
             <tr>
-                <th data-toggle="tooltip" title="Male, Female, Not specified">Genders</th>
+                <th data-toggle="tooltip" title="{{ genders_tooltip }}">Genders</th>
                 <td>{{ genders }}</td>
             </tr>
             <tr>

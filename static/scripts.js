@@ -251,6 +251,9 @@ function addCheckboxAndButton(element)
         item.hidden = false;
     }
 
+    // let downloadInfo = document.getElementById('downloadInfo');
+    // downloadInfo.hidden = false;
+
     selectButton.onclick = function (){
         let trs = document.getElementsByClassName(checkClassNMR);
         for(let item of trs) {
@@ -283,6 +286,7 @@ function addCheckboxAndButton(element)
         cancelButton.remove();
         selectButton.remove();
         addb.hidden = false;
+        // downloadInfo.hidden = true;
     }
 }
 
@@ -363,27 +367,21 @@ function AddMetName2SearchField(event) {
 function showFullTree(event) {
     let tree = document.getElementById('tree');
     let fullTree = document.getElementById('full-tree');
+    let showNormalTreeBtn = document.getElementById('showNormalTreeButton');
 
     tree.hidden = true;
     fullTree.hidden = false;
+    showNormalTreeBtn.hidden = false;
 
-    let showNormalTreeBtn = document.getElementsByClassName('show-tree')[0];
-    if(showNormalTreeBtn) showNormalTreeBtn.remove();
+}
 
-    showNormalTreeBtn = document.createElement('button');
-    showNormalTreeBtn.classList.add('btn');
-    showNormalTreeBtn.classList.add('btn-success');
-    showNormalTreeBtn.classList.add('mr-2');
-    showNormalTreeBtn.classList.add('show-tree');
-    showNormalTreeBtn.classList.add('float-right');
-    showNormalTreeBtn.innerText = 'Show normal tree';
-    showNormalTreeBtn.onclick = function () {
-        tree.hidden = false;
-        fullTree.hidden = true;
-        showNormalTreeBtn.remove();
-    }
+function showNormalTree(event) {
+    let tree = document.getElementById('tree');
+    let fullTree = document.getElementById('full-tree');
 
-    document.getElementsByClassName('show-full-tree')[0].after(showNormalTreeBtn);
+    tree.hidden = false;
+    fullTree.hidden = true;
+    event.hidden = true;
 }
 
 $(function () {

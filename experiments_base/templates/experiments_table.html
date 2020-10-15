@@ -1,5 +1,7 @@
 <button class="btn btn-warning m-2 adding-button" data-type="experiment" onclick="addCheckboxAndButton(this)">Download experiments</button>
-
+<div id="downloadInfo" hidden>
+    <h5>Number of files available for download: CSV: {{ download_info.number_csv }}, NMR: {{ download_info.number_nmr }}, MS: {{ download_info.number_ms }}</h5>
+</div>
 {% load exp_filters%}
 
 <div class="table-experiments">
@@ -16,9 +18,9 @@
             <th>Species</th>
             <th>Tissue</th>
             <th>N of samples</th>
-            <th data-toggle="tooltip" title="Diurnal, Nocturnal, Twilight, Not specified">{{ interface_way_of_life }}</th>
-            <th data-toggle="tooltip" title="Wild, Laboratory, Farm, Other, Not specified">{{ interface_habitat }}</th>
-            <th data-toggle="tooltip" title="Male, Female, Not specified">Genders</th>
+            <th data-toggle="tooltip" title="{{ animal_behavior_tooltip }}">{{ interface_way_of_life }}</th>
+            <th data-toggle="tooltip" title="{{ habitat_tooltip }}">{{ interface_habitat }}</th>
+            <th data-toggle="tooltip" title="{{ genders_tooltip }}">Genders</th>
 {#            <th>{{ interface_environmental_factors }}</th>#}
             <th>{{ interface_diseases }}</th>
             <th>Sampling date</th>

@@ -37,6 +37,12 @@
             {{ error }}
         </h5>
     {% else %}
+    {% if search_term %}
+        <br>
+        <h5 class="alert alert-success">
+            {{ search_term }}
+        </h5>
+    {% endif %}
 
         <br>
         {% if experiments %}

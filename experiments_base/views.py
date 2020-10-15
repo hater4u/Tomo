@@ -211,6 +211,10 @@ def taxa_id(request, taxon_id):
     args.update(csrf(request))
     args = check_auth_user(request, args)
 
+    args['habitat_tooltip'] = ', '.join([el for el in get_habitat_list()])
+    args['animal_behavior_tooltip'] = ', '.join([el for el in get_animal_behavior_list()])
+    args['genders_tooltip'] = ', '.join([el for el in get_genders_list()])
+
     args['taxon_id'] = taxon_id
 
     hierarchy = get_taxon_path(taxon_id)
@@ -230,8 +234,10 @@ def taxa_id(request, taxon_id):
     args['experiments'] = experiments_dict
 
     args['samples_info'] = {}
+    args['download_info'] = {'number_nmr': 0, 'number_ms': 0, 'number_csv': 0}
     try:
         for exp in args['experiments']:
+            args['download_info']['number_csv'] += 1
             args['samples_info'][exp.pk] = dict()
             args['samples_info'][exp.pk]['types'] = []
 
@@ -240,8 +246,10 @@ def taxa_id(request, taxon_id):
             for sample in samples:
                 if sample.prob_torrent_file_nmr:
                     args['samples_info'][exp.pk]['types'].append('nmr')
+                    args['download_info']['number_nmr'] += 1
                 if sample.prob_torrent_file_ms:
                     args['samples_info'][exp.pk]['types'].append('ms')
+                    args['download_info']['number_ms'] += 1
             args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
             args['samples_info'][exp.pk]['genders'] = ', '.join(set(sorted([el.gender_new.gender for el in samples])))
     except Exception as e:
@@ -299,6 +307,11 @@ def get_ordered_dict_of_metabolites(probs):
 def experiment(request, experiment_id):
     args = dict()
     args = check_auth_user(request, args)
+
+    args['habitat_tooltip'] = ', '.join([el for el in get_habitat_list()])
+    args['animal_behavior_tooltip'] = ', '.join([el for el in get_animal_behavior_list()])
+    args['genders_tooltip'] = ', '.join([el for el in get_genders_list()])
+
     try:
         args['experiment'] = Experiment.objects.get(pk=experiment_id)
         probs = Prob.objects.filter(experiment_id=experiment_id).order_by('pk')
@@ -362,6 +375,10 @@ def experiments(request):
     args['habitat'] = get_habitat_list()
     args['genders'] = get_genders_list()
 
+    args['habitat_tooltip'] = ', '.join([el for el in get_habitat_list()])
+    args['animal_behavior_tooltip'] = ', '.join([el for el in get_animal_behavior_list()])
+    args['genders_tooltip'] = ', '.join([el for el in get_genders_list()])
+
     if request.POST:
         search_dict = dict()
 
@@ -415,10 +432,12 @@ def experiments(request):
 
         args['error'] = dict()
         args['samples_info'] = {}
+        args['download_info'] = {'number_nmr': 0, 'number_ms': 0, 'number_csv': 0}
         try:
             if not args['error']:
                 args['experiments'] = experiments_search(search_dict)
                 for exp in args['experiments']:
+                    args['download_info']['number_csv'] += 1
                     args['samples_info'][exp.pk] = dict()
                     args['samples_info'][exp.pk]['types'] = []
 
@@ -427,8 +446,10 @@ def experiments(request):
                     for sample in samples:
                         if sample.prob_torrent_file_nmr:
                             args['samples_info'][exp.pk]['types'].append('nmr')
+                            args['download_info']['number_nmr'] += 1
                         if sample.prob_torrent_file_ms:
                             args['samples_info'][exp.pk]['types'].append('ms')
+                            args['download_info']['number_ms'] += 1
                     args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
                     args['samples_info'][exp.pk]['genders'] = \
                         ', '.join(set(sorted([el.gender_new.gender for el in samples])))
@@ -509,7 +530,7 @@ def create_csv_experiment_file(exp_id, folder):
     prob_month_ages = ['Age(months)']
     prob_hours_post_mortem = ['Time post-mortem(hours)']
     prob_weights = ['Weight(kg)']
-    # TODO add sample weight
+    prob_sample_weights = ['Sample Weight(mg)']
     prob_lengths = ['Height(cm)']
     prob_temperatures = ['Temperature (°C)']
     prob_comments = ['Comments']
@@ -520,14 +541,15 @@ def create_csv_experiment_file(exp_id, folder):
         prob_month_ages.append(prob.month_age)
         prob_hours_post_mortem.append(prob.hours_post_mortem)
         prob_weights.append(prob.weight)
+        prob_sample_weights.append(prob.sample_weight)
         prob_lengths.append(prob.length)
         prob_temperatures.append(prob.temperature)
         prob_comments.append(prob.comment)
 
-    data.extend([prob_names, prob_genders, prob_month_ages, prob_hours_post_mortem, prob_weights, prob_lengths,
-                 prob_temperatures, prob_comments, []])
+    data.extend([prob_names, prob_genders, prob_month_ages, prob_hours_post_mortem, prob_weights, prob_sample_weights,
+                 prob_lengths, prob_temperatures, prob_comments, []])
 
-    data.append([' Имена метаболитов', *[prob.prob_name for prob in probs]])
+    data.append(['Metabolite names', *[prob.prob_name for prob in probs]])
     ordered_dict_of_metabolites = get_ordered_dict_of_metabolites(probs)
     for key, value in ordered_dict_of_metabolites.items():
         data.append([value['name'], *[v if v is not None else 'NA' for k, v in value['concentrations'].items()]])
@@ -664,11 +686,18 @@ def find_by_metabolites(request):
     args = check_auth_user(request, args)
     args.update(csrf(request))
 
+    args['habitat_tooltip'] = ', '.join([el for el in get_habitat_list()])
+    args['animal_behavior_tooltip'] = ', '.join([el for el in get_animal_behavior_list()])
+    args['genders_tooltip'] = ', '.join([el for el in get_genders_list()])
+
     args['metabolites'] = Metabolite.objects.all().order_by('metabolite_name')
 
     if request.POST:
         metabolite_names = request.POST.get('metaboliteNames', False)
         if metabolite_names:
+            search_term = metabolite_names
+            args['search_term'] = 'Shown are experiments with search term: "' + search_term + '"'
+
             metabolite_names = metabolite_names.split(' AND ')
             meta_length = len(metabolite_names)
 
@@ -697,11 +726,13 @@ def find_by_metabolites(request):
                         exp_ids.add(el.experiment_id)
 
                 if len(exp_ids) == 0:
-                    args['error'] = 'Experiments with this conditions not found'
+                    args['error'] = 'Experiments with this search term: "' + search_term + '" not found'
                 else:
                     args['experiments'] = exp_ids
                     args['samples_info'] = {}
+                    args['download_info'] = {'number_nmr': 0, 'number_ms': 0, 'number_csv': 0}
                     for exp in args['experiments']:
+                        args['download_info']['number_csv'] += 1
                         args['samples_info'][exp.pk] = dict()
                         args['samples_info'][exp.pk]['types'] = []
 
@@ -710,8 +741,10 @@ def find_by_metabolites(request):
                         for sample in samples:
                             if sample.prob_torrent_file_nmr:
                                 args['samples_info'][exp.pk]['types'].append('nmr')
+                                args['download_info']['number_nmr'] += 1
                             if sample.prob_torrent_file_ms:
                                 args['samples_info'][exp.pk]['types'].append('ms')
+                                args['download_info']['number_ms'] += 1
                         args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
                         args['samples_info'][exp.pk]['genders'] = \
                             ', '.join(set(sorted([el.gender_new.gender for el in samples])))
