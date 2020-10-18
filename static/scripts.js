@@ -118,17 +118,26 @@ function getFunctionForUnselect(checkClassNMR, checkClassMS, checkClassCSV)
     {
         let trs = document.getElementsByClassName(classNmr);
         for(let item of trs) {
-            item.checked = false;
+            if (item.checked) {
+                item.checked = false;
+                CheckboxChanged(item);
+            }
         }
 
         trs = document.getElementsByClassName(classMs);
         for(let item of trs) {
-            item.checked = false;
+            if (item.checked) {
+                item.checked = false;
+                CheckboxChanged(item);
+            }
         }
 
         trs = document.getElementsByClassName(classCSV);
         for(let item of trs) {
-            item.checked = false;
+            if (item.checked) {
+                item.checked = false;
+                CheckboxChanged(item);
+            }
         }
     }
 }
@@ -138,16 +147,28 @@ function functionForCancel(checkClassNMR, checkClassMS, checkClassCSV, labelClas
     let trs = document.getElementsByClassName(classNmr);
     for(let item of trs) {
         item.hidden = true;
+        if (item.checked) {
+            item.checked = false;
+            CheckboxChanged(item);
+        }
     }
 
     trs = document.getElementsByClassName(classMs);
     for(let item of trs) {
         item.hidden = true;
+        if (item.checked) {
+            item.checked = false;
+            CheckboxChanged(item);
+        }
     }
 
     trs = document.getElementsByClassName(classCSV);
     for(let item of trs) {
         item.hidden = true;
+        if (item.checked) {
+            item.checked = false;
+            CheckboxChanged(item);
+        }
     }
 
     trs = document.getElementsByClassName(labelCl);
@@ -251,42 +272,51 @@ function addCheckboxAndButton(element)
         item.hidden = false;
     }
 
-    // let downloadInfo = document.getElementById('downloadInfo');
-    // downloadInfo.hidden = false;
+    let downloadInfo = document.getElementById('downloadInfo');
+    downloadInfo.hidden = false;
 
     selectButton.onclick = function (){
         let trs = document.getElementsByClassName(checkClassNMR);
         for(let item of trs) {
             item.type = 'checkbox';
-            item.checked = 'true';
+            if (!item.checked) {
+                item.checked = 'true';
+                CheckboxChanged(item);
+            }
             item.hidden = false;
         }
 
         trs = document.getElementsByClassName(checkClassMS);
         for (let item of trs) {
             item.type = 'checkbox';
-            item.checked = 'true';
+            if (!item.checked) {
+                item.checked = 'true';
+                CheckboxChanged(item);
+            }
             item.hidden = false;
         }
 
         trs = document.getElementsByClassName(checkClassCSV);
         for (let item of trs) {
             item.type = 'checkbox';
-            item.checked = 'true';
+            if (!item.checked) {
+                item.checked = 'true';
+                CheckboxChanged(item);
+            }
             item.hidden = false;
         }
     }
 
     cancelButton.onclick = function () {
-        let someFunc = getFunctionForUnselect(checkClassNMR, checkClassMS, checkClassCSV);
-        someFunc();
+        // let someFunc = getFunctionForUnselect(checkClassNMR, checkClassMS, checkClassCSV);
+        // someFunc();
         functionForCancel(checkClassNMR, checkClassMS, checkClassCSV, labelClass);
         downloadButton.remove();
         unselectButton.remove();
         cancelButton.remove();
         selectButton.remove();
         addb.hidden = false;
-        // downloadInfo.hidden = true;
+        downloadInfo.hidden = true;
     }
 }
 
@@ -350,6 +380,34 @@ $(document).ready(function () {
     })
 });
 
+//TODO: learn select2 and ajax after rework back and this 2 functions
+$(document).ready(function () {
+    $('.js-tissue-search-basic').select2({
+    ajax: {
+        type: 'POST',
+        url: '/tissue/search/',
+        dataType: 'json',
+        // delay: 250,
+        data: function (params) {
+            return {
+                query: params.term,
+                csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val()
+            };
+        },
+        processResults: function (data) {
+            return {
+                results: $.map(data.results, function (obj) {
+                    return {
+                        id: obj.id, text: obj.name
+                    };
+                })
+            };
+        },
+        cache: true,
+        }
+    })
+});
+
 function AddMetName2SearchField(event) {
     let metName = event.value;
     let searchField = document.getElementById('metaboliteNames');
@@ -382,6 +440,31 @@ function showNormalTree(event) {
     tree.hidden = false;
     fullTree.hidden = true;
     event.hidden = true;
+}
+
+function CheckboxChanged(event) {
+    let elemNumberCSV = document.getElementById('downloadSelectedCSV');
+    let elemNumberNMR = document.getElementById('downloadSelectedNMR');
+    let elemNumberMS = document.getElementById('downloadSelectedMS');
+    if (event.className === 'exp-check-nmr') {
+        if (event.checked === true) {
+            elemNumberNMR.innerText = (+elemNumberNMR.innerText) + (+event.value);
+        } else {
+            elemNumberNMR.innerText -= event.value;
+        }
+    } else if (event.className === 'exp-check-ms') {
+        if (event.checked === true) {
+            elemNumberMS.innerText = (+elemNumberMS.innerText) + (+event.value);
+        } else {
+            elemNumberMS.innerText -= event.value;
+        }
+    } else if (event.className === 'exp-check-csv') {
+        if (event.checked === true) {
+            elemNumberCSV.innerText = (+elemNumberCSV.innerText) + (+event.value);
+        } else {
+            elemNumberCSV.innerText -= event.value;
+        }
+    }
 }
 
 $(function () {

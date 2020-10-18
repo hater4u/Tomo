@@ -29,11 +29,18 @@
 
         <div class="form-group">
             <label for="taxonSearchName">{{ interface_taxon_name }}</label>
-{#            <input id="taxonSearchName" name="taxonSearchName" aria-describedby="taxonSearchNameHelp" value="{{ filled_fields.taxonSearchName }}">#}
             <select class="js-taxon-search-basic form-control" id="taxonSearchName" name="taxonSearchName">
             </select>
             <small id="taxonSearchNameHelp" class="form-text text-muted">{{ interface_experiments_page_hint_taxon_name }}</small>
         </div>
+
+        <div class="form-group">
+            <label for="tissueSearchName">Tissue</label>
+            <select class="js-tissue-search-basic form-control" id="tissueSearchName" name="tissueSearchName">
+            </select>
+            <small id="tissueSearchNameHelp" class="form-text text-muted">Some experiments have a tissue</small>
+        </div>
+
 
         <div class="taxons-hierarchy">
 
@@ -144,6 +151,13 @@
                     </div>
 
 
+                    <div class="form-group">
+                        <label for="samplingConditions">Sampling conditions</label>
+                        <input type="text" class="form-control" id="samplingConditions" name="samplingConditions" aria-describedby="samplingConditionsHelp" value="{{ filled_fields.samplingConditions }}">
+                        <small id="samplingConditionsHelp" class="form-text text-muted">{{ interface_experiments_page_hint_withdraw_place }}</small>
+                    </div>
+
+
                     <div class="form-row">
                         <div class="col">
                             <label for="withdrawDateFrom">Sampling date from</label>
@@ -179,6 +193,19 @@
                         <div class="col">
                             <label for="temperatureTo">to</label>
                             <input type="number" step="0.01" class="form-control" min="0" placeholder="100.01" id="temperatureTo" name="temperatureTo" value="{{ filled_fields.temperatureTo }}">
+                        </div>
+                    </div>
+
+
+                    <div class="form-row">
+                        <div class="col">
+                            <label for="additionalPropertiesKey">Additional Properties, key</label>
+                            <input class="form-control" type="text" id="additionalPropertiesKey" name="additionalPropertiesKey" aria-describedby="additionalPropertiesKeyHelp" value="{{ filled_fields.additionalPropertiesKey }}">
+                            <small id="additionalPropertiesKeyHelp" class="form-text text-muted">Key-value pairs</small>
+                        </div>
+                        <div class="col">
+                            <label for="additionalPropertiesValue">value</label>
+                            <input type="text" class="form-control" id="additionalPropertiesValue" name="additionalPropertiesValue" value="{{ filled_fields.additionalPropertiesValue }}">
                         </div>
                     </div>
 

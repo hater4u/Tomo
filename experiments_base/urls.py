@@ -18,4 +18,5 @@ urlpatterns = [
     path('experiment/<slug:experiment_id>/', views.experiment, name='experiment'),
     path('find/metabolites/', views.find_by_metabolites, name='find_by_metabolites'),
     path('metabolite/<slug:metabolite_id>', views.metabolite, name='metabolite'),
+    path('tissue/search/', views.tissue_search, name='tissue_search')
 ]

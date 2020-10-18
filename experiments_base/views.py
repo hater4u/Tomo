@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from tomo.settings import API_URL, SHARED_FILES_DIR, TORRENT_DIR, LOGGING
 from .models import Taxon, Experiment, Prob, ProbMetabolite, Metabolite, MetaboliteName, InterfaceName, \
-    GenderNew, HabitatNew, AnimalBehavior
+    GenderNew, HabitatNew, AnimalBehavior, Tissue, AdditionalProperty
 
 import requests
 import os
@@ -234,10 +234,10 @@ def taxa_id(request, taxon_id):
     args['experiments'] = experiments_dict
 
     args['samples_info'] = {}
-    args['download_info'] = {'number_nmr': 0, 'number_ms': 0, 'number_csv': 0}
+    args['download_info'] = {}
     try:
         for exp in args['experiments']:
-            args['download_info']['number_csv'] += 1
+            args['download_info'][exp.pk] = {'number_nmr': 0, 'number_ms': 0, 'number_csv': 1}
             args['samples_info'][exp.pk] = dict()
             args['samples_info'][exp.pk]['types'] = []
 
@@ -246,10 +246,10 @@ def taxa_id(request, taxon_id):
             for sample in samples:
                 if sample.prob_torrent_file_nmr:
                     args['samples_info'][exp.pk]['types'].append('nmr')
-                    args['download_info']['number_nmr'] += 1
+                    args['download_info'][exp.pk]['number_nmr'] += 1
                 if sample.prob_torrent_file_ms:
                     args['samples_info'][exp.pk]['types'].append('ms')
-                    args['download_info']['number_ms'] += 1
+                    args['download_info'][exp.pk]['number_ms'] += 1
             args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
             args['samples_info'][exp.pk]['genders'] = ', '.join(set(sorted([el.gender_new.gender for el in samples])))
     except Exception as e:
@@ -275,6 +275,25 @@ def taxon_search(request):
                 return JsonResponse({'results': taxons_list})
             except Exception as e:
                 experiments_base_logger.error('Taxon search error:' + str(e))
+                return JsonResponse({'results': []})
+        else:
+            return JsonResponse({'results': []})
+    else:
+        return redirect('taxa')
+
+
+def tissue_search(request):
+    if request.POST:
+        if request.POST.get('query', False) is not False:
+            search_word = request.POST['query']
+            try:
+                founded_tissues = Tissue.objects.filter(name__icontains=search_word)
+                tissues_list = []
+                for el in founded_tissues:
+                    tissues_list.append({'id': el.id, 'name': el.name})
+                return JsonResponse({'results': tissues_list})
+            except Exception as e:
+                experiments_base_logger.error('Tissue search error:' + str(e))
                 return JsonResponse({'results': []})
         else:
             return JsonResponse({'results': []})
@@ -388,7 +407,7 @@ def experiments(request):
                 args['filled_fields'][key] = value
 
         fields = {'experimentName': 'experiment_name__contains', 'taxonSearchName': 'taxon_id',
-                  'withdrawPlace': 'withdraw_place'}
+                  'tissueSearchName': 'tissue', 'withdrawPlace': 'withdraw_place'}
         for field, filter_name in fields.items():
             if request.POST.get(field, False):
                 search_dict[filter_name] = request.POST[field]
@@ -417,12 +436,13 @@ def experiments(request):
             if request.POST.get(field, False):
                 search_dict[filter_name] = request.POST[field]
 
-        # TODO need withdraw conditions
-        multiple_fields = {'environmentalFactors': 'environmental_factors__in', 'diseases': 'diseases__in',
-                           'comments': 'comments'}
+        # TODO need fix
+        multiple_fields = {'environmentalFactors': 'environmental_factors__factor_name__contains',
+                           'diseases': 'disease__disease_name__contains', 'comments': 'comments',
+                           'samplingConditions': 'withdraw_conditions__withdraw_condition__contains'}
         for field, filter_name in multiple_fields.items():
             if request.POST.get(field, False):
-                search_dict[filter_name] = [request.POST[field]]
+                search_dict[filter_name] = request.POST[field]
 
         if request.POST['withdrawDateFrom'] != '':
             search_dict['withdraw_date__gte'] = request.POST['withdrawDateFrom'] + ' 00:00:00'
@@ -430,14 +450,19 @@ def experiments(request):
         if request.POST['withdrawDateTo'] != '':
             search_dict['withdraw_date__lte'] = request.POST['withdrawDateTo'] + ' 00:00:00'
 
+        if request.POST['additionalPropertiesKey']:
+            search_dict['additional_properties__key'] = request.POST['additionalPropertiesKey']
+        if request.POST['additionalPropertiesValue']:
+            search_dict['additional_properties__value'] = request.POST['additionalPropertiesValue']
+
         args['error'] = dict()
         args['samples_info'] = {}
-        args['download_info'] = {'number_nmr': 0, 'number_ms': 0, 'number_csv': 0}
+        args['download_info'] = {}
         try:
             if not args['error']:
                 args['experiments'] = experiments_search(search_dict)
                 for exp in args['experiments']:
-                    args['download_info']['number_csv'] += 1
+                    args['download_info'][exp.pk] = {'number_nmr': 0, 'number_ms': 0, 'number_csv': 1}
                     args['samples_info'][exp.pk] = dict()
                     args['samples_info'][exp.pk]['types'] = []
 
@@ -446,10 +471,10 @@ def experiments(request):
                     for sample in samples:
                         if sample.prob_torrent_file_nmr:
                             args['samples_info'][exp.pk]['types'].append('nmr')
-                            args['download_info']['number_nmr'] += 1
+                            args['download_info'][exp.pk]['number_nmr'] += 1
                         if sample.prob_torrent_file_ms:
                             args['samples_info'][exp.pk]['types'].append('ms')
-                            args['download_info']['number_ms'] += 1
+                            args['download_info'][exp.pk]['number_ms'] += 1
                     args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
                     args['samples_info'][exp.pk]['genders'] = \
                         ', '.join(set(sorted([el.gender_new.gender for el in samples])))
@@ -730,9 +755,9 @@ def find_by_metabolites(request):
                 else:
                     args['experiments'] = exp_ids
                     args['samples_info'] = {}
-                    args['download_info'] = {'number_nmr': 0, 'number_ms': 0, 'number_csv': 0}
+                    args['download_info'] = {}
                     for exp in args['experiments']:
-                        args['download_info']['number_csv'] += 1
+                        args['download_info'][exp.pk] = {'number_nmr': 0, 'number_ms': 0, 'number_csv': 1}
                         args['samples_info'][exp.pk] = dict()
                         args['samples_info'][exp.pk]['types'] = []
 
@@ -741,10 +766,10 @@ def find_by_metabolites(request):
                         for sample in samples:
                             if sample.prob_torrent_file_nmr:
                                 args['samples_info'][exp.pk]['types'].append('nmr')
-                                args['download_info']['number_nmr'] += 1
+                                args['download_info'][exp.pk]['number_nmr'] += 1
                             if sample.prob_torrent_file_ms:
                                 args['samples_info'][exp.pk]['types'].append('ms')
-                                args['download_info']['number_ms'] += 1
+                                args['download_info'][exp.pk]['number_ms'] += 1
                         args['samples_info'][exp.pk]['types'] = list(set(args['samples_info'][exp.pk]['types']))
                         args['samples_info'][exp.pk]['genders'] = \
                             ', '.join(set(sorted([el.gender_new.gender for el in samples])))

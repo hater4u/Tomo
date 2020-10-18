@@ -1,6 +1,9 @@
 <button class="btn btn-warning m-2 adding-button" data-type="experiment" onclick="addCheckboxAndButton(this)">Download experiments</button>
 <div id="downloadInfo" hidden>
-    <h5>Number of files available for download: CSV: {{ download_info.number_csv }}, NMR: {{ download_info.number_nmr }}, MS: {{ download_info.number_ms }}</h5>
+    <h5 style="display: inline"> Number of selected files for download: </h5>
+    <h4 class="btn btn-dark">CSV <span id="downloadSelectedCSV" class="badge badge-light">0</span></h4>
+    <h4 class="btn btn-dark">NMR <span id="downloadSelectedNMR" class="badge badge-light">0</span></h4>
+    <h4 class="btn btn-dark">MS <span id="downloadSelectedMS" class="badge badge-light">0</span></h4>
 </div>
 {% load exp_filters%}
 
@@ -35,17 +38,17 @@
                 {{ forloop.counter }}
                 {% for type in samples_info|get_item:el.pk|get_item:'types' %}
                     {% if type == 'nmr' %}
-                        <input class="exp-check-nmr" type="hidden" data-id="{{ el.pk }}" id="ecnmr-{{ el.pk }}">
+                        <input onchange="CheckboxChanged(this)" class="exp-check-nmr" type="hidden" data-id="{{ el.pk }}" id="ecnmr-{{ el.pk }}" value="{{ download_info|get_item:el.pk|get_item:'number_nmr' }}">
                         <label for="ecnmr-{{ el.pk }}" class="exp-label" hidden>NMR</label>
                         <br>
                     {% endif %}
                     {% if type == 'ms' %}
-                        <input class="exp-check-ms" type="hidden" data-id="{{ el.pk }}" id="ecms-{{ el.pk }}">
+                        <input onchange="CheckboxChanged(this)" class="exp-check-ms" type="hidden" data-id="{{ el.pk }}" id="ecms-{{ el.pk }}" value="{{ download_info|get_item:el.pk|get_item:'number_ms' }}">
                         <label for="ecms-{{ el.pk }}" class="exp-label" hidden>MS</label>
                         <br>
                     {% endif %}
                 {% endfor %}
-                <input class="exp-check-csv" type="hidden" data-id="{{ el.pk }}" id="eccsv-{{ el.pk }}">
+                <input onchange="CheckboxChanged(this)" class="exp-check-csv" type="hidden" data-id="{{ el.pk }}" id="eccsv-{{ el.pk }}" value="{{ download_info|get_item:el.pk|get_item:'number_csv' }}">
                 <label for="eccsv-{{ el.pk }}" class="exp-label" hidden>Export csv</label>
             </th>
             <td><a href="{% url 'experiment' el.pk %}">{{ el.experiment_name }}</a></td>
