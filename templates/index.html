@@ -25,6 +25,10 @@
         <div class="navbar-collapse" id="navbarSupportedContent">
 
             <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'index' %}"><h5 class="mb-0 mr-4 text-dark">AMDB.online</h5></a>
+                </li>
+
                 <li class="nav-item {% block taxon_active %}{% endblock %}">
                     <a class="nav-link" href="{% url 'taxons' %}">{{ interface_taxons_name }}</a>
                 </li>

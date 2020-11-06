@@ -17,6 +17,8 @@ from tomo.settings import LOGGING
 
 from experiments_base.models import Taxon, Tissue, Experiment, Prob, ProbMetabolite, MetaboliteName, WithdrawPlace
 from experiments_base.models import AnimalBehavior, HabitatNew, GenderNew
+from experiments_base.admin import ExperimentAdminForm
+from django.forms import inlineformset_factory
 from experiments_base.views import get_animal_behavior_list, get_habitat_list, get_genders_list
 
 logging.config.dictConfig(LOGGING)
@@ -61,14 +63,14 @@ def parse_csv(file_path):
         with open(file_path, "r", encoding=char_enc) as f_obj:
             reader = csv.reader(f_obj, delimiter=';')
 
-            prob_fields = {3: 'name', 4: 'gender', 5: 'month_age', 6: 'hours_post_mortem', 7: 'weight',
+            prob_fields = {3: 'prob_name', 4: 'gender_new', 5: 'month_age', 6: 'hours_post_mortem', 7: 'weight',
                            8: 'sample_weight', 9: 'length', 10: 'temperature', 11: 'comment'}
             for count, row in enumerate(reader):
                 if count in [0, 2, 12, 13]:
                     continue
                 if count == 1:
-                    csv_dict['exp'] = {'name': row[0], 'tissue': row[1], 'taxon_name': row[2],
-                                       'animal_behavior': row[3], 'habitat': row[4], 'withdraw_place': row[5],
+                    csv_dict['exp'] = {'experiment_name': row[0], 'tissue': row[1], 'taxon_id': row[2],
+                                       'animal_behavior': row[3], 'habitat_new': row[4], 'withdraw_place': row[5],
                                        'withdraw_date': row[6], 'comments': row[7]}
                 if count == 3:
                     if len(row) > 8:
@@ -105,492 +107,115 @@ def parse_csv(file_path):
     return csv_dict
 
 
-def get_name(name):
-    return name.replace('_', ' ')
+def get_value_from_field(value, field_type, some_args):
 
+    if field_type == 'str':
+        return value
 
-def check_not_empty_field(value):
-    return '' if value else 'Invalid {}. Field can not be empty.'
-
-
-def check_checkbox_field(value, list_of_values):
-    if value in list_of_values:
-        return ''
-    else:
-        return 'Field {} has invalid value. Change it.'
-
-
-def check_db_field(value, model, search_field, can_be_empty):
-
-    if not can_be_empty:
-        error = check_not_empty_field(value)
-        if error:
-            return error
-    else:
+    if field_type == 'bd':
         if value == '':
-            return ''
+            return value
 
-    try:
-        model.objects.get(**{search_field: value})
-        return ''
-    except ObjectDoesNotExist:
-        if model in [AnimalBehavior, HabitatNew, GenderNew]:
-            model_values = model.objects.all()
-            return 'You can use only these values: ' + ', '.join(model_values)
-
-        if model == MetaboliteName:
-            ref = ', <a href="/admin/experiments_base/metabolite/add">create metabolite</a> or ' \
-                  '<a href="/admin/experiments_base/metabolitename/add">add metabolite synonym</a>'
-        else:
-            ref = ' or <a href="/admin/experiments_base/' + model.__qualname__.lower() + '/add">create</a>.'
-        return 'Value of field {} not found in database. Change it in table' + ref
-    except MultipleObjectsReturned:
-        ref = '<a href="/admin/experiments_base/' + model.__qualname__.lower() + '/{}/change">{}</a>'
-        same_names = ', '.join([ref.format(el.pk, el.__dict__[search_field.split('__')[0]]) for el in
-                                model.objects.filter(**{search_field: value})])
-        return 'Database has some ' + model.__qualname__.lower() + ' objects with same names: ' + same_names
-
-
-def check_datetime_field(value):
-    if value == '':
-        return ''
-
-    try:
-        datetime.strptime(value, "%d.%m.%Y %H:%M")
-        return ''
-    except ValueError:
-        return 'Invalid {}. Check template of datetime field.'
-
-
-def is_number(value):
-    try:
-        float(value)
-        return True
-    except ValueError:
-        return False
-
-
-def check_number_field(value, is_int):
-
-    if value == '' or value == 'na':
-        return ''
-    else:
-        value = value.replace(',', '.')
-        if is_number(value):
-            try:
-                value = int(value) if is_int else float(value)
-            except ValueError:
-                return 'Float number in integer field'
-            if value >= 0:
-                return ''
-            else:
-                return 'Negative number'
-        else:
-            return 'Bad number'
-
-
-def check_prob_number_field(prob, info_dict, is_int, field_name):
-
-    correct_name = 'correct_' + field_name
-    name_error = field_name + '_error'
-
-    try:
-        value = prob[field_name]
-    except KeyError:
-        info_dict[correct_name] = False
-        info_dict[name_error] = 'Not found ' + field_name.replace('_', ' ') + '. Check structure of table.'
-        return
-
-    check = check_number_field(is_int, value)
-    if check:
-        info_dict[correct_name] = False
-        info_dict[name_error] = check
-    else:
-        info_dict[correct_name] = True
-
-
-def write_checking_in_dict(error, info_dict, correct_name, name_error):
-
-    if not error:
-        info_dict[correct_name] = True
-    else:
-        info_dict[correct_name] = False
-        info_dict[name_error] = error
-    return
-
-
-def get_function(field_type):
-    method_name = 'check_' + field_type + '_field'
-    return globals()[method_name]
-
-
-def check_field(data, field_name, field_type, info_dict, obj_data):
-    correct_name = 'correct_' + field_name
-    name_error = field_name + '_error'
-
-    if data.get(field_name, False) is False:
-        info_dict[correct_name] = False
-        info_dict[name_error] = 'Not found ' + field_name.replace('_', ' ') + '. Check structure of table.'
-        return
-
-    value = data[field_name]
-    args = {'value': value, **obj_data}
-    error = get_function(field_type)(**args).format(get_name(field_name))
-
-    write_checking_in_dict(error, info_dict, correct_name, name_error)
-
-
-def check_metabolite_number_field(concentrations, info_dict):
-    info_dict['concentrations'] = []
-    for c in concentrations:
-        error = check_number_field(c, False)
-        if error:
-            info_dict['concentrations'].append({'value': c, 'error': error})
-        else:
-            info_dict['concentrations'].append({'value': c, 'error': False})
-
-
-def has_errors(csv_info):
-
-    for field in ['name', 'tissue', 'taxon_name', 'animal_behavior', 'habitat', 'withdraw_place', 'withdraw_date']:
-        if not csv_info['exp']['correct_' + field]:
-            return True
-
-    if csv_info['probs_length_exist'] and csv_info['probs_exist']:
-
-        for prob in csv_info['probs']:
-            for field in ['gender', 'month_age', 'hours_post_mortem', 'weight', 'sample_weight', 'length',
-                          'temperature']:
-                if not prob['correct_' + field]:
-                    return True
-
-        if csv_info['metabolites_exist']:
-
-            for m in csv_info['metabolites']:
-
-                if not m['correct_name']:
-                    return True
-
-                for c in m['concentrations']:
-                    if c['error'] is not False:
-                        return True
-
-    return False
-
-
-def check_csv_data(csv_dict):
-    csv_info = dict()
-
-    for el in ['exp', 'probs_length', 'probs', 'metabolites']:
-        csv_info[el + '_exist'] = csv_dict.get(el, False)
-
-    if not (csv_info['exp_exist'] or csv_info['probs_length_exist'] or
-            csv_info['probs_exist'] or csv_info['metabolites_exist']):
-        return csv_info
-
-    exp = dict()
-    fields = {'name': 'not_empty', 'tissue': 'db', 'taxon_name': 'db', 'animal_behavior': 'db', 'habitat': 'db',
-              'withdraw_place': 'db', 'withdraw_date': 'datetime'}
-    field_args = {'name': {},
-                  'tissue': {'model': Tissue, 'search_field': 'name__iexact', 'can_be_empty': True},
-                  'taxon_name': {'model': Taxon, 'search_field': 'taxon_name', 'can_be_empty': False},
-                  'animal_behavior': {'model': AnimalBehavior, 'search_field': 'animal_behavior__iexact',
-                                      'can_be_empty': True},
-                  'habitat': {'model': HabitatNew, 'search_field': 'habitat__iexact', 'can_be_empty': True},
-                  'withdraw_place': {'model': WithdrawPlace, 'search_field': 'withdraw_place__iexact',
-                                     'can_be_empty': True},
-                  'withdraw_date': {}}
-
-    for field_name, field_type in fields.items():
-        check_field(csv_dict['exp'], field_name, field_type, exp, field_args[field_name])
-
-    csv_info['exp'] = exp
-
-    if not csv_info['probs_length_exist'] or not csv_info['probs_exist']:
-        return csv_info
-    probs = []
-    fields = {'gender': 'db', 'month_age': 'number', 'hours_post_mortem': 'number', 'weight': 'number',
-              'sample_weight': 'number', 'length': 'number', 'temperature': 'number'}
-    field_args = {'gender': {'model': GenderNew, 'search_field': 'gender__iexact', 'can_be_empty': True},
-                  'month_age': {'is_int': True},
-                  'hours_post_mortem': {'is_int': False},
-                  'weight': {'is_int': False},
-                  'sample_weight': {'is_int': False},
-                  'length': {'is_int': False},
-                  'temperature': {'is_int': False}}
-
-    for prob in csv_dict['probs']:
-        prob_dict = dict()
-
-        for field_name, field_type in fields.items():
-            check_field(prob, field_name, field_type, prob_dict, field_args[field_name])
-        probs.append(prob_dict)
-
-    csv_info['probs'] = probs
-
-    if not csv_info['metabolites_exist']:
-        return csv_info
-
-    metabolites = []
-    for meta_name, concentrations in csv_dict['metabolites'].items():
-        meta_dict = dict()
-        meta_dict['name'] = meta_name
-
-        check_field(meta_dict, 'name', 'db', meta_dict, {'model': MetaboliteName,
-                                                         'search_field': 'metabolite_synonym__iexact',
-                                                         'can_be_empty': False})
-        if meta_dict.get(meta_name + '_error', False):
-            meta_dict[meta_name + '_error'] = meta_dict[meta_name + '_error'].replace('metabolitename', 'metabolite')
-
-        check_metabolite_number_field(concentrations, meta_dict)
-        metabolites.append(meta_dict)
-
-    csv_info['metabolites'] = metabolites
-
-    csv_info['has_error'] = has_errors(csv_info)
-    return csv_info
-
-
-def write_field_in_template_dict(field_name, t_dict, info_dict, values_dict):
-
-    correct_name = 'correct_' + field_name
-
-    t_dict[field_name] = values_dict[field_name]
-    t_dict[correct_name] = info_dict[correct_name]
-    if not t_dict[correct_name]:
-        t_dict[field_name + '_error'] = info_dict[field_name + '_error']
-
-
-def update_args_from_csv_info(args, csv_info, csv_dict):
-
-    args['has_error'] = csv_info['has_error']
-
-    if csv_info['exp_exist']:
-        e = csv_info['exp']
-        de = csv_dict['exp']
-
-        exp = dict()
-        for field_name in ['name', 'tissue', 'taxon_name', 'animal_behavior', 'habitat', 'withdraw_place',
-                           'withdraw_date']:
-            write_field_in_template_dict(field_name, exp, e, de)
-
-        exp['comments'] = de['comments']
-        args['exp'] = exp
-
-        if csv_info['probs_length_exist'] and csv_info['probs_exist']:
-            dp = csv_dict['probs']
-            probs = []
-
-            for c, prob in enumerate(csv_info['probs']):
-                p_dict = dict()
-                p_dict['prob_name'] = dp[c]['name']
-                for field_name in ['gender', 'month_age', 'hours_post_mortem', 'weight', 'sample_weight', 'length',
-                                   'temperature']:
-                    write_field_in_template_dict(field_name, p_dict, prob, dp[c])
-                p_dict['comment'] = dp[c]['comment']
-                probs.append(p_dict)
-
-            args['probs'] = probs
-
-            if csv_info['metabolites_exist']:
-                metabolites = []
-
-                for m in csv_info['metabolites']:
-                    m_dict = dict()
-
-                    meta_name = m['name']
-
-                    m_dict['name'] = meta_name
-                    m_dict['correct'] = m['correct_name']
-                    if not m_dict['correct']:
-                        m_dict['error'] = m['name_error']
-
-                    m_dict['concentrations'] = m['concentrations']
-                    metabolites.append(m_dict)
-
-                args['metabolites'] = metabolites
-            else:
-                args['warning'] = 'Metabolites not found'
-        else:
-            args['warning'] = 'Probs not found'
-
-    else:
-        args['error'] = 'Invalid structure of table. Second string is data of experiment.'
-
-
-def create_experiment_dict(exp):
-
-    try:
-        exp['experiment_name'] = exp['name']
-        exp.pop('name')
-
-        exp['taxon_id'] = exp['taxon_name']
-        exp.pop('taxon_name')
-        exp['habitat_new'] = exp['habitat']
-        exp.pop('habitat')
-
-        model_dict = {'taxon_id': {'model': Taxon, 'search_field': 'taxon_name'},
-                      'animal_behavior': {'model': AnimalBehavior, 'search_field': 'animal_behavior__iexact'},
-                      'habitat_new': {'model': HabitatNew, 'search_field': 'habitat__iexact'},
-                      'tissue': {'model': Tissue, 'search_field': 'name__iexact'},
-                      'withdraw_place': {'model': WithdrawPlace, 'search_field': 'withdraw_place__iexact'}}
-        for k, v in model_dict.items():
-            if k in exp:
-                if exp[k] == '':
-                    exp.pop(k)
-                    continue
-                exp[k] = v['model'].objects.get(**{v['search_field']: exp[k]})
-
-        if exp['withdraw_date']:
-            exp['withdraw_date'] = datetime.strptime(exp['withdraw_date'], "%d.%m.%Y %H:%M")
-        else:
-            exp.pop('withdraw_date')
-
-        if exp['comments']:
-            exp['comments'] = exp['comments']
-        else:
-            exp.pop('comments')
-
-        return ''
-
-    except (ObjectDoesNotExist, KeyError):
-        return 'Unidentified error. Please contact with administration.'
-
-
-def create_prob_dict(prob, exp):
-
-    try:
-        prob['prob_name'] = prob['name']
-        prob.pop('name')
-        prob['experiment_id'] = exp
-
-        if 'gender' in prob:
-            if prob['gender'] != '':
-                prob['gender_new'] = GenderNew.objects.get(gender__iexact=prob['gender'])
-            prob.pop('gender')
-
-        is_int = {'month_age': True, 'hours_post_mortem': False,
-                  'weight': False, 'sample_weight': False, 'length': False, 'temperature': False}
-        for field, is_int in is_int.items():
-            if prob[field] == '':
-                prob.pop(field)
-            else:
-                if prob[field] == 'na':
-                    prob[field] = None
-                else:
-                    with_point = prob[field].replace(',', '.')
-                    prob[field] = int(with_point) if is_int else float(with_point)
-
-        if prob['comment']:
-            prob['comment'] = prob['comment']
-        else:
-            prob.pop('comment')
-
-        return ''
-    except KeyError:
-        return 'Unidentified error in prob' + prob.get('prob_name', '') + '. Please contact with administration.'
-
-
-def create_prob_metabolites(csv_dict, prob_objs, args):
-
-    metabolites = csv_dict['metabolites']
-
-    for meta_name, concentrations in metabolites.items():
+        model, search_field = some_args
+        search_field = {search_field: value}
         try:
-            m = MetaboliteName.objects.get(metabolite_synonym__iexact=meta_name).metabolite_id
+            return model.objects.get(**search_field).pk
+        except ObjectDoesNotExist:
+            return 0
 
-            for counter, c in enumerate(concentrations):
-                if c == '':
-                    continue
-                else:
-                    if c == 'na':
-                        c = None
-                    else:
-                        c = float(c.replace(',', '.'))
-                    prop_metabolite = ProbMetabolite(prob_id=prob_objs[counter], metabolite_id=m, concentration=c)
-                    prop_metabolite.save()
+    if field_type == 'date_time':
+        return value.replace('.', '-')
 
-        except (ObjectDoesNotExist, KeyError):
-            return 'Unidentified error in metabolite' + meta_name + '.Please contact with administration.'
-
-    args['success'] = 'Experiment was successfully created.'
-    return ''
+    if field_type == 'number':
+        return value.replace(',', '.')
 
 
-def create_probs_and_prob_metabolites(csv_info, csv_dict, exp, args):
+def create_request_dict(csv_dict, token):
+    request_data = dict()
+    request_data['csrfmiddlewaretoken'] = str(token)
 
-    probs = csv_dict['probs']
-    prob_objs = []
+    if csv_dict.get('exp', False):
 
-    for prob in probs:
-        error = create_prob_dict(prob, exp)
-        if error:
-            return error
+        exp_fields = {'experiment_name': 'str', 'tissue': 'bd', 'taxon_id': 'bd', 'animal_behavior': 'bd',
+                      'habitat_new': 'bd', 'withdraw_place': 'bd', 'withdraw_date': 'date_time', 'comments': 'str'}
+        exp_some_data = {'tissue': [Tissue, 'name__iexact'], 'taxon_id': [Taxon, 'taxon_name'],
+                         'animal_behavior': [AnimalBehavior, 'animal_behavior__iexact'],
+                         'habitat_new': [HabitatNew, 'habitat__iexact'],
+                         'withdraw_place': [WithdrawPlace, 'withdraw_place__iexact']}
 
-        p = Prob(**prob)
-        p.save()
-        prob_objs.append(p)
+        data = csv_dict['exp']
+        for k, v in exp_fields.items():
+            request_data[k] = get_value_from_field(data[k], v, exp_some_data.get(k, []))
 
-    if csv_info['probs_length_exist']:
-        return create_prob_metabolites(csv_dict, prob_objs, args)
-    else:
-        args['success'] = 'Experiment without metabolites was successfully created'
-        return ''
+        prob_prefix = 'prob_set-'
+        prob_length = csv_dict.get('probs_length', 0)
+        request_data[prob_prefix + 'TOTAL_FORMS'] = prob_length
+        request_data[prob_prefix + 'INITIAL_FORMS'] = 0
+        request_data[prob_prefix + 'MIN_NUM_FORMS'] = 0
+        request_data[prob_prefix + 'MAX_NUM_FORMS'] = 1000
 
+        prob_fields = {'prob_name': 'str', 'gender_new': 'bd', 'month_age': 'number', 'hours_post_mortem': 'number',
+                       'weight': 'number', 'sample_weight': 'number', 'length': 'number', 'temperature': 'number',
+                       'comment': 'str'}
 
-def create_experiment(csv_info, csv_dict, args):
-    e = csv_dict['exp']
-    error = create_experiment_dict(e)
-    if error:
-        return error
+        if csv_dict.get('probs', False):
 
-    exp = Experiment(**e)
-    exp.save()
+            prob_some_data = {'gender_new': [GenderNew, 'gender__iexact']}
 
-    if csv_info['probs_length_exist'] and csv_info['probs_exist']:
-        return create_probs_and_prob_metabolites(csv_info, csv_dict, exp, args)
-    else:
-        args['success'] = 'Experiment without probs and metabolites was successfully created'
-        return ''
+            for counter, p in enumerate(csv_dict['probs']):
+                for k, v in prob_fields.items():
+                    request_data[prob_prefix + str(counter) + '-' + k] = get_value_from_field(p[k], v,
+                                                                                              prob_some_data.get(k, []))
+
+                request_data[prob_prefix + str(counter) + '-probmetabolite_set-__prefix__-id'] = ''
+                request_data[prob_prefix + str(counter) + '-probmetabolite_set-__prefix__-prob_id'] = ''
+                request_data[prob_prefix + str(counter) + '-probmetabolite_set-__prefix__-metabolite_id'] = ''
+                request_data[prob_prefix + str(counter) + '-probmetabolite_set-__prefix__-concentration'] = 0
+
+            if csv_dict.get('metabolites', False):
+                meta_length = len(csv_dict['metabolites'])
+                i = 0
+                while i < prob_length:
+                    request_data[prob_prefix + str(i) + '-probmetabolite_set-TOTAL_FORMS'] = meta_length
+                    request_data[prob_prefix + str(i) + '-probmetabolite_set-INITIAL_FORMS'] = 0
+                    request_data[prob_prefix + str(i) + '-probmetabolite_set-MIN_NUM_FORMS'] = 0
+                    request_data[prob_prefix + str(i) + '-probmetabolite_set-MAX_NUM_FORMS'] = 1000
+                    i += 1
+
+                meta_some_data = {'metabolite_id': [MetaboliteName, 'metabolite_synonym__iexact']}
+
+                i = 0
+                for metabolite_id, concentrations in csv_dict['metabolites'].items():
+                    meta_id = get_value_from_field(metabolite_id, 'bd', meta_some_data['metabolite_id'])
+                    if meta_id != 0:
+                        meta_id = MetaboliteName.objects.get(pk=meta_id).metabolite_id.pk
+                    j = 0
+                    while j < prob_length:
+                        meta_prefix = prob_prefix + str(j) + '-probmetabolite_set-' + str(i)
+                        request_data[meta_prefix + '-metabolite_id'] = meta_id
+                        request_data[meta_prefix + '-concentration'] = get_value_from_field(concentrations[j],
+                                                                                            'number', [])
+
+                        j += 1
+                    i += 1
+
+        for k, v in prob_fields.items():
+            request_data[prob_prefix + '__prefix__' + '-' + k] = ''
+
+        request_data[prob_prefix + 'empty-probmetabolite_set-TOTAL_FORMS'] = 0
+        request_data[prob_prefix + 'empty-probmetabolite_set-INITIAL_FORMS'] = 0
+        request_data[prob_prefix + 'empty-probmetabolite_set-MIN_NUM_FORMS'] = 0
+        request_data[prob_prefix + 'empty-probmetabolite_set-MAX_NUM_FORMS'] = 1000
+        request_data[prob_prefix + 'empty-probmetabolite_set-__prefix__-id'] = ''
+        request_data[prob_prefix + 'empty-probmetabolite_set-__prefix__-prob_id'] = ''
+        request_data[prob_prefix + 'empty-probmetabolite_set-__prefix__-metabolite_id'] = ''
+        request_data[prob_prefix + 'empty-probmetabolite_set-__prefix__-concentration'] = 0
+
+    return request_data
 
 
 @user_passes_test(lambda u: u.is_superuser, login_url='/admin/login/')
 def add_experiment_from_csv(request):
-    args = dict()
-    args.update(csrf(request))
-
-    args['animal_behaviors'] = get_animal_behavior_list()
-    args['habitats'] = get_habitat_list()
-    args['genders'] = get_genders_list()
-
-    if request.POST:
-        if request.FILES.get('csvFile', False):
-            file_path = upload_csv(request)
-            if file_path:
-                if os.path.splitext(file_path)[1].lower() == '.csv':
-                    csv_dict = parse_csv(file_path)
-                    if csv_dict.get('errors', False):
-                        args['error'] = csv_dict['errors']
-                    else:
-                        csv_info = check_csv_data(csv_dict)
-                        if request.POST.get('upload', False):
-                            if not csv_info['has_error']:
-                                error = create_experiment(csv_info, csv_dict, args)
-                                if error:
-                                    args['error'] = error
-                                return render(request, 'add_experiment_from_csv.html', args)
-                        update_args_from_csv_info(args, csv_info, csv_dict)
-                else:
-                    args['error'] = 'Invalid file extension'
-            else:
-                args['error'] = 'File saving error'
-        else:
-            args['error'] = 'File error: void file field ?'
-    return render(request, 'add_experiment_from_csv.html', args)
-
-
-@user_passes_test(lambda u: u.is_superuser, login_url='/admin/login/')
-def add_experiment_from_csv1(request):
     args = dict()
     args.update(csrf(request))
 
@@ -604,15 +229,7 @@ def add_experiment_from_csv1(request):
                     if csv_dict.get('errors', False):
                         error = csv_dict['errors']
                     else:
-                        csv_info = check_csv_data(csv_dict)
-                        if request.POST.get('upload', False):
-                            if not csv_info['has_error']:
-                                error = create_experiment(csv_info, csv_dict, args)
-                                if error:
-                                    args['error'] = error
-                                return render(request, 'add_experiment_from_csv1.html', args)
-                        update_args_from_csv_info(args, csv_info, csv_dict)
-                        return JsonResponse({})
+                        return JsonResponse(create_request_dict(csv_dict, args['csrf_token']))
                 else:
                     error = 'Invalid file extension'
             else:
@@ -621,4 +238,4 @@ def add_experiment_from_csv1(request):
             error = 'File error: void file field ?'
         return JsonResponse({'error': error})
     else:
-        return render(request, 'add_experiment_from_csv1.html', args)
+        return render(request, 'add_experiment_from_csv.html', args)

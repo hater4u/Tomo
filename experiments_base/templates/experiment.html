@@ -101,6 +101,14 @@
                 <td>{{ experiment.created_at }}</td>
             </tr>
             <tr>
+                <th>Connected experiments</th>
+                <td>
+                    {% for el in experiment.connected_experiments.all %}
+                        {% if experiment.pk != el.pk %}<a href="{% url 'experiment' el.pk %}">ID{{ el.pk }} </a>{% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr>
                 <th>Comments</th>
                 <td>
                     {{ experiment.comments }}

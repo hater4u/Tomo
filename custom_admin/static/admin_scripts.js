@@ -5,6 +5,20 @@ function processData(){
     }
     else {
         console.log(false);
+        console.log(data);
+
+        let form = document.getElementById('csvSendForm');
+
+        for(let key in data){
+            let field = document.createElement('input');
+            field.type = 'hidden';
+            field.name = key;
+            field.value = data[key];
+            form.append(field);
+            console.log(key);
+        }
+
+        form.submit();
     }
 }
 

@@ -95,10 +95,8 @@ class ProbAdmin(nested_admin.NestedModelAdmin):
     change_form_template = 'progressbar_upload/change_form.html'
     add_form_template = 'progressbar_upload/change_form.html'
 
-    list_display = ('prob_name', 'gender_new',
-                    'month_age', 'hours_post_mortem',
-                    'weight', 'length', 'temperature',
-                    'prob_file_nmr', 'prob_file_ms', )
+    list_display = ('prob_name', 'gender_new', 'month_age', 'hours_post_mortem', 'weight', 'sample_weight', 'length',
+                    'temperature', 'comment', 'prob_file_nmr', 'prob_file_ms', )
     ordering = ('prob_name',)
     exclude = ('prob_torrent_file_nmr', 'prob_torrent_file_ms', )
     inlines = (ProbMetaboliteAdminInline, )
@@ -155,6 +153,8 @@ class ExperimentAdminForm(forms.ModelForm):
             'comments': forms.Textarea(attrs={'cols': 120, 'rows': 5}),
         }
 
+    inlines = (ProbAdminInline,)
+
 
 @admin.register(Experiment)
 class ExperimentAdmin(nested_admin.NestedModelAdmin):
@@ -201,6 +201,7 @@ class ExperimentAdmin(nested_admin.NestedModelAdmin):
         (None, {'fields': ('animal_behavior', 'habitat_new')}),
         (None, {'fields': ('withdraw_place', 'withdraw_date', 'comments')}),
         (None, {'fields': (('environmental_factors', 'diseases', 'withdraw_conditions'), 'additional_properties',)}),
+        (None, {'fields': ('connected_experiments',)}),
                  )
 
     def delete_view(self, request, object_id, extra_context=None):
@@ -225,8 +226,19 @@ class MetaboliteNameAdminInline(nested_admin.NestedTabularInline):
     extra = 0
 
 
+class MetaboliteAdminForm(forms.ModelForm):
+    class Meta:
+        model = Metabolite
+        fields = ['metabolite_name', 'pub_chem_cid', 'hmdb_id', 'iupac_name', 'comment', ]
+        widgets = {
+            'iupac_name': forms.Textarea(attrs={'cols': 120, 'rows': 1}),
+            'comment': forms.Textarea(attrs={'cols': 120, 'rows': 1}),
+        }
+
+
 @admin.register(Metabolite)
 class MetaboliteAdmin(nested_admin.NestedModelAdmin):
+    form = MetaboliteAdminForm
     delete_confirmation_template = 'admin/experiments_base/metabolite/delete_confirmation.html'
 
     list_display = ('metabolite_name', 'pub_chem_cid', 'hmdb_id', 'iupac_name', 'samples_number', 'comment',

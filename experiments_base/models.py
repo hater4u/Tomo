@@ -467,14 +467,15 @@ class Experiment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
 
     comments = models.CharField(max_length=1024, verbose_name='Comments', blank=True)
-    additional_properties = models.ManyToManyField(AdditionalProperty, verbose_name='Additional properties',
-                                                   blank=True)
+    additional_properties = models.ManyToManyField(AdditionalProperty, verbose_name='Additional properties', blank=True)
+
+    connected_experiments = models.ManyToManyField('self', verbose_name='Connected experiments', blank=True)
 
     experiment_folder = models.CharField(default='old_experiment', max_length=128, verbose_name='Experiment folder')
 
     def __str__(self):
         parent_name = 'ROOT' if self.taxon_id.taxon_name == '' else self.taxon_id.taxon_name
-        return '{0} ({1})'.format(self.experiment_name, parent_name)
+        return '{0} ({1}) id: {2}'.format(self.experiment_name, parent_name, self.pk)
 
     def save(self, *args, **kwargs):
         if not self.pk:
